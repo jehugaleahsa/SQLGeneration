@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class Union : SelectCombiner
     {
         /// <summary>
-        /// Creates a new Union.
+        /// Initializes a new instance of a Union.
         /// </summary>
         public Union()
         {

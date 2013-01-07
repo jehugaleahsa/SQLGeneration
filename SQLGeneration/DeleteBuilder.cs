@@ -12,7 +12,7 @@ namespace SQLGeneration
         private readonly IFilterGroup _where;
 
         /// <summary>
-        /// Creates a new DeleteBuilder.
+        /// Initializes a new instance of a DeleteBuilder.
         /// </summary>
         /// <param name="table">The table being deleted from.</param>
         public DeleteBuilder(ITable table)

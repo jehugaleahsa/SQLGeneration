@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class InnerJoin : Join, IInnerJoin
     {
         /// <summary>
-        /// Creates a new InnerJoin.
+        /// Initializes a new instance of a InnerJoin.
         /// </summary>
         /// <param name="leftHand">The left hand item in the join.</param>
         /// <param name="rightHand">The right hand item in the join.</param>

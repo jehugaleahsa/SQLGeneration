@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class UnionAll : SelectCombiner
     {
         /// <summary>
-        /// Creates a new UnionAll.
+        /// Initializes a new instance of a UnionAll.
         /// </summary>
         public UnionAll()
         {

@@ -88,6 +88,15 @@ namespace SQLGeneration.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Encountered a null or blank parameter prefix..
+        /// </summary>
+        internal static string BlankParameterPrefix {
+            get {
+                return ResourceManager.GetString("BlankParameterPrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Encountered a null or blank schema name..
         /// </summary>
         internal static string BlankSchemaName {

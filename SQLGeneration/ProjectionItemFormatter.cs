@@ -9,7 +9,7 @@ namespace SQLGeneration
     public class ProjectionItemFormatter
     {
         /// <summary>
-        /// Creates a new ProjectionItemFormatter.
+        /// Initializes a new instance of a ProjectionItemFormatter.
         /// </summary>
         public ProjectionItemFormatter()
         {

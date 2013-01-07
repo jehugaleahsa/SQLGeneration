@@ -14,7 +14,7 @@ namespace SQLGeneration
         private string _alias; 
 
         /// <summary>
-        /// Creates a new Table.
+        /// Initializes a new instance of a Table.
         /// </summary>
         /// <param name="name">The name of the table.</param>
         public Table(string name)
@@ -23,7 +23,7 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Creates a new Table.
+        /// Initializes a new instance of a Table.
         /// </summary>
         /// <param name="schema">The schema the table belongs to.</param>
         /// <param name="name">The name of the table.</param>

@@ -10,7 +10,7 @@ namespace SQLGeneration
         private string _alias;
 
         /// <summary>
-        /// Creates a new NullLiteral.
+        /// Initializes a new instance of a NullLiteral.
         /// </summary>
         public NullLiteral()
         {

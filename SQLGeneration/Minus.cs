@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class Minus : SelectCombiner
     {
         /// <summary>
-        /// Creates a new Minus.
+        /// Initializes a new instance of a Minus.
         /// </summary>
         public Minus()
         {

@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class PlusExpression : ArithmeticExpression
     {
         /// <summary>
-        /// Creates a new PlusExpression.
+        /// Initializes a new instance of a PlusExpression.
         /// </summary>
         /// <param name="leftHand">The left hand side of the expression.</param>
         /// <param name="rightHand">The right hand side of the expression.</param>

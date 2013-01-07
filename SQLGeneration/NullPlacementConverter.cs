@@ -28,7 +28,7 @@ namespace SQLGeneration
     internal class NullPlacementConverter
     {
         /// <summary>
-        /// Creates a new NullPlacementConverter.
+        /// Initializes a new instance of a NullPlacementConverter.
         /// </summary>
         public NullPlacementConverter()
         {

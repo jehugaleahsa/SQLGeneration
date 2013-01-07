@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class LessThanFilter : ComparisonFilter
     {
         /// <summary>
-        /// Creates a new LessThanFilter.
+        /// Initializes a new instance of a LessThanFilter.
         /// </summary>
         /// <param name="leftHand">The left hand item.</param>
         /// <param name="rightHand">The right hand item.</param>

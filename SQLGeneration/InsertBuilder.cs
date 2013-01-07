@@ -16,7 +16,7 @@ namespace SQLGeneration
         private readonly IValueProvider _values;
 
         /// <summary>
-        /// Creates a new InsertBuilder.
+        /// Initializes a new instance of a InsertBuilder.
         /// </summary>
         /// <param name="table">The table being inserted into.</param>
         /// <param name="values">The values to insert into the table.</param>

@@ -126,6 +126,9 @@
   <data name="BlankParameterName" xml:space="preserve">
     <value>Encountered a null or blank parameter name.</value>
   </data>
+  <data name="BlankParameterPrefix" xml:space="preserve">
+    <value>Encountered a null or blank parameter prefix.</value>
+  </data>
   <data name="BlankSchemaName" xml:space="preserve">
     <value>Encountered a null or blank schema name.</value>
   </data>

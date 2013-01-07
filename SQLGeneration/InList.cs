@@ -13,7 +13,7 @@ namespace SQLGeneration
         private readonly List<IProjectionItem> _values;
 
         /// <summary>
-        /// Creates a new InList.
+        /// Initializes a new instance of a InList.
         /// </summary>
         public InList()
         {

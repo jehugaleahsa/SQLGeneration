@@ -14,7 +14,7 @@ namespace SQLGeneration
         private NullPlacement _placement;
 
         /// <summary>
-        /// Creates a new OrderBy.
+        /// Initializes a new instance of a OrderBy.
         /// </summary>
         /// <param name="item">The item to sort by.</param>
         public OrderBy(IProjectionItem item)
@@ -23,7 +23,7 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Creates a new OrderBy.
+        /// Initializes a new instance of a OrderBy.
         /// </summary>
         /// <param name="item">The item to sort by.</param>
         /// <param name="order">The order in which to sort the items.</param>
@@ -33,7 +33,7 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Creates a new OrderBy.
+        /// Initializes a new instance of a OrderBy.
         /// </summary>
         /// <param name="item">The item to sort by.</param>
         /// <param name="order">The order in which to sort the items.</param>

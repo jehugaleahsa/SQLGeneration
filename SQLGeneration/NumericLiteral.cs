@@ -12,14 +12,14 @@ namespace SQLGeneration
         private string _alias;
 
         /// <summary>
-        /// Creates a new NumericLiteral.
+        /// Initializes a new instance of a NumericLiteral.
         /// </summary>
         public NumericLiteral()
         {
         }
 
         /// <summary>
-        /// Creates a new NumericLiteral.
+        /// Initializes a new instance of a NumericLiteral.
         /// </summary>
         /// <param name="value">The value to make the literal.</param>
         public NumericLiteral(decimal value)

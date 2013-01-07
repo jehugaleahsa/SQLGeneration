@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class LeftOuterJoin : Join, ILeftOuterJoin
     {
         /// <summary>
-        /// Creates a new LeftOuterJoin.
+        /// Initializes a new instance of a LeftOuterJoin.
         /// </summary>
         /// <param name="leftHand">The left hand item in the join.</param>
         /// <param name="rightHand">The right hand item in the join.</param>

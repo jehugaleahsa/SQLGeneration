@@ -12,7 +12,7 @@ namespace SQLGeneration
         private bool _isNull;
 
         /// <summary>
-        /// Creates a new NullFilter.
+        /// Initializes a new instance of a NullFilter.
         /// </summary>
         /// <param name="item">The item to check whether or not is null.</param>
         public NullFilter(IFilterItem item)
@@ -21,7 +21,7 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Creates a new NullFilter.
+        /// Initializes a new instance of a NullFilter.
         /// </summary>
         /// <param name="item">The item to check whether or not is null.</param>
         /// <param name="isNull">Specifies whether to check if the column is null or not null.</param>

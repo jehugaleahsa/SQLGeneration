@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class NotEqualToFilter : ComparisonFilter
     {
         /// <summary>
-        /// Creates a new NotEqualToFilter.
+        /// Initializes a new instance of a NotEqualToFilter.
         /// </summary>
         /// <param name="leftHand">The left hand item.</param>
         /// <param name="rightHand">The right hand item.</param>

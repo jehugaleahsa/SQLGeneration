@@ -13,7 +13,7 @@ namespace SQLGeneration
         private string _alias;
 
         /// <summary>
-        /// Creates a new Parameter.
+        /// Initializes a new instance of a Parameter.
         /// </summary>
         /// <param name="decorator">The provider-specific parameter decorator.</param>
         /// <param name="name">The name of the parameter.</param>

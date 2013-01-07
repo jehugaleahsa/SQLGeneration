@@ -14,7 +14,7 @@ namespace SQLGeneration
         private bool _wrapInParentheses;
 
         /// <summary>
-        /// Creates a new Filter.
+        /// Initializes a new instance of a Filter.
         /// </summary>
         protected Filter()
         {

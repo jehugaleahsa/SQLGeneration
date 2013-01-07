@@ -18,7 +18,7 @@ namespace SQLGeneration
         private string _alias;
 
         /// <summary>
-        /// Creates a new Join.
+        /// Initializes a new instance of a Join.
         /// </summary>
         /// <param name="leftHand">The left hand table, join or sub-query.</param>
         /// <param name="rightHand">The right hand table, join or sub-query.</param>

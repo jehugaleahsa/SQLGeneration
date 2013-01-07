@@ -12,7 +12,7 @@ namespace SQLGeneration
         private string _alias;
 
         /// <summary>
-        /// Creates a new StringLiteral.
+        /// Initializes a new instance of a StringLiteral.
         /// </summary>
         public StringLiteral()
         {
@@ -20,7 +20,7 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Creates a new StringLiteral.
+        /// Initializes a new instance of a StringLiteral.
         /// </summary>
         /// <param name="value">The string value.</param>
         public StringLiteral(string value)

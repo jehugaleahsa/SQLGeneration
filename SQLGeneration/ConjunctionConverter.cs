@@ -24,7 +24,7 @@ namespace SQLGeneration
     internal class ConjunctionConverter
     {
         /// <summary>
-        /// Creates a new ConjunctionConverter.
+        /// Initializes a new instance of a ConjunctionConverter.
         /// </summary>
         public ConjunctionConverter()
         {

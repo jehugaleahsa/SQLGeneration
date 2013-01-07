@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class MultiplyExpression : ArithmeticExpression
     {
         /// <summary>
-        /// Creates a new MultiplyExpression.
+        /// Initializes a new instance of a MultiplyExpression.
         /// </summary>
         /// <param name="leftHand">The left hand side of the expression.</param>
         /// <param name="rightHand">The right hand side of the expression.</param>

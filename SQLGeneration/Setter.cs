@@ -11,7 +11,7 @@ namespace SQLGeneration
         private readonly IProjectionItem _value;
 
         /// <summary>
-        /// Creates a new Setter.
+        /// Initializes a new instance of a Setter.
         /// </summary>
         /// <param name="column">The name of the column to set.</param>
         /// <param name="value">The value to set the column to.</param>

@@ -14,7 +14,7 @@ namespace SQLGeneration
         private readonly List<IFilter> _filters;
 
         /// <summary>
-        /// Creates a new FilterGroup.
+        /// Initializes a new instance of a FilterGroup.
         /// </summary>
         public FilterGroup()
         {

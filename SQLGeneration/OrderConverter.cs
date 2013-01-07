@@ -28,7 +28,7 @@ namespace SQLGeneration
     internal class OrderConverter
     {
         /// <summary>
-        /// Creates a new OrderConverter.
+        /// Initializes a new instance of a OrderConverter.
         /// </summary>
         public OrderConverter()
         {

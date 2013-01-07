@@ -17,7 +17,7 @@ namespace SQLGeneration
         private readonly IFilterGroup _where;
 
         /// <summary>
-        /// Creates a new UpdateBuilder.
+        /// Initializes a new instance of a UpdateBuilder.
         /// </summary>
         /// <param name="table">The table being updated.</param>
         public UpdateBuilder(ITable table)

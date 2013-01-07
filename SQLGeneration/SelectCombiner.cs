@@ -16,7 +16,7 @@ namespace SQLGeneration
         private string _alias;
 
         /// <summary>
-        /// Creates a new QueryCombiner.
+        /// Initializes a new instance of a QueryCombiner.
         /// </summary>
         protected SelectCombiner()
         {

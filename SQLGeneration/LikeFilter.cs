@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class LikeFilter : ComparisonFilter
     {
         /// <summary>
-        /// Creates a new LikeFilter.
+        /// Initializes a new instance of a LikeFilter.
         /// </summary>
         /// <param name="leftHand">The left hand item.</param>
         /// <param name="rightHand">The right hand item.</param>

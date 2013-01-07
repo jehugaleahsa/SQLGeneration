@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class InFilter : ComparisonFilter
     {
         /// <summary>
-        /// Creates a new InFilter.
+        /// Initializes a new instance of a InFilter.
         /// </summary>
         /// <param name="leftHand">The left hand value that must exist in the list of values.</param>
         /// <param name="values">The list of values the left hand must exist in.</param>

@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class Intersect : SelectCombiner
     {
         /// <summary>
-        /// Creates a new Intersect.
+        /// Initializes a new instance of a Intersect.
         /// </summary>
         public Intersect()
         {

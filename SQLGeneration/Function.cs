@@ -15,7 +15,7 @@ namespace SQLGeneration
         private string _alias;
 
         /// <summary>
-        /// Creates a new Function.
+        /// Initializes a new instance of a Function.
         /// </summary>
         /// <param name="name">The name of the function.</param>
         public Function(string name)
@@ -24,7 +24,7 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Creates a new Function.
+        /// Initializes a new instance of a Function.
         /// </summary>
         /// <param name="schema">The schema the function exists in.</param>
         /// <param name="name">The name of the function.</param>

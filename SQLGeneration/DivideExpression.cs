@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class DivideExpression : ArithmeticExpression
     {
         /// <summary>
-        /// Creates a new DivideExpression.
+        /// Initializes a new instance of a DivideExpression.
         /// </summary>
         /// <param name="leftHand">The left hand side of the expression.</param>
         /// <param name="rightHand">The right hand side of the expression.</param>

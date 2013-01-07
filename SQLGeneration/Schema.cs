@@ -11,7 +11,7 @@ namespace SQLGeneration
         private string _name;
 
         /// <summary>
-        /// Creates a new Schema.
+        /// Initializes a new instance of a Schema.
         /// </summary>
         /// <param name="name">The name of the schema.</param>
         public Schema(string name)

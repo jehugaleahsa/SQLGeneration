@@ -13,7 +13,7 @@ namespace SQLGeneration
         private readonly IFilterItem _upperBound;
 
         /// <summary>
-        /// Creates a new NullFilter.
+        /// Initializes a new instance of a NullFilter.
         /// </summary>
         /// <param name="value">The item to check whether is within a range.</param>
         /// <param name="lowerBound">The smallest value the item can be.</param>

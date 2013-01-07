@@ -14,7 +14,7 @@ namespace SQLGeneration
         private string _alias;
 
         /// <summary>
-        /// Creates a new ArithmeticExpression.
+        /// Initializes a new instance of a ArithmeticExpression.
         /// </summary>
         /// <param name="leftHand">The left hand side of the expression.</param>
         /// <param name="rightHand">The right hand side of the expression.</param>

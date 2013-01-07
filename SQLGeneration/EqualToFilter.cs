@@ -8,7 +8,7 @@ namespace SQLGeneration
     public class EqualToFilter : ComparisonFilter
     {
         /// <summary>
-        /// Creates a new EqualToFilter.
+        /// Initializes a new instance of a EqualToFilter.
         /// </summary>
         /// <param name="leftHand">The left hand item.</param>
         /// <param name="rightHand">The right hand item.</param>

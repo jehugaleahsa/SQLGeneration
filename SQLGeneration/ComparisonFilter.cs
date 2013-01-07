@@ -11,7 +11,7 @@ namespace SQLGeneration
         private readonly IFilterItem _rightHand;
 
         /// <summary>
-        /// Creates a new ComparisonFilter.
+        /// Initializes a new instance of a ComparisonFilter.
         /// </summary>
         /// <param name="leftHand">The left hand side of the comparison.</param>
         /// <param name="rightHand">The right hand side of the comparison.</param>

@@ -23,7 +23,7 @@ namespace SQLGeneration
         private readonly IFilterGroup _having;
 
         /// <summary>
-        /// Creates a new QueryBuilder.
+        /// Initializes a new instance of a QueryBuilder.
         /// </summary>
         public SelectBuilder()
         {

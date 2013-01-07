@@ -14,7 +14,7 @@ namespace SQLGeneration
         private string _alias;
 
         /// <summary>
-        /// Creates a new Column.
+        /// Initializes a new instance of a Column.
         /// </summary>
         /// <param name="joinItem">The join item that the column belongs to.</param>
         /// <param name="name">The name of the column.</param>
