@@ -18,14 +18,14 @@ Here's a "Hello World" example that runs on SQL Server:
 
     SelectBuilder builder = new SelectBuilder();
     builder.AddProjection(new StringLiteral("Hello, World!!!"));
-    string commandText = builder.GetCommandText();  // Hello, World!!!
+    string commandText = builder.GetCommandText();  // SELECT 'Hello, World!!!' 
     
 Here's the same example that runs on Oracle:
 
     SelectBuilder builder = new SelectBuilder();
     builder.AddProjection(new StringLiteral("Hello, World!!!"));
     builer.AddJoinItem(new Table("dual"));
-    string commandText = builder.GetCommandText();  // Hello, World!!!
+    string commandText = builder.GetCommandText();  // SELECT 'Hello, World!!!' FROM dual
     
 Now, here's a more realistic example that simply grabs some records:
 
@@ -51,3 +51,59 @@ Now, here's a more realistic example that simply grabs some records:
     
     // ORDER BY o.OrderDate DESC
     builder.AddOrderBy(new OrderBy(orderDate, Order.Descending));
+
+As you can see, the length of the code can get quite long when dealing with realistic queries. However, this code also demonstrates where SQLGeneration is really useful. It will automatically prefix every reference to the defined columns with the table name (or alias, if provided).
+
+Here's a quick example of inserting into a table:
+
+    Table customer = new Table("customer");
+    InList values = new InList();
+    InsertBuilder builder = new InsertBuilder(customer, values);
+    builder.AddColumn(customer.CreateColumn("FirstName"));
+    builder.AddColumn(customer.CreateColumn("LastName"));
+    values.AddValue(new StringLiteral("John"));
+    values.AddValue(new StringLiteral("Doe"));
+    string commandText = builder.GetCommandText();  // INSERT INTO customer (FirstName, LastName) VALUES('John', 'Doe')
+    
+You can also insert the results of a select statement:
+
+    // INSERT INTO CustomerCount (Count)
+    Table customerCount = new Table("CustomerCount");
+    SelectBuilder values = new SelectBuilder();
+    InsertBuilder builder = new InsertBuilder(customerCount, values);
+    builder.AddColumn(customerCount.CreateColumn("Count"));
+    
+    // (SELECT COUNT(1) FROM Customer)
+    Table customer = new Table("Customer");
+    Function function = new Function("COUNT");
+    function.Arguments.AddValue(new NumericLiteral(1));
+    values.AddProjection(function);
+    values.AddJoinItem(customer);
+    
+Updates follow a similar pattern:
+
+    // UPDATE customer
+    Table customer = new Table("customer");
+    UpdateBuilder builder = new UpdateBuilder(customer);
+    
+    // SET FirstName = 'John', LastName = 'Doe'
+    Column firstName = customer.CreateColumn("FirstName");
+    Column lastName = customer.CreateColumn("LastName");
+    builder.AddSetter(new Setter(firstName, new StringLiteral("John")));
+    builder.AddSetter(new Setter(lastName, new StringLiteral("Doe")));
+    
+    // WHERE CustomerId = 123
+    Column customerId = customer.CreateColumn("CustomerId");
+    IFilter filter = new EqualToFilter(customerId, new NumericLiteral(123));
+    builder.Where.AddFilter(filter);
+    
+Finally, here is an example doing a delete:
+
+    Table customer = new Table("customer");
+    DeleteBuilder builder = new DeleteBuilder(customer);
+    Column customerId = customer.CreateColumn("CustomerId");
+    PrefixParameterDecorator decorator = new PrefixParameterDecorator("@");
+    IParameter parameter = new Parameter(decorator, "customerId");
+    IFilter filter = new EqualToFilter(customerId, parameter);
+    builder.Where.AddFilter(filter);
+    string commandText = builder.GetCommandText();  // DELETE FROM customer WHERE CustomerId = @customerId
