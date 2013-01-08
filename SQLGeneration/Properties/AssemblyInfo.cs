@@ -8,7 +8,7 @@ using System.Resources;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SQLGeneration")]
-[assembly: AssemblyDescription("Provides starter code for generating SQL at runtime.")]
+[assembly: AssemblyDescription("An object model for generating SQL at runtime.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Truncon")]
 [assembly: AssemblyProduct("SQLGeneration")]
@@ -35,6 +35,6 @@ using System.Resources;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.2.0")]
-[assembly: AssemblyFileVersion("1.0.2.0")]
+[assembly: AssemblyVersion("1.0.3.0")]
+[assembly: AssemblyFileVersion("1.0.3.0")]
 [assembly: NeutralResourcesLanguageAttribute("en-US")]

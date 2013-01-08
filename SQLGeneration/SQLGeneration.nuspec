@@ -3,13 +3,13 @@
   <metadata>
     <id>$id$</id>
     <version>$version$</version>
-	<title>$title$</title>
+    <title>$title$</title>
     <authors>$author$</authors>
-    <owners>jehugaleahsa</owners>
-	<projectUrl>http://github.com/jehugaleahsa/sqlgeneration</projectUrl>
+    <owners>$author$</owners>
+    <projectUrl>http://github.com/jehugaleahsa/sqlgeneration</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Initial commit</releaseNotes>
+    <releaseNotes>NuGet deployment issues.</releaseNotes>
     <copyright>Copyright 2013</copyright>
     <tags>SQL generation builder building command select insert update delete</tags>
   </metadata>
