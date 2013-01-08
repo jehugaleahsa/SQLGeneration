@@ -43,9 +43,8 @@ Now, here's a more realistic example that simply grabs some records:
     builder.AddJoinItem(join);
     
     // WHERE o.OrderDate > @orderDate
-    PrefixParameterDecorator decorator = new PrefixParameterDecorator("@");
     Column orderDate = order.CreateColumn("OrderDate");
-    Parameter orderDateParameter = new Parameter(decorator, "orderDate");
+    Parameter orderDateParameter = new Parameter("@orderDate");
     IFilter filter = new GreaterThanFilter(orderDate, orderDateParameter);
     builder.Where.AddFilter(filter);
     
@@ -102,8 +101,7 @@ Finally, here is an example doing a delete:
     Table customer = new Table("customer");
     DeleteBuilder builder = new DeleteBuilder(customer);
     Column customerId = customer.CreateColumn("CustomerId");
-    PrefixParameterDecorator decorator = new PrefixParameterDecorator("@");
-    IParameter parameter = new Parameter(decorator, "customerId");
+    IParameter parameter = new Parameter("@customerId");
     IFilter filter = new EqualToFilter(customerId, parameter);
     builder.Where.AddFilter(filter);
     string commandText = builder.GetCommandText();  // DELETE FROM customer WHERE CustomerId = @customerId
