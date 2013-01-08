@@ -8,26 +8,19 @@ namespace SQLGeneration
     /// </summary>
     public class Parameter : IParameter
     {
-        private readonly IParameterDecorator _decorator;
         private readonly string _name;
         private string _alias;
 
         /// <summary>
         /// Initializes a new instance of a Parameter.
         /// </summary>
-        /// <param name="decorator">The provider-specific parameter decorator.</param>
         /// <param name="name">The name of the parameter.</param>
-        public Parameter(IParameterDecorator decorator, string name)
+        public Parameter(string name)
         {
-            if (decorator == null)
-            {
-                throw new ArgumentNullException("decorator");
-            }
             if (String.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentException(Resources.BlankParameterName, "name");
             }
-            _decorator = decorator;
             _name = name;
         }
 
@@ -59,17 +52,17 @@ namespace SQLGeneration
 
         string IProjectionItem.GetFullText()
         {
-            return _decorator.DecorateParameter(_name);
+            return _name;
         }
 
         string IFilterItem.GetFilterItemText()
         {
-            return _decorator.DecorateParameter(_name);
+            return _name;
         }
 
         string IGroupByItem.GetGroupByItemText()
         {
-            return _decorator.DecorateParameter(_name);
+            return _name;
         }
     }
 }
