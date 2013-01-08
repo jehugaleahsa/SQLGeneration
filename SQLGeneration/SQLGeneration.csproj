@@ -42,11 +42,9 @@
     <Compile Include="Column.cs" />
     <Compile Include="ComparisonFilter.cs" />
     <Compile Include="ConjunctionConverter.cs" />
-    <Compile Include="PrefixParameterDecorator.cs" />
     <Compile Include="DeleteBuilder.cs" />
     <Compile Include="DivideExpression.cs" />
     <Compile Include="IArithmetic.cs" />
-    <Compile Include="IParameterDecorator.cs" />
     <Compile Include="ITop.cs" />
     <Compile Include="SQLGenerationException.cs" />
     <Compile Include="EqualToFilter.cs" />
