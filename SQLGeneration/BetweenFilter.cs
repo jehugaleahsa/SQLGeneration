@@ -62,6 +62,15 @@ namespace SQLGeneration
         }
 
         /// <summary>
+        /// Gets or sets whether to negate the results of the filter.
+        /// </summary>
+        public new bool Not
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets the filter text without parentheses or a not.
         /// </summary>
         /// <param name="context">The configuration to use when building the command.</param>
@@ -69,8 +78,11 @@ namespace SQLGeneration
         protected override string GetFilterText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder(_value.GetFilterItemText(context));
+            if (Not)
+            {
+                result.Append(" NOT");
+            }
             result.Append(" BETWEEN ");
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter();
             result.Append(_lowerBound.GetFilterItemText(context));
             result.Append(" AND ");
             result.Append(_upperBound.GetFilterItemText(context));

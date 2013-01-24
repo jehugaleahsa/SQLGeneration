@@ -11,7 +11,6 @@ namespace SQLGeneration
     {
         private readonly ISchema _schema;
         private readonly string _name;
-        private string _alias; 
 
         /// <summary>
         /// Initializes a new instance of a Table.
@@ -64,14 +63,8 @@ namespace SQLGeneration
         /// </summary>
         public string Alias
         {
-            get
-            {
-                return _alias;
-            }
-            set
-            {
-                _alias = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -84,7 +77,7 @@ namespace SQLGeneration
             return new Column(this, columnName);
         }
 
-        IColumn IJoinItem.CreateColumn(string columnName)
+        IColumn IColumnSource.CreateColumn(string columnName)
         {
             return CreateColumn(columnName);
         }
@@ -100,7 +93,7 @@ namespace SQLGeneration
             return new Column(this, columnName) { Alias = alias };
         }
 
-        IColumn IJoinItem.CreateColumn(string columnName, string alias)
+        IColumn IColumnSource.CreateColumn(string columnName, string alias)
         {
             return CreateColumn(columnName, alias);
         }
@@ -108,24 +101,28 @@ namespace SQLGeneration
         string IJoinItem.GetDeclaration(BuilderContext context, IFilterGroup where)
         {
             StringBuilder result = new StringBuilder(getFullName());
-            if (!String.IsNullOrWhiteSpace(_alias))
+            if (!String.IsNullOrWhiteSpace(Alias))
             {
-                result.Append(" ");
-                result.Append(_alias);
+                result.Append(' ');
+                if (context.Options.AliasJoinItemsUsingAs)
+                {
+                    result.Append("AS ");
+                }
+                result.Append(Alias);
             }
             return result.ToString();
         }
 
-        string IJoinItem.GetReference(BuilderContext context)
+        string IColumnSource.GetReference(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
-            if (String.IsNullOrWhiteSpace(_alias))
+            if (String.IsNullOrWhiteSpace(Alias))
             {
                 result.Append(getFullName());
             }
             else
             {
-                result.Append(_alias);
+                result.Append(Alias);
             }
             return result.ToString();
         }

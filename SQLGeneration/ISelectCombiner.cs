@@ -6,7 +6,7 @@ namespace SQLGeneration
     /// <summary>
     /// Performs a set operation on the results of two queries.
     /// </summary>
-    public interface ISelectCombiner : ICommandBuilder, IJoinItem, IProjectionItem, IValueProvider
+    public interface ISelectCombiner : ICommandBuilder, IColumnSource, IProjectionItem, IValueProvider
     {
         /// <summary>
         /// Gets the queries that are to be combined.

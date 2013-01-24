@@ -10,7 +10,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the join item that the column belongs to.
         /// </summary>
-        IJoinItem JoinItem
+        IColumnSource Source
         {
             get;
         }

@@ -9,31 +9,30 @@ namespace SQLGeneration
     /// </summary>
     public class Column : IColumn
     {
-        private readonly IJoinItem _joinItem;
-        private readonly string _name;
-        private string _alias;
+        private readonly IColumnSource source;
+        private readonly string name;
 
         /// <summary>
         /// Initializes a new instance of a Column.
         /// </summary>
-        /// <param name="joinItem">The join item that the column belongs to.</param>
+        /// <param name="source">The column source that the column belongs to.</param>
         /// <param name="name">The name of the column.</param>
-        internal Column(IJoinItem joinItem, string name)
+        internal Column(IColumnSource source, string name)
         {
             if (String.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentException(Resources.BlankColumnName, "name");
             }
-            _joinItem = joinItem;
-            _name = name;
+            this.source = source;
+            this.name = name;
         }
 
         /// <summary>
         /// Gets the table that the column belongs to.
         /// </summary>
-        public IJoinItem JoinItem
+        public IColumnSource Source
         {
-            get { return _joinItem; }
+            get { return source; }
         }
 
         /// <summary>
@@ -43,7 +42,7 @@ namespace SQLGeneration
         {
             get
             {
-                return _name;
+                return name;
             }
         }
 
@@ -52,43 +51,38 @@ namespace SQLGeneration
         /// </summary>
         public string Alias
         {
-            get
-            {
-                return _alias;
-            }
-            set
-            {
-                _alias = value;
-            }
+            get;
+            set;
         }
 
         string IProjectionItem.GetFullText(BuilderContext context)
         {
-            StringBuilder result = new StringBuilder();
-            string table = _joinItem.GetReference(context);
-            result.Append(table);
-            result.Append(".");
-            result.Append(_name);
-            return result.ToString();
+            return getColumnText(context);
         }
 
         string IFilterItem.GetFilterItemText(BuilderContext context)
         {
-            StringBuilder result = new StringBuilder();
-            string table = _joinItem.GetReference(context);
-            result.Append(table);
-            result.Append(".");
-            result.Append(_name);
-            return result.ToString();
+            return getColumnText(context);
         }
 
         string IGroupByItem.GetGroupByItemText(BuilderContext context)
         {
+            return getColumnText(context);
+        }
+
+        private string getColumnText(BuilderContext context)
+        {
             StringBuilder result = new StringBuilder();
-            string table = _joinItem.GetReference(context);
-            result.Append(table);
-            result.Append(".");
-            result.Append(_name);
+            if (context.IsSelect
+                || (context.IsInsert && context.Options.QualifyInsertColumns)
+                || (context.IsUpdate && context.Options.QualifyUpdateColumn)
+                || (context.IsDelete && context.Options.QualifyDeleteColumns))
+            {
+                string table = source.GetReference(context);
+                result.Append(table);
+                result.Append(".");
+            }
+            result.Append(name);
             return result.ToString();
         }
     }

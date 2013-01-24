@@ -8,20 +8,23 @@ namespace SQLGeneration
     /// </summary>
     public class ProjectionItemFormatter
     {
+        private readonly BuilderContext context;
+
         /// <summary>
         /// Initializes a new instance of a ProjectionItemFormatter.
         /// </summary>
-        public ProjectionItemFormatter()
+        /// <param name="context">The configuration to use when building the command.</param>
+        public ProjectionItemFormatter(BuilderContext context)
         {
+            this.context = context;
         }
 
         /// <summary>
         /// Gets the declaration of a projection item.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
         /// <param name="item">The item being declared.</param>
         /// <returns>A string declaring the projection item.</returns>
-        public string GetDeclaration(BuilderContext context, IProjectionItem item)
+        public string GetDeclaration(IProjectionItem item)
         {
             if (item == null)
             {
@@ -31,7 +34,11 @@ namespace SQLGeneration
             result.Append(item.GetFullText(context));
             if (!String.IsNullOrWhiteSpace(item.Alias))
             {
-                result.Append(" AS ");
+                if (context.Options.AliasProjectionsUsingAs)
+                {
+                    result.Append(" AS");
+                }
+                result.Append(' ');
                 result.Append(item.Alias);
             }
             return result.ToString();
@@ -40,10 +47,9 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the alias of the projection item if it exists; otherwise, its full text.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
         /// <param name="item">The item being printed.</param>
         /// <returns>A string referencing the projection item.</returns>
-        public string GetAliasedReference(BuilderContext context, IProjectionItem item)
+        public string GetAliasedReference(IProjectionItem item)
         {
             if (item == null)
             {
@@ -62,10 +68,9 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the full text of the projection item.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
         /// <param name="item">The item being printed.</param>
         /// <returns>A string referencing the projection item.</returns>
-        public string GetUnaliasedReference(BuilderContext context, IProjectionItem item)
+        public string GetUnaliasedReference(IProjectionItem item)
         {
             if (item == null)
             {

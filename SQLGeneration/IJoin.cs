@@ -11,7 +11,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets or sets whether the join should be wrapped in parentheses.
         /// </summary>
-        bool WrapInParentheses
+        bool? WrapInParentheses
         {
             get;
             set;
@@ -32,26 +32,5 @@ namespace SQLGeneration
         {
             get;
         }
-
-        /// <summary>
-        /// Gets the filters by which the left and right hand items are joined.
-        /// </summary>
-        IEnumerable<IFilter> On
-        {
-            get;
-        }
-
-        /// <summary>
-        /// Adds a condition by which the items are joined.
-        /// </summary>
-        /// <param name="filter">The join condition.</param>
-        void AddFilter(IFilter filter);
-
-        /// <summary>
-        /// Removes a condition by which the items are joined.
-        /// </summary>
-        /// <param name="filter">The join condition.</param>
-        /// <returns>True if the filter was removed; otherwise, false.</returns>
-        bool RemoveFilter(IFilter filter);
     }
 }

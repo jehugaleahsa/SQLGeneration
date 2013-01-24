@@ -47,8 +47,8 @@ namespace SQLGeneration
 
         string ISetter.GetSetterText(BuilderContext context)
         {
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter();
-            return formatter.GetUnaliasedReference(context, _column) + " = " + formatter.GetUnaliasedReference(context, _value);
+            ProjectionItemFormatter formatter = new ProjectionItemFormatter(context);
+            return formatter.GetUnaliasedReference(_column) + " = " + formatter.GetUnaliasedReference(_value);
         }
     }
 }

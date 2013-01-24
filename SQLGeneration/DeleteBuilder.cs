@@ -76,11 +76,30 @@ namespace SQLGeneration
         /// <returns>The command text.</returns>
         public string GetCommandText(BuilderContext context)
         {
+            context = context.Clone();
+            context.IsSelect = false;
+            context.IsInsert = false;
+            context.IsUpdate = false;
+            context.IsDelete = true;
+
+            return getCommandText(context);
+        }
+
+        private string getCommandText(BuilderContext context)
+        {
             StringBuilder result = new StringBuilder("DELETE FROM ");
             result.Append(_table.GetDeclaration(context, _where));
+            if (context.Options.OneClausePerLine)
+            {
+                result.AppendLine();
+            }
+            else
+            {
+                result.Append(' ');
+            }
             if (_where.HasFilters)
             {
-                result.Append(" WHERE ");
+                result.Append("WHERE ");
                 result.Append(_where.GetFilterText(context));
             }
             return result.ToString();

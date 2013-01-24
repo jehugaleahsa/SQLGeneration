@@ -7,8 +7,6 @@ namespace SQLGeneration
     /// </summary>
     public class NullLiteral : ILiteral
     {
-        private string _alias;
-
         /// <summary>
         /// Initializes a new instance of a NullLiteral.
         /// </summary>
@@ -21,14 +19,8 @@ namespace SQLGeneration
         /// </summary>
         public string Alias
         {
-            get
-            {
-                return _alias;
-            }
-            set
-            {
-                _alias = value;
-            }
+            get;
+            set;
         }
 
         string IProjectionItem.GetFullText(BuilderContext context)

@@ -138,6 +138,9 @@
   <data name="EmptyFilterGroup" xml:space="preserve">
     <value>An attempt was made to build an empty filter clause.</value>
   </data>
+  <data name="EmptyOnExpression" xml:space="preserve">
+    <value>An attempt was made to build a join without any filters.</value>
+  </data>
   <data name="NoProjections" xml:space="preserve">
     <value>An attempt was made to build a select command without any projections.</value>
   </data>

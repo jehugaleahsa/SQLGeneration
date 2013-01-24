@@ -10,8 +10,6 @@ namespace SQLGeneration
     public abstract class Filter : IFilter
     {
         private Conjunction _conjunction;
-        private bool _not;
-        private bool _wrapInParentheses;
 
         /// <summary>
         /// Initializes a new instance of a Filter.
@@ -44,46 +42,38 @@ namespace SQLGeneration
         /// </summary>
         public bool Not
         {
-            get
-            {
-                return _not;
-            }
-            set
-            {
-                _not = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
         /// Gets or sets whether to wrap the filter in parentheses.
         /// </summary>
-        public bool WrapInParentheses
+        public bool? WrapInParentheses
         {
-            get
-            {
-                return _wrapInParentheses;
-            }
-            set
-            {
-                _wrapInParentheses = value;
-            }
+            get;
+            set;
         }
 
         string IFilter.GetFilterText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
-            if (_not)
+            if (Not)
             {
                 result.Append("NOT ");
             }
-            bool wrapInParentheses = ShouldWrapInParentheses();
-            if (_not || wrapInParentheses)
+            bool wrapInParentheses = ShouldWrapInParentheses(context);
+            if (Not || wrapInParentheses)
             {
                 result.Append("(");
             }
             result.Append(GetFilterText(context));
-            if (_not || wrapInParentheses)
+            if (Not || wrapInParentheses)
             {
+                if (context.Options.OneFilterPerLine)
+                {
+                    result.Append(context.GetIndentationText());
+                }
                 result.Append(")");
             }
             return result.ToString();
@@ -99,10 +89,11 @@ namespace SQLGeneration
         /// <summary>
         /// Determines whether the filter should be surrounded by parentheses.
         /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
         /// <returns>True if the filter should be surround by parentheses; otherwise, false.</returns>
-        protected virtual bool ShouldWrapInParentheses()
+        protected virtual bool ShouldWrapInParentheses(BuilderContext context)
         {
-            return _wrapInParentheses;
+            return WrapInParentheses ?? context.Options.WrapFiltersInParentheses;
         }
     }
 }

@@ -7,12 +7,12 @@ namespace SQLGeneration
     /// Represents an exception that is thrown when an error occurs within SQLGeneration.
     /// </summary>
     [Serializable]
-    public sealed class SQLGenerationException : Exception
+    public class SQLGenerationException : Exception
     {
         /// <summary>
         /// Initializes a new instance of a SQLGenerationException.
         /// </summary>
-        internal SQLGenerationException()
+        public SQLGenerationException()
         {
         }
 
@@ -20,7 +20,7 @@ namespace SQLGeneration
         /// Initializes a new instance of a SQLGenerationException.
         /// </summary>
         /// <param name="message">A message describing the error.</param>
-        internal SQLGenerationException(string message)
+        public SQLGenerationException(string message)
             : base(message)
         {
         }
@@ -30,7 +30,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="message">A message describing the error.</param>
         /// <param name="innerException">The exception that caused the exception.</param>
-        internal SQLGenerationException(string message, Exception innerException)
+        public SQLGenerationException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
@@ -44,7 +44,7 @@ namespace SQLGeneration
         /// <param name="context">
         /// The System.Runtime.Serialization.StreamingContext that contains contextual information about the source or destination.
         /// </param>
-        internal SQLGenerationException(SerializationInfo info, StreamingContext context)
+        protected SQLGenerationException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }

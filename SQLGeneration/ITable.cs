@@ -5,7 +5,7 @@ namespace SQLGeneration
     /// <summary>
     /// Provides a table name.
     /// </summary>
-    public interface ITable : IJoinItem
+    public interface ITable : IColumnSource
     {
         /// <summary>
         /// Gets or sets the schema the table belongs to.

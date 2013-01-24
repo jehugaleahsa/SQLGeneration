@@ -28,7 +28,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets or sets whether to wrap the filter in parentheses.
         /// </summary>
-        bool WrapInParentheses
+        bool? WrapInParentheses
         {
             get;
             set;

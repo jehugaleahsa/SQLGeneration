@@ -8,9 +8,6 @@ namespace SQLGeneration
     /// </summary>
     public class NumericLiteral : IArithmetic, ILiteral
     {
-        private decimal _value;
-        private string _alias;
-
         /// <summary>
         /// Initializes a new instance of a NumericLiteral.
         /// </summary>
@@ -24,7 +21,7 @@ namespace SQLGeneration
         /// <param name="value">The value to make the literal.</param>
         public NumericLiteral(decimal value)
         {
-            _value = value;
+            Value = value;
         }
 
         /// <summary>
@@ -32,14 +29,8 @@ namespace SQLGeneration
         /// </summary>
         public string Alias
         {
-            get
-            {
-                return _alias;
-            }
-            set
-            {
-                _alias = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -47,29 +38,23 @@ namespace SQLGeneration
         /// </summary>
         public decimal Value
         {
-            get
-            {
-                return _value;
-            }
-            set
-            {
-                _value = value;
-            }
+            get;
+            set;
         }
 
         string IProjectionItem.GetFullText(BuilderContext context)
         {
-            return _value.ToString(CultureInfo.InvariantCulture);
+            return Value.ToString(CultureInfo.InvariantCulture);
         }
 
         string IFilterItem.GetFilterItemText(BuilderContext context)
         {
-            return _value.ToString(CultureInfo.InvariantCulture);
+            return Value.ToString(CultureInfo.InvariantCulture);
         }
 
         string IGroupByItem.GetGroupByItemText(BuilderContext context)
         {
-            return _value.ToString(CultureInfo.InvariantCulture);
+            return Value.ToString(CultureInfo.InvariantCulture);
         }
     }
 }

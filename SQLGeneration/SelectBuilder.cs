@@ -12,10 +12,7 @@ namespace SQLGeneration
     /// </summary>
     public class SelectBuilder : ISelectBuilder
     {
-        private string _alias;
         private readonly List<IJoinItem> _from;
-        private bool _isDistinct;
-        private ITop _top;
         private readonly List<IProjectionItem> _projection;
         private readonly IFilterGroup _where;
         private readonly List<IOrderBy> _orderBy;
@@ -40,14 +37,8 @@ namespace SQLGeneration
         /// </summary>
         public string Alias
         {
-            get
-            {
-                return _alias;
-            }
-            set
-            {
-                _alias = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -55,14 +46,8 @@ namespace SQLGeneration
         /// </summary>
         public bool IsDistinct
         {
-            get
-            {
-                return _isDistinct;
-            }
-            set
-            {
-                _isDistinct = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -70,14 +55,8 @@ namespace SQLGeneration
         /// </summary>
         public ITop Top
         {
-            get
-            {
-                return _top;
-            }
-            set
-            {
-                _top = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -90,7 +69,7 @@ namespace SQLGeneration
             return new Column(this, columnName);
         }
 
-        IColumn IJoinItem.CreateColumn(string columnName)
+        IColumn IColumnSource.CreateColumn(string columnName)
         {
             return CreateColumn(columnName);
         }
@@ -106,7 +85,7 @@ namespace SQLGeneration
             return new Column(this, columnName) { Alias = alias };
         }
 
-        IColumn IJoinItem.CreateColumn(string columnName, string alias)
+        IColumn IColumnSource.CreateColumn(string columnName, string alias)
         {
             return CreateColumn(columnName, alias);
         }
@@ -322,6 +301,12 @@ namespace SQLGeneration
         /// <param name="context">The configuration to use when building the command.</param>
         public string GetCommandText(BuilderContext context)
         {
+            context = context.Clone();
+            context.IsSelect = true;
+            context.IsInsert = false;
+            context.IsUpdate = false;
+            context.IsDelete = false;
+
             return getCommandText(context);
         }
 
@@ -367,7 +352,7 @@ namespace SQLGeneration
         private string getDistinct()
         {
             StringBuilder result = new StringBuilder();
-            if (_isDistinct)
+            if (IsDistinct)
             {
                 result.Append("DISTINCT");
             }
@@ -377,17 +362,17 @@ namespace SQLGeneration
         private string getTop(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
-            if (_top != null)
+            if (Top != null)
             {
-                result.Append(_top.GetTopText(context));
+                result.Append(Top.GetTopText(context));
             }
             return result.ToString();
         }
 
         private string getProjections(BuilderContext context)
         {
-            ProjectionItemFormatter projectionFormatter = new ProjectionItemFormatter();
-            IEnumerable<string> projections = _projection.Select(item => projectionFormatter.GetDeclaration(context, item));
+            ProjectionItemFormatter projectionFormatter = new ProjectionItemFormatter(context);
+            IEnumerable<string> projections = _projection.Select(item => projectionFormatter.GetDeclaration(item));
             StringBuilder projectionSeparator = new StringBuilder(",");
             if (context.Options.OneProjectionPerLine)
             {
@@ -500,21 +485,25 @@ namespace SQLGeneration
         {
             StringBuilder result = new StringBuilder();
             result.Append(getSelectContent(context));
-            if (!String.IsNullOrWhiteSpace(_alias))
+            if (!String.IsNullOrWhiteSpace(Alias))
             {
-                result.Append(" ");
-                result.Append(_alias);
+                result.Append(' ');
+                if (context.Options.AliasJoinItemsUsingAs)
+                {
+                    result.Append("AS ");
+                }
+                result.Append(Alias);
             }
             return result.ToString();
         }
 
-        string IJoinItem.GetReference(BuilderContext context)
+        string IColumnSource.GetReference(BuilderContext context)
         {
-            if (String.IsNullOrWhiteSpace(_alias))
+            if (String.IsNullOrWhiteSpace(Alias))
             {
                 throw new SQLGenerationException(Resources.ReferencedQueryWithoutAlias);
             }
-            return _alias;
+            return Alias;
         }
 
         string IFilterItem.GetFilterItemText(BuilderContext context)
@@ -538,6 +527,11 @@ namespace SQLGeneration
             }
             result.Append(')');
             return result.ToString();
+        }
+
+        bool IValueProvider.IsQuery
+        {
+            get { return true; }
         }
     }
 }

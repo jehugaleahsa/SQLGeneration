@@ -13,7 +13,6 @@ namespace SQLGeneration
     public abstract class SelectCombiner : ISelectCombiner
     {
         private readonly List<ISelectBuilder> _queries;
-        private string _alias;
 
         /// <summary>
         /// Initializes a new instance of a QueryCombiner.
@@ -33,7 +32,7 @@ namespace SQLGeneration
             return new Column(this, columnName);
         }
 
-        IColumn IJoinItem.CreateColumn(string columnName)
+        IColumn IColumnSource.CreateColumn(string columnName)
         {
             return CreateColumn(columnName);
         }
@@ -49,7 +48,7 @@ namespace SQLGeneration
             return new Column(this, columnName);
         }
 
-        IColumn IJoinItem.CreateColumn(string columnName, string alias)
+        IColumn IColumnSource.CreateColumn(string columnName, string alias)
         {
             return CreateColumn(columnName, alias);
         }
@@ -123,14 +122,8 @@ namespace SQLGeneration
         /// </summary>
         public string Alias
         {
-            get
-            {
-                return _alias;
-            }
-            set
-            {
-                _alias = value;
-            }
+            get;
+            set;
         }
 
         string IJoinItem.GetDeclaration(BuilderContext context, IFilterGroup where)
@@ -146,21 +139,25 @@ namespace SQLGeneration
             {
                 result.Append(GetCommandText());
             }
-            if (!String.IsNullOrWhiteSpace(_alias))
+            if (!String.IsNullOrWhiteSpace(Alias))
             {
-                result.Append(" ");
-                result.Append(_alias);
+                result.Append(' ');
+                if (context.Options.AliasJoinItemsUsingAs)
+                {
+                    result.Append("AS ");
+                }
+                result.Append(Alias);
             }
             return result.ToString();
         }
 
-        string IJoinItem.GetReference(BuilderContext context)
+        string IColumnSource.GetReference(BuilderContext context)
         {
-            if (String.IsNullOrWhiteSpace(_alias))
+            if (String.IsNullOrWhiteSpace(Alias))
             {
                 throw new SQLGenerationException(Resources.ReferencedQueryCombinerWithoutAlias);
             }
-            return _alias;
+            return Alias;
         }
 
         string IProjectionItem.GetFullText(BuilderContext context)
@@ -171,6 +168,11 @@ namespace SQLGeneration
         string IFilterItem.GetFilterItemText(BuilderContext context)
         {
             return '(' + GetCommandText() + ')';
+        }
+
+        bool IValueProvider.IsQuery
+        {
+            get { return true; }
         }
     }
 }

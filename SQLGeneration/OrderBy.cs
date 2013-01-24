@@ -98,8 +98,8 @@ namespace SQLGeneration
         string IOrderBy.GetOrderByText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter();
-            result.Append(formatter.GetAliasedReference(context, _item));
+            ProjectionItemFormatter formatter = new ProjectionItemFormatter(context);
+            result.Append(formatter.GetAliasedReference(_item));
             if (_order != Order.Default)
             {
                 result.Append(" ");

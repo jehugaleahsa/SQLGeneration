@@ -9,7 +9,6 @@ namespace SQLGeneration
     public class NullFilter : Filter, INullFilter
     {
         private readonly IFilterItem _item;
-        private bool _isNull;
 
         /// <summary>
         /// Initializes a new instance of a NullFilter.
@@ -32,7 +31,7 @@ namespace SQLGeneration
                 throw new ArgumentNullException("item");
             }
             _item = item;
-            _isNull = isNull;
+            IsNull = isNull;
         }
 
         /// <summary>
@@ -48,14 +47,8 @@ namespace SQLGeneration
         /// </summary>
         public bool IsNull
         {
-            get
-            {
-                return _isNull;
-            }
-            set
-            {
-                _isNull = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -67,7 +60,7 @@ namespace SQLGeneration
         {
             StringBuilder result = new StringBuilder(_item.GetFilterItemText(context));
             result.Append(" IS");
-            if (!_isNull)
+            if (!IsNull)
             {
                 result.Append(" NOT");
             }

@@ -6,7 +6,7 @@ namespace SQLGeneration
     /// <summary>
     /// Builds a string of a select statement.
     /// </summary>
-    public interface ISelectBuilder : ICommandBuilder, IFilteredCommand, IJoinItem, IProjectionItem, IValueProvider
+    public interface ISelectBuilder : ICommandBuilder, IFilteredCommand, IColumnSource, IProjectionItem, IValueProvider
     {
         /// <summary>
         /// Gets or sets whether to select only unique results.

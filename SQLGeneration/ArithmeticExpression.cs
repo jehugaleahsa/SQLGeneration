@@ -10,8 +10,6 @@ namespace SQLGeneration
     {
         private readonly IProjectionItem _leftHand;
         private readonly IProjectionItem _rightHand;
-        private bool _wrapInParentheses;
-        private string _alias;
 
         /// <summary>
         /// Initializes a new instance of a ArithmeticExpression.
@@ -35,16 +33,10 @@ namespace SQLGeneration
         /// <summary>
         /// Gets or sets whether to wrap the expression in parentheses.
         /// </summary>
-        public bool WrapInParentheses
+        public bool? WrapInParentheses
         {
-            get
-            {
-                return _wrapInParentheses;
-            }
-            set
-            {
-                _wrapInParentheses = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -74,28 +66,37 @@ namespace SQLGeneration
         /// </summary>
         public string Alias
         {
-            get
-            {
-                return _alias;
-            }
-            set
-            {
-                _alias = value;
-            }
+            get;
+            set;
         }
 
         string IProjectionItem.GetFullText(BuilderContext context)
         {
+            return getExpressionText(context);
+        }
+
+        string IFilterItem.GetFilterItemText(BuilderContext context)
+        {
+            return getExpressionText(context);
+        }
+
+        string IGroupByItem.GetGroupByItemText(BuilderContext context)
+        {
+            return getExpressionText(context);
+        }
+
+        private string getExpressionText(BuilderContext context)
+        {
             StringBuilder result = new StringBuilder();
-            if (_wrapInParentheses)
+            if (WrapInParentheses ?? context.Options.WrapArithmeticExpressionsInParentheses)
             {
                 result.Append("(");
             }
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter();
-            string leftHand = formatter.GetUnaliasedReference(context, _leftHand);
-            string rightHand = formatter.GetUnaliasedReference(context, _rightHand);
+            ProjectionItemFormatter formatter = new ProjectionItemFormatter(context);
+            string leftHand = formatter.GetUnaliasedReference(_leftHand);
+            string rightHand = formatter.GetUnaliasedReference(_rightHand);
             result.Append(Combine(context, leftHand, rightHand));
-            if (_wrapInParentheses)
+            if (WrapInParentheses ?? context.Options.WrapArithmeticExpressionsInParentheses)
             {
                 result.Append(")");
             }
@@ -110,41 +111,5 @@ namespace SQLGeneration
         /// <param name="context">The configuration to use when building the command.</param>
         /// <returns>The left and right hand operands combined using the operation.</returns>
         protected abstract string Combine(BuilderContext context, string leftHand, string rightHand);
-
-        string IFilterItem.GetFilterItemText(BuilderContext context)
-        {
-            StringBuilder result = new StringBuilder();
-            if (_wrapInParentheses)
-            {
-                result.Append("(");
-            }
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter();
-            string leftHand = formatter.GetUnaliasedReference(context, _leftHand);
-            string rightHand = formatter.GetUnaliasedReference(context, _rightHand);
-            result.Append(Combine(context, leftHand, rightHand));
-            if (_wrapInParentheses)
-            {
-                result.Append(")");
-            }
-            return result.ToString();
-        }
-
-        string IGroupByItem.GetGroupByItemText(BuilderContext context)
-        {
-            StringBuilder result = new StringBuilder();
-            if (_wrapInParentheses)
-            {
-                result.Append("(");
-            }
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter();
-            string leftHand = formatter.GetUnaliasedReference(context, _leftHand);
-            string rightHand = formatter.GetUnaliasedReference(context, _rightHand);
-            result.Append(Combine(context, leftHand, rightHand));
-            if (_wrapInParentheses)
-            {
-                result.Append(")");
-            }
-            return result.ToString();
-        }
     }
 }

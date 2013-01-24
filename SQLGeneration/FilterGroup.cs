@@ -83,17 +83,40 @@ namespace SQLGeneration
                 throw new SQLGenerationException(Resources.EmptyFilterGroup);
             }
             StringBuilder result = new StringBuilder();
+            if (context.Options.OneFilterPerLine)
+            {
+                result.AppendLine();
+                if (context.Options.IndentFilters)
+                {
+                    result.Append(context.Indent().GetIndentationText());
+                }
+            }
             IFilter first = _filters[0];
             result.Append(first.GetFilterText(context));
             ConjunctionConverter converter = new ConjunctionConverter();
             for (int index = 1; index < _filters.Count; ++index)
             {
                 IFilter filter = _filters[index];
-                result.Append(" ");
+                if (context.Options.OneFilterPerLine)
+                {
+                    result.AppendLine();
+                    if (context.Options.IndentFilters)
+                    {
+                        result.Append(context.Indent().GetIndentationText());
+                    }
+                }
+                else
+                {
+                    result.Append(' ');
+                }
                 string conjunction = converter.ToString(filter.Conjunction);
                 result.Append(conjunction);
                 result.Append(" ");
                 result.Append(filter.GetFilterText(context));
+            }
+            if (context.Options.OneFilterPerLine)
+            {
+                result.AppendLine();
             }
             return result.ToString();
         }
@@ -101,10 +124,11 @@ namespace SQLGeneration
         /// <summary>
         /// Determines whether the filter should be surrounded by parentheses.
         /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
         /// <returns>True if the filter should be surround by parentheses; otherwise, false.</returns>
-        protected override bool ShouldWrapInParentheses()
+        protected override bool ShouldWrapInParentheses(BuilderContext context)
         {
-            return WrapInParentheses || _filters.Any(filter => filter.Conjunction == SQLGeneration.Conjunction.Or);
+            return (WrapInParentheses ?? false) || (context.Options.WrapFiltersInParentheses && _filters.Any(filter => filter.Conjunction == SQLGeneration.Conjunction.Or));
         }
     }
 }

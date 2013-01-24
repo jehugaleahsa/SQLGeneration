@@ -8,8 +8,7 @@ namespace SQLGeneration
     /// </summary>
     public class AllColumns : IProjectionItem
     {
-        private readonly IJoinItem _joinItem;
-        private string _alias;
+        private readonly IColumnSource source;
 
         /// <summary>
         /// Initializes a new instacne of an AllColumns
@@ -23,10 +22,10 @@ namespace SQLGeneration
         /// Initializes a new instance of an AllColumns
         /// that selects all the columns from the given table or join.
         /// </summary>
-        /// <param name="joinItem">The table or join to select all the columns from.</param>
-        public AllColumns(IJoinItem joinItem)
+        /// <param name="source">The table or join to select all the columns from.</param>
+        public AllColumns(IColumnSource source)
         {
-            _joinItem = joinItem;
+            this.source = source;
         }
 
         /// <summary>
@@ -34,22 +33,16 @@ namespace SQLGeneration
         /// </summary>
         public string Alias
         {
-            get
-            {
-                return _alias;
-            }
-            set
-            {
-                _alias = value;
-            }
+            get;
+            set;
         }
 
         string IProjectionItem.GetFullText(BuilderContext context)
         {
             StringBuilder builder = new StringBuilder();
-            if (_joinItem != null)
+            if (source != null)
             {
-                builder.Append(_joinItem.GetReference(context));
+                builder.Append(source.GetReference(context));
                 builder.Append(".");
             }
             builder.Append("*");

@@ -115,18 +115,62 @@ namespace SQLGeneration
         /// <param name="context">The configuration to use when building the command.</param>
         public string GetCommandText(BuilderContext context)
         {
+            context = context.Clone();
+            context.IsSelect = false;
+            context.IsInsert = false;
+            context.IsUpdate = true;
+            context.IsDelete = false;
+
+            return getCommandText(context);
+        }
+
+        private string getCommandText(BuilderContext context)
+        {
             if (_setters.Count == 0)
             {
                 throw new SQLGenerationException(Resources.NoSetters);
             }
             StringBuilder result = new StringBuilder("UPDATE ");
             result.Append(_table.GetDeclaration(context, null));
-            result.Append(" SET ");
-            string setters = String.Join(", ", _setters.Select(setter => setter.GetSetterText(context)));
-            result.Append(setters);
+            if (context.Options.OneClausePerLine)
+            {
+                result.AppendLine();
+            }
+            else
+            {
+                result.Append(' ');
+            }
+            result.Append("SET");
+            StringBuilder separatorBuilder = new StringBuilder(",");
+            if (context.Options.OneSetterPerLine)
+            {
+                result.AppendLine();
+                separatorBuilder.AppendLine();
+            }
+            else
+            {
+                result.Append(' ');
+                separatorBuilder.Append(' ');
+            }
+            IEnumerable<string> setters = _setters.Select(setter => setter.GetSetterText(context));
+            if (context.Options.OneSetterPerLine && context.Options.IndentSetters)
+            {
+                string indentationText = context.Indent().GetIndentationText();
+                setters = setters.Select(setter => indentationText + setter);
+            }
+            string separated = String.Join(separatorBuilder.ToString(), setters);
+            result.Append(separated);
             if (_where.HasFilters)
             {
-                result.Append(" WHERE ");
+                if (context.Options.OneClausePerLine || context.Options.OneSetterPerLine)
+                {
+                    result.AppendLine();
+                }
+                else
+                {
+                    result.Append(' ');
+                }
+                result.Append("WHERE ");
                 result.Append(_where.GetFilterText(context));
             }
             return result.ToString();

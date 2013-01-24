@@ -124,6 +124,15 @@ namespace SQLGeneration.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An attempt was made to build a join without any filters..
+        /// </summary>
+        internal static string EmptyOnExpression {
+            get {
+                return ResourceManager.GetString("EmptyOnExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An attempt was made to build a select command without any projections..
         /// </summary>
         internal static string NoProjections {

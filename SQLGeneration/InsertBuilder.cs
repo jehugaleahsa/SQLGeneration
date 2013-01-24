@@ -91,7 +91,7 @@ namespace SQLGeneration
         /// </summary>
         public string GetCommandText()
         {
-            return GetCommandText(new BuilderContext());
+            return getCommandText(new BuilderContext());
         }
 
         /// <summary>
@@ -100,20 +100,74 @@ namespace SQLGeneration
         /// <param name="context">The configuration to use when building the command.</param>
         public string GetCommandText(BuilderContext context)
         {
+            context = context.Clone();
+            context.IsSelect = false;
+            context.IsInsert = true;
+            context.IsUpdate = false;
+            context.IsDelete = false;
+
+            return getCommandText(context);
+        }
+
+        private string getCommandText(BuilderContext context)
+        {
             StringBuilder result = new StringBuilder("INSERT INTO ");
             result.Append(_table.GetDeclaration(context, null));
-            result.Append(" ");
+            if (context.Options.OneClausePerLine)
+            {
+                result.AppendLine();
+            }
+            else
+            {
+                result.Append(' ');
+            }
             if (_columns.Count > 0)
             {
-                result.Append("(");
-                ProjectionItemFormatter columnFormatter = new ProjectionItemFormatter();
-                string columns = String.Join(", ", _columns.Select(column => columnFormatter.GetUnaliasedReference(context, column)));
-                result.Append(columns);
-                result.Append(") ");
+                result.Append('(');
+                StringBuilder separatorBuilder = new StringBuilder(",");
+                if (context.Options.OneInsertColumnPerLine)
+                {
+                    result.AppendLine();
+                    separatorBuilder.AppendLine();
+                }
+                else
+                {
+                    separatorBuilder.Append(' ');
+                }
+                ProjectionItemFormatter columnFormatter = new ProjectionItemFormatter(context);
+                IEnumerable<string> columns = _columns.Select(column => columnFormatter.GetUnaliasedReference(column));
+                if (context.Options.OneInsertColumnPerLine && context.Options.IndentInsertColumns)
+                {
+                    string indentationText = context.Indent().GetIndentationText();
+                    columns = columns.Select(column => indentationText + column);
+                }
+                string separated = String.Join(separatorBuilder.ToString(), columns);
+                result.Append(separated);
+                if (context.Options.OneInsertColumnPerLine)
+                {
+                    result.AppendLine();
+                }
+                result.Append(')');
             }
-            if (!(_values is ISelectBuilder))
+            if (context.Options.OneClausePerLine)
+            {
+                result.AppendLine();
+            }
+            else
+            {
+                result.Append(' ');
+            }
+            if (!_values.IsQuery)
             {
                 result.Append("VALUES");
+                if (context.Options.OneClausePerLine)
+                {
+                    result.AppendLine();
+                }
+                else
+                {
+                    result.Append(' ');
+                }
             }
             result.Append(_values.GetFilterItemText(context));
             return result.ToString();

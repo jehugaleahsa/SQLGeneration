@@ -8,15 +8,12 @@ namespace SQLGeneration
     /// </summary>
     public class StringLiteral : ILiteral
     {
-        private string _value;
-        private string _alias;
-
         /// <summary>
         /// Initializes a new instance of a StringLiteral.
         /// </summary>
         public StringLiteral()
         {
-            _value = String.Empty;
+            Value = String.Empty;
         }
 
         /// <summary>
@@ -25,7 +22,7 @@ namespace SQLGeneration
         /// <param name="value">The string value.</param>
         public StringLiteral(string value)
         {
-            _value = value;
+            Value = value;
         }
 
         /// <summary>
@@ -33,14 +30,8 @@ namespace SQLGeneration
         /// </summary>
         public string Value
         {
-            get
-            {
-                return _value;
-            }
-            set
-            {
-                _value = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -48,14 +39,8 @@ namespace SQLGeneration
         /// </summary>
         public string Alias
         {
-            get
-            {
-                return _alias;
-            }
-            set
-            {
-                _alias = value;
-            }
+            get;
+            set;
         }
 
         string IProjectionItem.GetFullText(BuilderContext context)
@@ -77,10 +62,12 @@ namespace SQLGeneration
         {
             StringBuilder builder = new StringBuilder();
             builder.Append("'");
-            if (_value != null)
+            if (Value != null)
             {
                 // escape quotes
-                builder.Append(_value.Replace("'", "''"));
+                int index = builder.Length;
+                builder.Append(Value);
+                builder.Replace("'", "''", index, Value.Length);
             }
             builder.Append("'");
             return builder.ToString();

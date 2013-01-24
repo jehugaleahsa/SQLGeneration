@@ -10,7 +10,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets or sets whether to wrap the expression in parentheses.
         /// </summary>
-        bool WrapInParentheses
+        bool? WrapInParentheses
         {
             get;
             set;

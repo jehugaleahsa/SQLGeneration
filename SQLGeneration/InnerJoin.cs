@@ -6,7 +6,7 @@ namespace SQLGeneration
     /// <summary>
     /// Represents an inner join in a select statement.
     /// </summary>
-    public class InnerJoin : Join, IInnerJoin
+    public class InnerJoin : FilteredJoin
     {
         /// <summary>
         /// Initializes a new instance of a InnerJoin.
@@ -14,7 +14,7 @@ namespace SQLGeneration
         /// <param name="leftHand">The left hand item in the join.</param>
         /// <param name="rightHand">The right hand item in the join.</param>
         public InnerJoin(IJoinItem leftHand, IJoinItem rightHand)
-            : base(leftHand, rightHand)
+            : base(leftHand, rightHand, new IFilter[0])
         {
         }
 
@@ -36,7 +36,13 @@ namespace SQLGeneration
         /// <returns>The name of the join type.</returns>
         protected override string GetJoinName(BuilderContext context)
         {
-            return "INNER JOIN";
+            StringBuilder result = new StringBuilder();
+            if (context.Options.VerboseInnerJoin)
+            {
+                result.Append("INNER ");
+            }
+            result.Append("JOIN");
+            return result.ToString();
         }
     }
 }

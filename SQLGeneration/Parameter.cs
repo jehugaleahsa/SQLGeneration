@@ -9,7 +9,6 @@ namespace SQLGeneration
     public class Parameter : IParameter
     {
         private readonly string _name;
-        private string _alias;
 
         /// <summary>
         /// Initializes a new instance of a Parameter.
@@ -40,14 +39,8 @@ namespace SQLGeneration
         /// </summary>
         public string Alias
         {
-            get
-            {
-                return _alias;
-            }
-            set
-            {
-                _alias = value;
-            }
+            get;
+            set;
         }
 
         string IProjectionItem.GetFullText(BuilderContext context)

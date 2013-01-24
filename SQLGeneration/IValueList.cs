@@ -6,7 +6,7 @@ namespace SQLGeneration
     /// <summary>
     /// Builds a string of the values being inserted in an insert statement.
     /// </summary>
-    public interface IInList : IValueProvider
+    public interface IValueList : IValueProvider
     {
         /// <summary>
         /// Gets the values being provided.
@@ -23,7 +23,7 @@ namespace SQLGeneration
         void AddValue(IProjectionItem item);
 
         /// <summary>
-        /// Adds the given projection item from the values list.
+        /// Removes the given projection item from the values list.
         /// </summary>
         /// <param name="item">The item to remove.</param>
         /// <returns>True if the item was removed; otherwise, false.</returns>

@@ -7,5 +7,12 @@ namespace SQLGeneration
     /// </summary>
     public interface IValueProvider : IFilterItem
     {
+        /// <summary>
+        /// Gets or sets whether the value provider gets its values from a query.
+        /// </summary>
+        bool IsQuery
+        {
+            get;
+        }
     }
 }

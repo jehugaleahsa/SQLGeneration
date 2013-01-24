@@ -9,8 +9,6 @@ namespace SQLGeneration
     public class Top : ITop
     {
         private readonly IArithmetic _expression;
-        private bool _isPercent;
-        private bool _withTies;
 
         /// <summary>
         /// Initializes a new instance of a Top.
@@ -41,14 +39,8 @@ namespace SQLGeneration
         /// </summary>
         public bool IsPercent
         {
-            get
-            {
-                return _isPercent;
-            }
-            set
-            {
-                _isPercent = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -57,14 +49,8 @@ namespace SQLGeneration
         /// </summary>
         public bool WithTies
         {
-            get
-            {
-                return _withTies;
-            }
-            set
-            {
-                _withTies = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -77,11 +63,11 @@ namespace SQLGeneration
             StringBuilder builder = new StringBuilder();
             builder.Append("TOP ");
             builder.Append(_expression.GetFilterItemText(context));
-            if (_isPercent)
+            if (IsPercent)
             {
                 builder.Append(" PERCENT");
             }
-            if (_withTies)
+            if (WithTies)
             {
                 builder.Append(" WITH TIES");
             }

@@ -6,7 +6,7 @@ namespace SQLGeneration
     /// <summary>
     /// Represents an left-outer join in a select statement.
     /// </summary>
-    public class LeftOuterJoin : Join, ILeftOuterJoin
+    public class LeftOuterJoin : FilteredJoin
     {
         /// <summary>
         /// Initializes a new instance of a LeftOuterJoin.
@@ -14,7 +14,7 @@ namespace SQLGeneration
         /// <param name="leftHand">The left hand item in the join.</param>
         /// <param name="rightHand">The right hand item in the join.</param>
         public LeftOuterJoin(IJoinItem leftHand, IJoinItem rightHand)
-            : base(leftHand, rightHand)
+            : base(leftHand, rightHand, new IFilter[0])
         {
         }
 
@@ -36,7 +36,13 @@ namespace SQLGeneration
         /// <returns>The name of the join type.</returns>
         protected override string GetJoinName(BuilderContext context)
         {
-            return "LEFT OUTER JOIN";
+            StringBuilder result = new StringBuilder("LEFT ");
+            if (context.Options.VerboseOuterJoin)
+            {
+                result.Append("OUTER ");
+            }
+            result.Append("JOIN");
+            return result.ToString();
         }
     }
 }
