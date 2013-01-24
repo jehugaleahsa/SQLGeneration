@@ -81,7 +81,7 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Creates a new column under the table.
+        /// Creates a new column under the sub-select.
         /// </summary>
         /// <param name="columnName">The name of the column.</param>
         /// <returns>The column.</returns>
@@ -93,6 +93,22 @@ namespace SQLGeneration
         IColumn IJoinItem.CreateColumn(string columnName)
         {
             return CreateColumn(columnName);
+        }
+
+        /// <summary>
+        /// Creates a new column under the sub-select with the given alias.
+        /// </summary>
+        /// <param name="columnName">The name of the column.</param>
+        /// <param name="alias">The alias to give the column.</param>
+        /// <returns>The column.</returns>
+        public Column CreateColumn(string columnName, string alias)
+        {
+            return new Column(this, columnName) { Alias = alias };
+        }
+
+        IColumn IJoinItem.CreateColumn(string columnName, string alias)
+        {
+            return CreateColumn(columnName, alias);
         }
 
         /// <summary>
@@ -239,25 +255,57 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets a filter to apply to the query.
+        /// Gets the filters in the filter group.
         /// </summary>
-        public IFilterGroup Where
+        public IEnumerable<IFilter> Where
         {
-            get
-            {
-                return _where;
-            }
+            get { return _where.Filters; }
         }
 
         /// <summary>
-        /// Gets a filter to apply to the aggregate functions.
+        /// Adds the filter to the where clause.
         /// </summary>
-        public IFilterGroup Having
+        /// <param name="filter">The filter to add.</param>
+        public void AddWhere(IFilter filter)
         {
-            get
-            {
-                return _having;
-            }
+            _where.AddFilter(filter);
+        }
+
+        /// <summary>
+        /// Removes the filter from the where clause.
+        /// </summary>
+        /// <param name="filter">The filter to remove.</param>
+        /// <returns>True if the filter was removed; otherwise, false.</returns>
+        public bool RemoveWhere(IFilter filter)
+        {
+            return _where.RemoveFilter(filter);
+        }
+
+        /// <summary>
+        /// Gets the filters in the having clause.
+        /// </summary>
+        public IEnumerable<IFilter> Having
+        {
+            get { return _having.Filters; }
+        }
+
+        /// <summary>
+        /// Adds the filter to the having clause.
+        /// </summary>
+        /// <param name="filter">The filter to add.</param>
+        public void AddHaving(IFilter filter)
+        {
+            _having.AddFilter(filter);
+        }
+
+        /// <summary>
+        /// Removes the filter from the having clause.
+        /// </summary>
+        /// <param name="filter">The filter to remove.</param>
+        /// <returns>True if the filter was removed; otherwise, false.</returns>
+        public bool RemoveHaving(IFilter filter)
+        {
+            return _having.RemoveFilter(filter);
         }
 
         /// <summary>
@@ -265,64 +313,206 @@ namespace SQLGeneration
         /// </summary>
         public string GetCommandText()
         {
+            return getCommandText(new BuilderContext());
+        }
+
+        /// <summary>
+        /// Gets the SQL that represents the query.
+        /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
+        public string GetCommandText(BuilderContext context)
+        {
+            return getCommandText(context);
+        }
+
+        private string getCommandText(BuilderContext context)
+        {
             if (_projection.Count == 0)
             {
                 throw new SQLGenerationException(Resources.NoProjections);
             }
-            StringBuilder result = new StringBuilder("SELECT ");
-            if (_isDistinct)
+            List<Tuple<string, bool>> parts = new List<Tuple<string, bool>>();
+            parts.Add(getHeader(context));
+            parts.Add(getFrom(context));
+            parts.Add(getWhere(context));
+            parts.Add(getOrderBy(context));
+            parts.Add(getGroupBy(context));
+            parts.Add(getHaving(context));
+            StringBuilder result = new StringBuilder();
+            result.Append(parts[0].Item1);
+            StringBuilder clauseSeparatorBuilder = new StringBuilder();
+            if (context.Options.OneClausePerLine)
             {
-                result.Append("DISTINCT ");
+                clauseSeparatorBuilder.AppendLine();
+                clauseSeparatorBuilder.Append(context.GetIndentationText());
             }
-            if (_top != null)
+            else
             {
-                result.Append(" ");
-                result.Append(_top.TopText);
-                result.Append(" ");
+                clauseSeparatorBuilder.Append(' ');
             }
-            ProjectionItemFormatter projectionFormatter = new ProjectionItemFormatter();
-            IEnumerable<string> projections = from projection in _projection select projectionFormatter.GetDeclaration(projection);
-            result.Append(String.Join(", ", projections));
-            if (_from.Count != 0)
+            string clauseSeparator = clauseSeparatorBuilder.ToString();
+            bool reset = false;
+            for (int partIndex = 1; partIndex < parts.Count; ++partIndex)
             {
-                result.Append(" FROM ");
-                string from = String.Join(", ", (from joinItem in _from select joinItem.GetDeclaration(_where)));
-                result.Append(from);
-            }
-            if (_where.HasFilters)
-            {
-                result.Append(" WHERE ");
-                result.Append(_where.GetFilterText());
-            }
-            if (_orderBy.Count > 0)
-            {
-                result.Append(" ORDER BY ");
-                IEnumerable<string> orderBys = from orderBy in _orderBy select orderBy.GetOrderByText();
-                result.Append(String.Join(", ", orderBys));
-            }
-            if (_groupBy.Count > 0)
-            {
-                result.Append(" GROUP BY ");
-                IEnumerable<string> groupBys = from groupBy in _groupBy select groupBy.GetGroupByItemText();
-                result.Append(String.Join(", ", groupBys));
-            }
-            if (_having.HasFilters)
-            {
-                result.Append(" HAVING ");
-                result.Append(_having.GetFilterText());
+                if (parts[partIndex].Item1.Length == 0)
+                {
+                    continue;
+                }
+                if (!reset)
+                {
+                    result.Append(clauseSeparator);
+                }
+                result.Append(parts[partIndex].Item1);
+                reset = parts[partIndex].Item2;
             }
             return result.ToString();
         }
 
-        string IProjectionItem.GetFullText()
+        private Tuple<string, bool> getHeader(BuilderContext context)
         {
-            return '(' + GetCommandText() + ')';
+            List<string> parts = new List<string>() { "SELECT", getDistinct(), getTop(context) };
+            StringBuilder builder = new StringBuilder(String.Join(" ", parts.Where(part => part.Length != 0)));
+            Tuple<string, bool> projections = getProjections(context.Indent());
+            if (!projections.Item2)
+            {
+                builder.Append(' ');
+            }
+            builder.Append(projections.Item1);
+            return Tuple.Create(builder.ToString(), projections.Item2);
         }
 
-        string IJoinItem.GetDeclaration(IFilterGroup where)
+        private string getDistinct()
+        {
+            StringBuilder result = new StringBuilder();
+            if (_isDistinct)
+            {
+                result.Append("DISTINCT");
+            }
+            return result.ToString();
+        }
+
+        private string getTop(BuilderContext context)
+        {
+            StringBuilder result = new StringBuilder();
+            if (_top != null)
+            {
+                result.Append(_top.GetTopText(context));
+            }
+            return result.ToString();
+        }
+
+        private Tuple<string, bool> getProjections(BuilderContext context)
+        {
+            ProjectionItemFormatter projectionFormatter = new ProjectionItemFormatter();
+            IEnumerable<string> projections = _projection.Select(item => projectionFormatter.GetDeclaration(context, item));
+            StringBuilder projectionSeparator = new StringBuilder(",");
+            if (context.Options.OneProjectionPerLine)
+            {
+                string indentation = context.GetIndentationText();
+                projections = projections.Select(item => indentation + item);
+                projectionSeparator.AppendLine();
+            }
+            else
+            {
+                projectionSeparator.Append(' ');
+            }
+            StringBuilder result = new StringBuilder();
+            if (context.Options.OneProjectionPerLine)
+            {
+                result.AppendLine();
+            }
+            result.Append(String.Join(projectionSeparator.ToString(), projections));
+            return Tuple.Create(result.ToString(), context.Options.OneProjectionPerLine);
+        }
+
+        private Tuple<string, bool> getFrom(BuilderContext context)
+        {
+            StringBuilder result = new StringBuilder();
+            if (_from.Count != 0)
+            {
+                result.Append("FROM ");
+                StringBuilder separatorBuilder = new StringBuilder(",");
+                if (context.Options.OneJoinItemPerLine)
+                {
+                    separatorBuilder.AppendLine();
+                }
+                else
+                {
+                    separatorBuilder.Append(' ');
+                }
+                string joined = String.Join(separatorBuilder.ToString(), _from.Select(joinItem => joinItem.GetDeclaration(context.Indent(), _where)));
+                result.Append(joined);
+            }
+            return Tuple.Create(result.ToString(), false);
+        }
+
+        private Tuple<string, bool> getWhere(BuilderContext context)
+        {
+            StringBuilder result = new StringBuilder();
+            if (_where.HasFilters)
+            {
+                result.Append("WHERE ");
+                result.Append(_where.GetFilterText(context));
+            }
+            return Tuple.Create(result.ToString(), false);
+        }
+
+        private Tuple<string, bool> getOrderBy(BuilderContext context)
+        {
+            StringBuilder result = new StringBuilder();
+            if (_orderBy.Count > 0)
+            {
+                result.Append("ORDER BY ");
+                IEnumerable<string> orderBys = _orderBy.Select(orderBy => orderBy.GetOrderByText(context));
+                string joined = String.Join(", ", orderBys);
+                result.Append(joined);
+            }
+            return Tuple.Create(result.ToString(), false);
+        }
+
+        private Tuple<string, bool> getGroupBy(BuilderContext context)
+        {
+            StringBuilder result = new StringBuilder();
+            if (_groupBy.Count > 0)
+            {
+                result.Append("GROUP BY ");
+                IEnumerable<string> groupBys = _groupBy.Select(groupBy => groupBy.GetGroupByItemText(context));
+                string joined = String.Join(", ", groupBys);
+                result.Append(joined);
+            }
+            return Tuple.Create(result.ToString(), false);
+        }
+
+        private Tuple<string, bool> getHaving(BuilderContext context)
+        {
+            StringBuilder result = new StringBuilder();
+            if (_having.HasFilters)
+            {
+                result.Append("HAVING ");
+                result.Append(_having.GetFilterText(context));
+            }
+            return Tuple.Create(result.ToString(), false);
+        }
+
+        string IProjectionItem.GetFullText(BuilderContext context)
+        {
+            return '(' + getCommandText(context) + ')';
+        }
+
+        string IJoinItem.GetDeclaration(BuilderContext context, IFilterGroup where)
         {
             StringBuilder result = new StringBuilder("(");
-            result.Append(GetCommandText());
+            if (context.Options.OneClausePerLine)
+            {
+                result.AppendLine();
+                result.Append(context.Indent().GetIndentationText());
+            }
+            result.Append(getCommandText(context.Indent()));
+            if (context.Options.OneClausePerLine)
+            {
+                result.AppendLine();
+                result.Append(context.GetIndentationText());
+            }
             result.Append(')');
             if (!String.IsNullOrWhiteSpace(_alias))
             {
@@ -332,7 +522,7 @@ namespace SQLGeneration
             return result.ToString();
         }
 
-        string IJoinItem.GetReference()
+        string IJoinItem.GetReference(BuilderContext context)
         {
             if (String.IsNullOrWhiteSpace(_alias))
             {
@@ -341,9 +531,9 @@ namespace SQLGeneration
             return _alias;
         }
 
-        string IFilterItem.GetFilterItemText()
+        string IFilterItem.GetFilterItemText(BuilderContext context)
         {
-            return '(' + GetCommandText() + ')';
+            return '(' + getCommandText(context) + ')';
         }
     }
 }

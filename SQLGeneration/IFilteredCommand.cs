@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -8,11 +9,24 @@ namespace SQLGeneration
     public interface IFilteredCommand
     {
         /// <summary>
-        /// Gets a filter to apply to the query.
+        /// Gets the filters in the where clause.
         /// </summary>
-        IFilterGroup Where
+        IEnumerable<IFilter> Where
         {
             get;
         }
+
+        /// <summary>
+        /// Adds the filter to the where clause.
+        /// </summary>
+        /// <param name="filter">The filter to add.</param>
+        void AddWhere(IFilter filter);
+
+        /// <summary>
+        /// Removes the filter from the where clause.
+        /// </summary>
+        /// <param name="filter">The filter to remove.</param>
+        /// <returns>True if the filter was removed; otherwise, false.</returns>
+        bool RemoveWhere(IFilter filter);
     }
 }

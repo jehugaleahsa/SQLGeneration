@@ -91,14 +91,23 @@ namespace SQLGeneration
         /// </summary>
         public string GetCommandText()
         {
+            return GetCommandText(new BuilderContext());
+        }
+
+        /// <summary>
+        /// Gets the SQL for the insert statement.
+        /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
+        public string GetCommandText(BuilderContext context)
+        {
             StringBuilder result = new StringBuilder("INSERT INTO ");
-            result.Append(_table.GetDeclaration(null));
+            result.Append(_table.GetDeclaration(context, null));
             result.Append(" ");
             if (_columns.Count > 0)
             {
                 result.Append("(");
                 ProjectionItemFormatter columnFormatter = new ProjectionItemFormatter();
-                string columns = String.Join(", ", from column in _columns select columnFormatter.GetUnaliasedReference(column));
+                string columns = String.Join(", ", _columns.Select(column => columnFormatter.GetUnaliasedReference(context, column)));
                 result.Append(columns);
                 result.Append(") ");
             }
@@ -106,7 +115,7 @@ namespace SQLGeneration
             {
                 result.Append("VALUES");
             }
-            result.Append(_values.GetFilterItemText());
+            result.Append(_values.GetFilterItemText(context));
             return result.ToString();
         }
     }

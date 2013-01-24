@@ -31,17 +31,17 @@ namespace SQLGeneration
             }
         }
 
-        string IProjectionItem.GetFullText()
+        string IProjectionItem.GetFullText(BuilderContext context)
         {
             return "NULL";
         }
 
-        string IFilterItem.GetFilterItemText()
+        string IFilterItem.GetFilterItemText(BuilderContext context)
         {
             return "NULL";
         }
 
-        string IGroupByItem.GetGroupByItemText()
+        string IGroupByItem.GetGroupByItemText(BuilderContext context)
         {
             return "NULL";
         }

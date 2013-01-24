@@ -45,13 +45,10 @@ namespace SQLGeneration
             get { return _value; }
         }
 
-        string ISetter.SetterText
+        string ISetter.GetSetterText(BuilderContext context)
         {
-            get
-            {
-                ProjectionItemFormatter formatter = new ProjectionItemFormatter();
-                return formatter.GetUnaliasedReference(_column) + " = " + formatter.GetUnaliasedReference(_value);
-            }
+            ProjectionItemFormatter formatter = new ProjectionItemFormatter();
+            return formatter.GetUnaliasedReference(context, _column) + " = " + formatter.GetUnaliasedReference(context, _value);
         }
     }
 }

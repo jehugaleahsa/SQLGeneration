@@ -36,6 +36,8 @@ namespace SQLGeneration
         /// <summary>
         /// Gets a string representing the order by.
         /// </summary>
-        string GetOrderByText();
+        /// <param name="context">The configuration to use when building the command.</param>
+        /// <returns>The generated text.</returns>
+        string GetOrderByText(BuilderContext context);
     }
 }

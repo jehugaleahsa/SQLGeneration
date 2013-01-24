@@ -75,11 +75,30 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets a filter to apply to the query.
+        /// Gets the filters in the where clause.
         /// </summary>
-        public IFilterGroup Where
+        public IEnumerable<IFilter> Where
         {
-            get { return _where; }
+            get { return _where.Filters; }
+        }
+
+        /// <summary>
+        /// Adds the filter to the where clause.
+        /// </summary>
+        /// <param name="filter">The filter to add.</param>
+        public void AddWhere(IFilter filter)
+        {
+            _where.AddFilter(filter);
+        }
+
+        /// <summary>
+        /// Removes the filter from the where clause.
+        /// </summary>
+        /// <param name="filter">The filter to remove.</param>
+        /// <returns>True if the filter was removed; otherwise, false.</returns>
+        public bool RemoveWhere(IFilter filter)
+        {
+            return _where.RemoveFilter(filter);
         }
 
         /// <summary>
@@ -87,19 +106,28 @@ namespace SQLGeneration
         /// </summary>
         public string GetCommandText()
         {
+            return GetCommandText(new BuilderContext());
+        }
+
+        /// <summary>
+        /// Gets the command text.
+        /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
+        public string GetCommandText(BuilderContext context)
+        {
             if (_setters.Count == 0)
             {
                 throw new SQLGenerationException(Resources.NoSetters);
             }
             StringBuilder result = new StringBuilder("UPDATE ");
-            result.Append(_table.GetDeclaration(null));
+            result.Append(_table.GetDeclaration(context, null));
             result.Append(" SET ");
-            string setters = String.Join(", ", from setter in _setters select setter.SetterText);
+            string setters = String.Join(", ", _setters.Select(setter => setter.GetSetterText(context)));
             result.Append(setters);
             if (_where.HasFilters)
             {
                 result.Append(" WHERE ");
-                result.Append(_where.GetFilterText());
+                result.Append(_where.GetFilterText(context));
             }
             return result.ToString();
         }

@@ -74,11 +74,6 @@ namespace SQLGeneration
             }
         }
 
-        IColumn IJoinItem.CreateColumn(string columnName)
-        {
-            return CreateColumn(columnName);
-        }
-
         /// <summary>
         /// Creates a new column under the table.
         /// </summary>
@@ -89,7 +84,28 @@ namespace SQLGeneration
             return new Column(this, columnName);
         }
 
-        string IJoinItem.GetDeclaration(IFilterGroup where)
+        IColumn IJoinItem.CreateColumn(string columnName)
+        {
+            return CreateColumn(columnName);
+        }
+
+        /// <summary>
+        /// Creates a new column under the table with the given alias.
+        /// </summary>
+        /// <param name="columnName">The name of the column.</param>
+        /// <param name="alias">The alias to give the column.</param>
+        /// <returns>The column.</returns>
+        public Column CreateColumn(string columnName, string alias)
+        {
+            return new Column(this, columnName) { Alias = alias };
+        }
+
+        IColumn IJoinItem.CreateColumn(string columnName, string alias)
+        {
+            return CreateColumn(columnName, alias);
+        }
+
+        string IJoinItem.GetDeclaration(BuilderContext context, IFilterGroup where)
         {
             StringBuilder result = new StringBuilder(getFullName());
             if (!String.IsNullOrWhiteSpace(_alias))
@@ -100,7 +116,7 @@ namespace SQLGeneration
             return result.ToString();
         }
 
-        string IJoinItem.GetReference()
+        string IJoinItem.GetReference(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (String.IsNullOrWhiteSpace(_alias))

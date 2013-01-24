@@ -55,10 +55,10 @@ namespace SQLGeneration
             return _values.Remove(item);
         }
 
-        string IFilterItem.GetFilterItemText()
+        string IFilterItem.GetFilterItemText(BuilderContext context)
         {
             ProjectionItemFormatter formatter = new ProjectionItemFormatter();
-            return "(" + String.Join(", ", from value in _values select formatter.GetUnaliasedReference(value)) + ")";
+            return "(" + String.Join(", ", _values.Select(value => formatter.GetUnaliasedReference(context, value))) + ")";
         }
     }
 }

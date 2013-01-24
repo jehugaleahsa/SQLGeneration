@@ -70,23 +70,22 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the textual representation of the TOP clause.
         /// </summary>
-        public string TopText
+        /// <param name="context">The configuration to use when building the command.</param>
+        /// <returns>The generated text.</returns>
+        public string GetTopText(BuilderContext context)
         {
-            get 
+            StringBuilder builder = new StringBuilder();
+            builder.Append("TOP ");
+            builder.Append(_expression.GetFilterItemText(context));
+            if (_isPercent)
             {
-                StringBuilder builder = new StringBuilder();
-                builder.Append("TOP ");
-                builder.Append(_expression.GetFilterItemText());
-                if (_isPercent)
-                {
-                    builder.Append(" PERCENT");
-                }
-                if (_withTies)
-                {
-                    builder.Append(" WITH TIES");
-                }
-                return builder.ToString();
+                builder.Append(" PERCENT");
             }
+            if (_withTies)
+            {
+                builder.Append(" WITH TIES");
+            }
+            return builder.ToString();
         }
     }
 }

@@ -22,8 +22,9 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="leftHand">The left hand operand.</param>
         /// <param name="rightHand">The right hand operand.</param>
+        /// <param name="context">The configuration to use when building the command.</param>
         /// <returns>The left and right hand operands combined using the operation.</returns>
-        protected override string Combine(string leftHand, string rightHand)
+        protected override string Combine(BuilderContext context, string leftHand, string rightHand)
         {
             return leftHand + " / " + rightHand;
         }

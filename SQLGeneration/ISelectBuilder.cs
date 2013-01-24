@@ -111,11 +111,24 @@ namespace SQLGeneration
         bool RemoveGroupBy(IGroupByItem item);
 
         /// <summary>
-        /// Gets a filter to apply to the aggregate functions.
+        /// Gets the filters in the having clause.
         /// </summary>
-        IFilterGroup Having
+        IEnumerable<IFilter> Having
         {
             get;
         }
+
+        /// <summary>
+        /// Adds the filter to the having clause.
+        /// </summary>
+        /// <param name="filter">The filter to add.</param>
+        void AddHaving(IFilter filter);
+
+        /// <summary>
+        /// Removes the filter from the having clause.
+        /// </summary>
+        /// <param name="filter">The filter to remove.</param>
+        /// <returns>True if the filter was removed; otherwise, false.</returns>
+        bool RemoveHaving(IFilter filter);
     }
 }

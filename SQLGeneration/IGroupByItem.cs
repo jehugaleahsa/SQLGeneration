@@ -10,6 +10,8 @@ namespace SQLGeneration
         /// <summary>
         /// Gets a string representation of the group by.
         /// </summary>
-        string GetGroupByItemText();
+        /// <param name="context">The configuration to use when building the command.</param>
+        /// <returns>The generated text.</returns>
+        string GetGroupByItemText(BuilderContext context);
     }
 }

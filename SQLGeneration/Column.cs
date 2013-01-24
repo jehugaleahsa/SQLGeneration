@@ -62,30 +62,30 @@ namespace SQLGeneration
             }
         }
 
-        string IProjectionItem.GetFullText()
+        string IProjectionItem.GetFullText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
-            string table = _joinItem.GetReference();
+            string table = _joinItem.GetReference(context);
             result.Append(table);
             result.Append(".");
             result.Append(_name);
             return result.ToString();
         }
 
-        string IFilterItem.GetFilterItemText()
+        string IFilterItem.GetFilterItemText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
-            string table = _joinItem.GetReference();
+            string table = _joinItem.GetReference(context);
             result.Append(table);
             result.Append(".");
             result.Append(_name);
             return result.ToString();
         }
 
-        string IGroupByItem.GetGroupByItemText()
+        string IGroupByItem.GetGroupByItemText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
-            string table = _joinItem.GetReference();
+            string table = _joinItem.GetReference(context);
             result.Append(table);
             result.Append(".");
             result.Append(_name);

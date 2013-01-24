@@ -57,17 +57,17 @@ namespace SQLGeneration
             }
         }
 
-        string IProjectionItem.GetFullText()
+        string IProjectionItem.GetFullText(BuilderContext context)
         {
             return _value.ToString(CultureInfo.InvariantCulture);
         }
 
-        string IFilterItem.GetFilterItemText()
+        string IFilterItem.GetFilterItemText(BuilderContext context)
         {
             return _value.ToString(CultureInfo.InvariantCulture);
         }
 
-        string IGroupByItem.GetGroupByItemText()
+        string IGroupByItem.GetGroupByItemText(BuilderContext context)
         {
             return _value.ToString(CultureInfo.InvariantCulture);
         }

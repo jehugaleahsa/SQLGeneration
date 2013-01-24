@@ -17,8 +17,9 @@ namespace SQLGeneration
         /// <summary>
         /// Retrieves the text used to combine two queries.
         /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
         /// <returns>The text used to combine two queries.</returns>
-        protected override string GetCombinationString()
+        protected override string GetCombinationString(BuilderContext context)
         {
             return "MINUS";
         }

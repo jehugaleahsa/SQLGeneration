@@ -23,6 +23,17 @@ namespace SQLGeneration
         /// <param name="leftHand">The left hand table, join or sub-query.</param>
         /// <param name="rightHand">The right hand table, join or sub-query.</param>
         protected Join(IJoinItem leftHand, IJoinItem rightHand)
+            : this(leftHand, rightHand, new IFilter[0])
+        {
+        }
+
+                /// <summary>
+        /// Initializes a new instance of a InnerJoin.
+        /// </summary>
+        /// <param name="leftHand">The left hand item in the join.</param>
+        /// <param name="rightHand">The right hand item in the join.</param>
+        /// <param name="filters">The filters to join to the join items on.</param>
+        protected Join(IJoinItem leftHand, IJoinItem rightHand, IEnumerable<IFilter> filters)
         {
             if (leftHand == null)
             {
@@ -32,10 +43,14 @@ namespace SQLGeneration
             {
                 throw new ArgumentNullException("rightHand");
             }
+            if (filters == null)
+            {
+                throw new ArgumentNullException("filters");
+            }
             _leftHand = leftHand;
-            _on = new List<IFilter>();
             _rightHand = rightHand;
-            _wrapInParentheses = true;
+            _on = new List<IFilter>();
+            _on.AddRange(filters);
         }
 
         /// <summary>
@@ -87,7 +102,7 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Creates a new column under the table.
+        /// Creates a new column under the join.
         /// </summary>
         /// <param name="columnName">The name of the column.</param>
         /// <returns>The column.</returns>
@@ -99,6 +114,22 @@ namespace SQLGeneration
         IColumn IJoinItem.CreateColumn(string columnName)
         {
             return CreateColumn(columnName);
+        }
+
+        /// <summary>
+        /// Creates a new column under the join with the given alias.
+        /// </summary>
+        /// <param name="columnName">The name of the column.</param>
+        /// <param name="alias">The alias to give the column.</param>
+        /// <returns>The column.</returns>
+        public Column CreateColumn(string columnName, string alias)
+        {
+            return new Column(this, columnName) { Alias = alias };
+        }
+
+        IColumn IJoinItem.CreateColumn(string columnName, string alias)
+        {
+            return CreateColumn(columnName, alias);
         }
 
         /// <summary>
@@ -143,23 +174,23 @@ namespace SQLGeneration
             }
         }
 
-        string IJoinItem.GetDeclaration(IFilterGroup where)
+        string IJoinItem.GetDeclaration(BuilderContext context, IFilterGroup where)
         {
             StringBuilder result = new StringBuilder();
             if (_wrapInParentheses || !String.IsNullOrWhiteSpace(_alias))
             {
                 result.Append("(");
             }
-            string leftHand = _leftHand.GetDeclaration(where);
-            string rightHand = _rightHand.GetDeclaration(where);
-            result.Append(Combine(leftHand, rightHand));
+            string leftHand = _leftHand.GetDeclaration(context, where);
+            string rightHand = _rightHand.GetDeclaration(context, where);
+            result.Append(combine(context, leftHand, rightHand));
             result.Append(" ON ");
             FilterGroup on = new FilterGroup();
             foreach (IFilter filter in _on)
             {
                 on.AddFilter(filter);
             }
-            result.Append(((IFilter)on).GetFilterText());
+            result.Append(((IFilter)on).GetFilterText(context));
             if (_wrapInParentheses || !String.IsNullOrWhiteSpace(_alias))
             {
                 result.Append(")");
@@ -172,7 +203,7 @@ namespace SQLGeneration
             return result.ToString();
         }
 
-        string IJoinItem.GetReference()
+        string IJoinItem.GetReference(BuilderContext context)
         {
             if (String.IsNullOrWhiteSpace(_alias))
             {
@@ -187,9 +218,37 @@ namespace SQLGeneration
         /// <summary>
         /// Combines the left and right items with the type of join.
         /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
         /// <param name="leftHand">The left item.</param>
         /// <param name="rightHand">The right item.</param>
         /// <returns>A string combining the left and right items with a join.</returns>
-        protected abstract string Combine(string leftHand, string rightHand);
+        private string combine(BuilderContext context, string leftHand, string rightHand)
+        {
+            StringBuilder result = new StringBuilder();
+            result.Append(leftHand);
+            if (context.Options.OneJoinItemPerLine)
+            {
+                result.AppendLine();
+                if (context.Options.IndentJoinItems)
+                {
+                    result.Append(context.GetIndentationText());
+                }
+            }
+            else
+            {
+                result.Append(' ');
+            }
+            result.Append(GetJoinName(context));
+            result.Append(' ');
+            result.Append(rightHand);
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// Gets the name of the join type.
+        /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
+        /// <returns>The name of the join type.</returns>
+        protected abstract string GetJoinName(BuilderContext context);
     }
 }

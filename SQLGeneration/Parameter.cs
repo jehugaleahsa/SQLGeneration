@@ -50,17 +50,17 @@ namespace SQLGeneration
             }
         }
 
-        string IProjectionItem.GetFullText()
+        string IProjectionItem.GetFullText(BuilderContext context)
         {
             return _name;
         }
 
-        string IFilterItem.GetFilterItemText()
+        string IFilterItem.GetFilterItemText(BuilderContext context)
         {
             return _name;
         }
 
-        string IGroupByItem.GetGroupByItemText()
+        string IGroupByItem.GetGroupByItemText(BuilderContext context)
         {
             return _name;
         }

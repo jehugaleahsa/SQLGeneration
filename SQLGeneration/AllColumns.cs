@@ -44,16 +44,12 @@ namespace SQLGeneration
             }
         }
 
-        /// <summary>
-        /// Gets a textual representation of the column selection.
-        /// </summary>
-        /// <returns>The textual representation.</returns>
-        string IProjectionItem.GetFullText()
+        string IProjectionItem.GetFullText(BuilderContext context)
         {
             StringBuilder builder = new StringBuilder();
             if (_joinItem != null)
             {
-                builder.Append(_joinItem.GetReference());
+                builder.Append(_joinItem.GetReference(context));
                 builder.Append(".");
             }
             builder.Append("*");

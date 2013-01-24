@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace SQLGeneration
 {
@@ -18,14 +19,24 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Combines the left and right items with the type of join.
+        /// Initializes a new instance of a InnerJoin.
         /// </summary>
-        /// <param name="leftHand">The left item.</param>
-        /// <param name="rightHand">The right item.</param>
-        /// <returns>A string combining the left and right items with a join.</returns>
-        protected override string Combine(string leftHand, string rightHand)
+        /// <param name="leftHand">The left hand item in the join.</param>
+        /// <param name="rightHand">The right hand item in the join.</param>
+        /// <param name="filters">The filters to join to the join items on.</param>
+        public InnerJoin(IJoinItem leftHand, IJoinItem rightHand, params IFilter[] filters)
+            : base(leftHand, rightHand, filters)
         {
-            return leftHand + " INNER JOIN " + rightHand;
+        }
+
+        /// <summary>
+        /// Gets the name of the join type.
+        /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
+        /// <returns>The name of the join type.</returns>
+        protected override string GetJoinName(BuilderContext context)
+        {
+            return "INNER JOIN";
         }
     }
 }

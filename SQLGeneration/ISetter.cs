@@ -26,9 +26,8 @@ namespace SQLGeneration
         /// <summary>
         /// Gets a string representing the setter.
         /// </summary>
-        string SetterText
-        {
-            get;
-        }
+        /// <param name="context">The configuration to use when building the command.</param>
+        /// <returns>The generated text.</returns>
+        string GetSetterText(BuilderContext context);
     }
 }

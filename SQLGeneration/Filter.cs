@@ -18,7 +18,6 @@ namespace SQLGeneration
         /// </summary>
         protected Filter()
         {
-            _wrapInParentheses = true;
         }
 
         /// <summary>
@@ -70,19 +69,20 @@ namespace SQLGeneration
             }
         }
 
-        string IFilter.GetFilterText()
+        string IFilter.GetFilterText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (_not)
             {
-                result.Append("NOT (");
+                result.Append("NOT ");
             }
-            else if (_wrapInParentheses)
+            bool wrapInParentheses = ShouldWrapInParentheses();
+            if (_not || wrapInParentheses)
             {
                 result.Append("(");
             }
-            result.Append(GetFilterText());
-            if (_not || _wrapInParentheses)
+            result.Append(GetFilterText(context));
+            if (_not || wrapInParentheses)
             {
                 result.Append(")");
             }
@@ -92,7 +92,17 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the filter text without parentheses or a not.
         /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected abstract string GetFilterText();
+        protected abstract string GetFilterText(BuilderContext context);
+
+        /// <summary>
+        /// Determines whether the filter should be surrounded by parentheses.
+        /// </summary>
+        /// <returns>True if the filter should be surround by parentheses; otherwise, false.</returns>
+        protected virtual bool ShouldWrapInParentheses()
+        {
+            return _wrapInParentheses;
+        }
     }
 }

@@ -37,9 +37,8 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the textual representation of the TOP clause.
         /// </summary>
-        string TopText
-        {
-            get;
-        }
+        /// <param name="context">The configuration to use when building the command.</param>
+        /// <returns>The generated text.</returns>
+        string GetTopText(BuilderContext context);
     }
 }

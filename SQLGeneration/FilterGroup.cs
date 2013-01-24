@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 using SQLGeneration.Properties;
 
@@ -73,8 +74,9 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the filter text without parentheses or a not.
         /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override string GetFilterText()
+        protected override string GetFilterText(BuilderContext context)
         {
             if (_filters.Count == 0)
             {
@@ -82,7 +84,7 @@ namespace SQLGeneration
             }
             StringBuilder result = new StringBuilder();
             IFilter first = _filters[0];
-            result.Append(first.GetFilterText());
+            result.Append(first.GetFilterText(context));
             ConjunctionConverter converter = new ConjunctionConverter();
             for (int index = 1; index < _filters.Count; ++index)
             {
@@ -91,9 +93,18 @@ namespace SQLGeneration
                 string conjunction = converter.ToString(filter.Conjunction);
                 result.Append(conjunction);
                 result.Append(" ");
-                result.Append(filter.GetFilterText());
+                result.Append(filter.GetFilterText(context));
             }
             return result.ToString();
+        }
+
+        /// <summary>
+        /// Determines whether the filter should be surrounded by parentheses.
+        /// </summary>
+        /// <returns>True if the filter should be surround by parentheses; otherwise, false.</returns>
+        protected override bool ShouldWrapInParentheses()
+        {
+            return WrapInParentheses || _filters.Any(filter => filter.Conjunction == SQLGeneration.Conjunction.Or);
         }
     }
 }

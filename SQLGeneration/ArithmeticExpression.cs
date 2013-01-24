@@ -30,7 +30,6 @@ namespace SQLGeneration
             }
             _leftHand = leftHand;
             _rightHand = rightHand;
-            _wrapInParentheses = true;
         }
 
         /// <summary>
@@ -85,7 +84,7 @@ namespace SQLGeneration
             }
         }
 
-        string IProjectionItem.GetFullText()
+        string IProjectionItem.GetFullText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (_wrapInParentheses)
@@ -93,9 +92,9 @@ namespace SQLGeneration
                 result.Append("(");
             }
             ProjectionItemFormatter formatter = new ProjectionItemFormatter();
-            string leftHand = formatter.GetUnaliasedReference(_leftHand);
-            string rightHand = formatter.GetUnaliasedReference(_rightHand);
-            result.Append(Combine(leftHand, rightHand));
+            string leftHand = formatter.GetUnaliasedReference(context, _leftHand);
+            string rightHand = formatter.GetUnaliasedReference(context, _rightHand);
+            result.Append(Combine(context, leftHand, rightHand));
             if (_wrapInParentheses)
             {
                 result.Append(")");
@@ -108,10 +107,11 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="leftHand">The left hand operand.</param>
         /// <param name="rightHand">The right hand operand.</param>
+        /// <param name="context">The configuration to use when building the command.</param>
         /// <returns>The left and right hand operands combined using the operation.</returns>
-        protected abstract string Combine(string leftHand, string rightHand);
+        protected abstract string Combine(BuilderContext context, string leftHand, string rightHand);
 
-        string IFilterItem.GetFilterItemText()
+        string IFilterItem.GetFilterItemText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (_wrapInParentheses)
@@ -119,9 +119,9 @@ namespace SQLGeneration
                 result.Append("(");
             }
             ProjectionItemFormatter formatter = new ProjectionItemFormatter();
-            string leftHand = formatter.GetUnaliasedReference(_leftHand);
-            string rightHand = formatter.GetUnaliasedReference(_rightHand);
-            result.Append(Combine(leftHand, rightHand));
+            string leftHand = formatter.GetUnaliasedReference(context, _leftHand);
+            string rightHand = formatter.GetUnaliasedReference(context, _rightHand);
+            result.Append(Combine(context, leftHand, rightHand));
             if (_wrapInParentheses)
             {
                 result.Append(")");
@@ -129,7 +129,7 @@ namespace SQLGeneration
             return result.ToString();
         }
 
-        string IGroupByItem.GetGroupByItemText()
+        string IGroupByItem.GetGroupByItemText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (_wrapInParentheses)
@@ -137,9 +137,9 @@ namespace SQLGeneration
                 result.Append("(");
             }
             ProjectionItemFormatter formatter = new ProjectionItemFormatter();
-            string leftHand = formatter.GetUnaliasedReference(_leftHand);
-            string rightHand = formatter.GetUnaliasedReference(_rightHand);
-            result.Append(Combine(leftHand, rightHand));
+            string leftHand = formatter.GetUnaliasedReference(context, _leftHand);
+            string rightHand = formatter.GetUnaliasedReference(context, _rightHand);
+            result.Append(Combine(context, leftHand, rightHand));
             if (_wrapInParentheses)
             {
                 result.Append(")");

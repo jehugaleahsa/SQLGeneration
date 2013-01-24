@@ -95,11 +95,11 @@ namespace SQLGeneration
             }
         }
 
-        string IOrderBy.GetOrderByText()
+        string IOrderBy.GetOrderByText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             ProjectionItemFormatter formatter = new ProjectionItemFormatter();
-            result.Append(formatter.GetAliasedReference(_item));
+            result.Append(formatter.GetAliasedReference(context, _item));
             if (_order != Order.Default)
             {
                 result.Append(" ");

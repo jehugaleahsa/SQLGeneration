@@ -48,20 +48,22 @@ namespace SQLGeneration
         /// <summary>
         /// Gets a string representing the filter.
         /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override sealed string GetFilterText()
+        protected override sealed string GetFilterText(BuilderContext context)
         {
-            string leftHand = _leftHand.GetFilterItemText();
-            string rightHand = _rightHand.GetFilterItemText();
-            return Combine(leftHand, rightHand);
+            string leftHand = _leftHand.GetFilterItemText(context);
+            string rightHand = _rightHand.GetFilterItemText(context);
+            return Combine(context, leftHand, rightHand);
         }
 
         /// <summary>
         /// Combines the left and right hand operands with the operation.
         /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
         /// <param name="leftHand">The left hand operand.</param>
         /// <param name="rightHand">The right hand operand.</param>
         /// <returns>A string combining the left and right hand operands with the operation.</returns>
-        protected abstract string Combine(string leftHand, string rightHand);
+        protected abstract string Combine(BuilderContext context, string leftHand, string rightHand);
     }
 }

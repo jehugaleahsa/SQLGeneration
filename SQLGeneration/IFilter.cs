@@ -37,6 +37,8 @@ namespace SQLGeneration
         /// <summary>
         /// Gets a string representation of the filter.
         /// </summary>
-        string GetFilterText();
+        /// <param name="context">The configuration to use when building the command.</param>
+        /// <returns>The generated text.</returns>
+        string GetFilterText(BuilderContext context);
     }
 }

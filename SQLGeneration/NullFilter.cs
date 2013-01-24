@@ -61,10 +61,11 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the filter text without parentheses or a not.
         /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override string GetFilterText()
+        protected override string GetFilterText(BuilderContext context)
         {
-            StringBuilder result = new StringBuilder(_item.GetFilterItemText());
+            StringBuilder result = new StringBuilder(_item.GetFilterItemText(context));
             result.Append(" IS");
             if (!_isNull)
             {

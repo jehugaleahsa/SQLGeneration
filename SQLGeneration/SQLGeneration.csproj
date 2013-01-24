@@ -41,10 +41,13 @@
     <Compile Include="BetweenFilter.cs" />
     <Compile Include="Column.cs" />
     <Compile Include="ComparisonFilter.cs" />
+    <Compile Include="BuilderContext.cs" />
     <Compile Include="ConjunctionConverter.cs" />
     <Compile Include="DeleteBuilder.cs" />
     <Compile Include="DivideExpression.cs" />
+    <Compile Include="FormatOptions.cs" />
     <Compile Include="IArithmetic.cs" />
+    <Compile Include="IndentationBuilder.cs" />
     <Compile Include="ITop.cs" />
     <Compile Include="SQLGenerationException.cs" />
     <Compile Include="EqualToFilter.cs" />

@@ -64,15 +64,16 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the filter text without parentheses or a not.
         /// </summary>
+        /// <param name="context">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override string GetFilterText()
+        protected override string GetFilterText(BuilderContext context)
         {
-            StringBuilder result = new StringBuilder(_value.GetFilterItemText());
+            StringBuilder result = new StringBuilder(_value.GetFilterItemText(context));
             result.Append(" BETWEEN ");
             ProjectionItemFormatter formatter = new ProjectionItemFormatter();
-            result.Append(_lowerBound.GetFilterItemText());
+            result.Append(_lowerBound.GetFilterItemText(context));
             result.Append(" AND ");
-            result.Append(_upperBound.GetFilterItemText());
+            result.Append(_upperBound.GetFilterItemText(context));
             return result.ToString();
         }
     }

@@ -87,7 +87,7 @@ namespace SQLGeneration
             }
         }
 
-        string IProjectionItem.GetFullText()
+        string IProjectionItem.GetFullText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (_schema != null)
@@ -96,11 +96,11 @@ namespace SQLGeneration
                 result.Append(".");
             }
             result.Append(_name);
-            result.Append(_arguments.GetFilterItemText());
+            result.Append(_arguments.GetFilterItemText(context));
             return result.ToString();
         }
 
-        string IFilterItem.GetFilterItemText()
+        string IFilterItem.GetFilterItemText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (_schema != null)
@@ -109,11 +109,11 @@ namespace SQLGeneration
                 result.Append(".");
             }
             result.Append(_name);
-            result.Append(_arguments.GetFilterItemText());
+            result.Append(_arguments.GetFilterItemText(context));
             return result.ToString();
         }
 
-        string IGroupByItem.GetGroupByItemText()
+        string IGroupByItem.GetGroupByItemText(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (_schema != null)
@@ -122,7 +122,7 @@ namespace SQLGeneration
                 result.Append(".");
             }
             result.Append(_name);
-            result.Append(_arguments.GetFilterItemText());
+            result.Append(_arguments.GetFilterItemText(context));
             return result.ToString();
         }
     }
