@@ -41,7 +41,7 @@ namespace SQLGeneration
         public bool OneJoinItemPerLine { get; set; }
         
         /// <summary>
-        /// Gets or sets whether to indent projections when they are on a line by themselves.
+        /// Gets or sets whether to indent join items when they are on a line by themselves.
         /// </summary>
         public bool IndentJoinItems { get; set; }
     }

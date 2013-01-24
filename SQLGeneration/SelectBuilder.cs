@@ -331,54 +331,37 @@ namespace SQLGeneration
             {
                 throw new SQLGenerationException(Resources.NoProjections);
             }
-            List<Tuple<string, bool>> parts = new List<Tuple<string, bool>>();
+            List<string> parts = new List<string>();
             parts.Add(getHeader(context));
+            parts.Add(getProjections(context.Indent()));
             parts.Add(getFrom(context));
             parts.Add(getWhere(context));
             parts.Add(getOrderBy(context));
             parts.Add(getGroupBy(context));
             parts.Add(getHaving(context));
-            StringBuilder result = new StringBuilder();
-            result.Append(parts[0].Item1);
             StringBuilder clauseSeparatorBuilder = new StringBuilder();
             if (context.Options.OneClausePerLine)
             {
                 clauseSeparatorBuilder.AppendLine();
-                clauseSeparatorBuilder.Append(context.GetIndentationText());
             }
             else
             {
                 clauseSeparatorBuilder.Append(' ');
             }
             string clauseSeparator = clauseSeparatorBuilder.ToString();
-            bool reset = false;
-            for (int partIndex = 1; partIndex < parts.Count; ++partIndex)
-            {
-                if (parts[partIndex].Item1.Length == 0)
-                {
-                    continue;
-                }
-                if (!reset)
-                {
-                    result.Append(clauseSeparator);
-                }
-                result.Append(parts[partIndex].Item1);
-                reset = parts[partIndex].Item2;
-            }
-            return result.ToString();
+            return String.Join(clauseSeparator, parts.Where(part => part.Length > 0));
         }
 
-        private Tuple<string, bool> getHeader(BuilderContext context)
+        private string getHeader(BuilderContext context)
         {
             List<string> parts = new List<string>() { "SELECT", getDistinct(), getTop(context) };
-            StringBuilder builder = new StringBuilder(String.Join(" ", parts.Where(part => part.Length != 0)));
-            Tuple<string, bool> projections = getProjections(context.Indent());
-            if (!projections.Item2)
+            StringBuilder result = new StringBuilder();
+            if (context.Options.OneClausePerLine)
             {
-                builder.Append(' ');
+                result.Append(context.GetIndentationText());
             }
-            builder.Append(projections.Item1);
-            return Tuple.Create(builder.ToString(), projections.Item2);
+            result.Append(String.Join(" ", parts.Where(part => part.Length != 0)));
+            return result.ToString();
         }
 
         private string getDistinct()
@@ -401,7 +384,7 @@ namespace SQLGeneration
             return result.ToString();
         }
 
-        private Tuple<string, bool> getProjections(BuilderContext context)
+        private string getProjections(BuilderContext context)
         {
             ProjectionItemFormatter projectionFormatter = new ProjectionItemFormatter();
             IEnumerable<string> projections = _projection.Select(item => projectionFormatter.GetDeclaration(context, item));
@@ -416,20 +399,18 @@ namespace SQLGeneration
             {
                 projectionSeparator.Append(' ');
             }
-            StringBuilder result = new StringBuilder();
-            if (context.Options.OneProjectionPerLine)
-            {
-                result.AppendLine();
-            }
-            result.Append(String.Join(projectionSeparator.ToString(), projections));
-            return Tuple.Create(result.ToString(), context.Options.OneProjectionPerLine);
+            return String.Join(projectionSeparator.ToString(), projections);
         }
 
-        private Tuple<string, bool> getFrom(BuilderContext context)
+        private string getFrom(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (_from.Count != 0)
             {
+                if (context.Options.OneClausePerLine)
+                {
+                    result.Append(context.GetIndentationText());
+                }
                 result.Append("FROM ");
                 StringBuilder separatorBuilder = new StringBuilder(",");
                 if (context.Options.OneJoinItemPerLine)
@@ -440,80 +421,85 @@ namespace SQLGeneration
                 {
                     separatorBuilder.Append(' ');
                 }
-                string joined = String.Join(separatorBuilder.ToString(), _from.Select(joinItem => joinItem.GetDeclaration(context.Indent(), _where)));
+                string joined = String.Join(separatorBuilder.ToString(), _from.Select(joinItem => joinItem.GetDeclaration(context, _where)));
                 result.Append(joined);
             }
-            return Tuple.Create(result.ToString(), false);
+            return result.ToString();
         }
 
-        private Tuple<string, bool> getWhere(BuilderContext context)
+        private string getWhere(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (_where.HasFilters)
             {
+                if (context.Options.OneClausePerLine)
+                {
+                    result.Append(context.GetIndentationText());
+                }
                 result.Append("WHERE ");
                 result.Append(_where.GetFilterText(context));
             }
-            return Tuple.Create(result.ToString(), false);
+            return result.ToString();
         }
 
-        private Tuple<string, bool> getOrderBy(BuilderContext context)
+        private string getOrderBy(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (_orderBy.Count > 0)
             {
+                if (context.Options.OneClausePerLine)
+                {
+                    result.Append(context.GetIndentationText());
+                }
                 result.Append("ORDER BY ");
                 IEnumerable<string> orderBys = _orderBy.Select(orderBy => orderBy.GetOrderByText(context));
                 string joined = String.Join(", ", orderBys);
                 result.Append(joined);
             }
-            return Tuple.Create(result.ToString(), false);
+            return result.ToString();
         }
 
-        private Tuple<string, bool> getGroupBy(BuilderContext context)
+        private string getGroupBy(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (_groupBy.Count > 0)
             {
+                if (context.Options.OneClausePerLine)
+                {
+                    result.Append(context.GetIndentationText());
+                }
                 result.Append("GROUP BY ");
                 IEnumerable<string> groupBys = _groupBy.Select(groupBy => groupBy.GetGroupByItemText(context));
                 string joined = String.Join(", ", groupBys);
                 result.Append(joined);
             }
-            return Tuple.Create(result.ToString(), false);
+            return result.ToString();
         }
 
-        private Tuple<string, bool> getHaving(BuilderContext context)
+        private string getHaving(BuilderContext context)
         {
             StringBuilder result = new StringBuilder();
             if (_having.HasFilters)
             {
+                if (context.Options.OneClausePerLine)
+                {
+                    result.Append(context.GetIndentationText());
+                }
                 result.Append("HAVING ");
                 result.Append(_having.GetFilterText(context));
             }
-            return Tuple.Create(result.ToString(), false);
+            return result.ToString();
         }
 
         string IProjectionItem.GetFullText(BuilderContext context)
         {
-            return '(' + getCommandText(context) + ')';
+            return getSelectContent(context);
         }
 
         string IJoinItem.GetDeclaration(BuilderContext context, IFilterGroup where)
         {
-            StringBuilder result = new StringBuilder("(");
-            if (context.Options.OneClausePerLine)
-            {
-                result.AppendLine();
-                result.Append(context.Indent().GetIndentationText());
-            }
-            result.Append(getCommandText(context.Indent()));
-            if (context.Options.OneClausePerLine)
-            {
-                result.AppendLine();
-                result.Append(context.GetIndentationText());
-            }
-            result.Append(')');
+            StringBuilder result = new StringBuilder();
+            result.Append(getSelectContent(context));
             if (!String.IsNullOrWhiteSpace(_alias))
             {
                 result.Append(" ");
@@ -533,7 +519,25 @@ namespace SQLGeneration
 
         string IFilterItem.GetFilterItemText(BuilderContext context)
         {
-            return '(' + getCommandText(context) + ')';
+            return getSelectContent(context);
+        }
+
+        private string getSelectContent(BuilderContext context)
+        {
+            StringBuilder result = new StringBuilder("(");
+            BuilderContext indented = context.Indent();
+            if (context.Options.OneClausePerLine)
+            {
+                result.AppendLine();
+            }
+            result.Append(getCommandText(indented));
+            if (context.Options.OneClausePerLine)
+            {
+                result.AppendLine();
+                result.Append(context.GetIndentationText());
+            }
+            result.Append(')');
+            return result.ToString();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 using SQLGeneration.Properties;
 
@@ -27,7 +28,7 @@ namespace SQLGeneration
         {
         }
 
-                /// <summary>
+        /// <summary>
         /// Initializes a new instance of a InnerJoin.
         /// </summary>
         /// <param name="leftHand">The left hand item in the join.</param>
@@ -44,6 +45,10 @@ namespace SQLGeneration
                 throw new ArgumentNullException("rightHand");
             }
             if (filters == null)
+            {
+                throw new ArgumentNullException("filters");
+            }
+            if (filters.Any(filter => filter == null))
             {
                 throw new ArgumentNullException("filters");
             }
@@ -182,8 +187,13 @@ namespace SQLGeneration
                 result.Append("(");
             }
             string leftHand = _leftHand.GetDeclaration(context, where);
-            string rightHand = _rightHand.GetDeclaration(context, where);
-            result.Append(combine(context, leftHand, rightHand));
+            BuilderContext next = context;
+            if (context.Options.IndentJoinItems)
+            {
+                next = next.Indent();
+            }
+            string rightHand = _rightHand.GetDeclaration(next, where);
+            result.Append(combine(next, leftHand, rightHand));
             result.Append(" ON ");
             FilterGroup on = new FilterGroup();
             foreach (IFilter filter in _on)
@@ -209,10 +219,7 @@ namespace SQLGeneration
             {
                 throw new SQLGenerationException(Resources.ReferencedJoinWithoutAlias);
             }
-            else
-            {
-                return _alias;
-            }
+            return _alias;
         }
 
         /// <summary>
@@ -229,10 +236,7 @@ namespace SQLGeneration
             if (context.Options.OneJoinItemPerLine)
             {
                 result.AppendLine();
-                if (context.Options.IndentJoinItems)
-                {
-                    result.Append(context.GetIndentationText());
-                }
+                result.Append(context.GetIndentationText());
             }
             else
             {
