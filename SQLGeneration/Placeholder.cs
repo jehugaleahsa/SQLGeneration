@@ -1,11 +1,12 @@
 ﻿using System;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
-    /// Acts as a placeholder anywhere within the context of a SQL statement.
+    /// Acts as a placeholder anywhere within the options of a SQL statement.
     /// </summary>
-    public class Placeholder : ILiteral
+    public class Placeholder : IProjectionItem, IFilterItem, IGroupByItem
     {
         private readonly string value;
 
@@ -27,19 +28,19 @@ namespace SQLGeneration
             set;
         }
 
-        string IProjectionItem.GetFullText(BuilderContext context)
+        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            return value;
+            return new Token(value);
         }
 
-        string IGroupByItem.GetGroupByItemText(BuilderContext context)
+        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            return value;
+            return new Token(value);
         }
 
-        string IFilterItem.GetFilterItemText(BuilderContext context)
+        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            return value;
+            return new Token(value);
         }
     }
 }

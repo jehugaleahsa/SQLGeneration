@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -37,16 +38,17 @@ namespace SQLGeneration
             set;
         }
 
-        string IProjectionItem.GetFullText(BuilderContext context)
+        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
+            Expression expression = new Expression();
             StringBuilder builder = new StringBuilder();
             if (source != null)
             {
-                builder.Append(source.GetReference(context));
-                builder.Append(".");
+                expression.AddItem(source.GetReferenceExpression(options));
+                expression.AddItem(new Token("."));
             }
-            builder.Append("*");
-            return builder.ToString();
+            expression.AddItem(new Token("*"));
+            return expression;
         }
     }
 }

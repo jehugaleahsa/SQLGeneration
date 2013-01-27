@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Text;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Represents a comparison that checks that an item is between two values.
     /// </summary>
-    public class BetweenFilter : Filter, IBetweenFilter
+    public class BetweenFilter : Filter
     {
         private readonly IFilterItem _value;
         private readonly IFilterItem _lowerBound;
@@ -73,20 +73,21 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the filter text without parentheses or a not.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override string GetFilterText(BuilderContext context)
+        protected override IExpressionItem GetInnerFilterExpression(CommandOptions options)
         {
-            StringBuilder result = new StringBuilder(_value.GetFilterItemText(context));
+            Expression expression = new Expression();
+            expression.AddItem(_value.GetFilterExpression(options));
             if (Not)
             {
-                result.Append(" NOT");
+                expression.AddItem(new Token("NOT"));
             }
-            result.Append(" BETWEEN ");
-            result.Append(_lowerBound.GetFilterItemText(context));
-            result.Append(" AND ");
-            result.Append(_upperBound.GetFilterItemText(context));
-            return result.ToString();
+            expression.AddItem(new Token("BETWEEN"));
+            expression.AddItem(_lowerBound.GetFilterExpression(options));
+            expression.AddItem(new Token("AND"));
+            expression.AddItem(_upperBound.GetFilterExpression(options));
+            return expression;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -39,14 +40,14 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="order">The value of the enum.</param>
         /// <returns>The string representation.</returns>
-        public string ToString(Order order)
+        public IExpressionItem ToToken(Order order)
         {
             switch (order)
             {
                 case Order.Ascending:
-                    return "ASC";
+                    return new Token("ASC");
                 case Order.Descending:
-                    return "DESC";
+                    return new Token("DESC");
                 default:
                     throw new ArgumentException(Resources.UnknownOrder, "order");
             }

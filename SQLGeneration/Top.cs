@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Text;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Builds a TOP clause that is found in a SELECT statement.
     /// </summary>
-    public class Top : ITop
+    public class Top
     {
         private readonly IArithmetic _expression;
 
@@ -56,22 +56,23 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the textual representation of the TOP clause.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The generated text.</returns>
-        public string GetTopText(BuilderContext context)
+        public IExpressionItem GetTopExpression(CommandOptions options)
         {
-            StringBuilder builder = new StringBuilder();
-            builder.Append("TOP ");
-            builder.Append(_expression.GetFilterItemText(context));
+            Expression expression = new Expression();
+            expression.AddItem(new Token("TOP"));
+            expression.AddItem(_expression.GetGroupByExpression(options));
             if (IsPercent)
             {
-                builder.Append(" PERCENT");
+                expression.AddItem(new Token("PERCENT"));
             }
             if (WithTies)
             {
-                builder.Append(" WITH TIES");
+                expression.AddItem(new Token("WITH"));
+                expression.AddItem(new Token("TIES"));
             }
-            return builder.ToString();
+            return expression;
         }
     }
 }

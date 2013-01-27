@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -7,9 +7,9 @@ namespace SQLGeneration
     /// <summary>
     /// Provides a table name.
     /// </summary>
-    public class Table : ITable
+    public class Table : IColumnSource
     {
-        private readonly ISchema _schema;
+        private readonly Schema _schema;
         private readonly string _name;
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="schema">The schema the table belongs to.</param>
         /// <param name="name">The name of the table.</param>
-        public Table(ISchema schema, string name)
+        public Table(Schema schema, string name)
         {
             if (String.IsNullOrWhiteSpace(name))
             {
@@ -39,7 +39,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets or sets the schema the table belongs to.
         /// </summary>
-        public ISchema Schema
+        public Schema Schema
         {
             get
             {
@@ -77,11 +77,6 @@ namespace SQLGeneration
             return new Column(this, columnName);
         }
 
-        IColumn IColumnSource.CreateColumn(string columnName)
-        {
-            return CreateColumn(columnName);
-        }
-
         /// <summary>
         /// Creates a new column under the table with the given alias.
         /// </summary>
@@ -93,50 +88,49 @@ namespace SQLGeneration
             return new Column(this, columnName) { Alias = alias };
         }
 
-        IColumn IColumnSource.CreateColumn(string columnName, string alias)
+        /// <summary>
+        /// Gets the table declaration expression.
+        /// </summary>
+        /// <param name="options">The configuration to use when building the command.</param>
+        /// <param name="where">The where clause of the current statement.</param>
+        /// <returns>The expression declaring the table.</returns>
+        public IExpressionItem GetDeclarationExpression(CommandOptions options, FilterGroup where)
         {
-            return CreateColumn(columnName, alias);
-        }
-
-        string IJoinItem.GetDeclaration(BuilderContext context, IFilterGroup where)
-        {
-            StringBuilder result = new StringBuilder(getFullName());
+            Expression expression = new Expression();
+            expression.AddItem(getFullNameExpression());
             if (!String.IsNullOrWhiteSpace(Alias))
             {
-                result.Append(' ');
-                if (context.Options.AliasJoinItemsUsingAs)
+                if (options.AliasColumnSourcesUsingAs)
                 {
-                    result.Append("AS ");
+                    expression.AddItem(new Token("AS"));
                 }
-                result.Append(Alias);
+                expression.AddItem(new Token(Alias));
             }
-            return result.ToString();
+            return expression;
         }
 
-        string IColumnSource.GetReference(BuilderContext context)
+        IExpressionItem IColumnSource.GetReferenceExpression(CommandOptions options)
         {
-            StringBuilder result = new StringBuilder();
             if (String.IsNullOrWhiteSpace(Alias))
             {
-                result.Append(getFullName());
+                return getFullNameExpression();
             }
             else
             {
-                result.Append(Alias);
+                return new Token(Alias);
             }
-            return result.ToString();
         }
 
-        private string getFullName()
+        private IExpressionItem getFullNameExpression()
         {
-            StringBuilder result = new StringBuilder();
+            Expression expression = new Expression();
             if (_schema != null)
             {
-                result.Append(_schema.Name);
-                result.Append(".");
+                expression.AddItem(new Token(_schema.Name));
+                expression.AddItem(new Token("."));
             }
-            result.Append(_name);
-            return result.ToString();
+            expression.AddItem(new Token(_name));
+            return expression;
         }
     }
 }

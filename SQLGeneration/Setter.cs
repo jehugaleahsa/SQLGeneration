@@ -1,13 +1,14 @@
 ﻿using System;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Adds a column being set to a value to the command.
     /// </summary>
-    public class Setter : ISetter
+    public class Setter
     {
-        private readonly IColumn _column;
+        private readonly Column _column;
         private readonly IProjectionItem _value;
 
         /// <summary>
@@ -15,7 +16,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="column">The name of the column to set.</param>
         /// <param name="value">The value to set the column to.</param>
-        public Setter(IColumn column, IProjectionItem value)
+        public Setter(Column column, IProjectionItem value)
         {
             if (column == null)
             {
@@ -32,7 +33,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the column being set.
         /// </summary>
-        public IColumn Column
+        public Column Column
         {
             get { return _column; }
         }
@@ -45,10 +46,19 @@ namespace SQLGeneration
             get { return _value; }
         }
 
-        string ISetter.GetSetterText(BuilderContext context)
+        /// <summary>
+        /// Gets the expression for setting a column in an update statement.
+        /// </summary>
+        /// <param name="options">The configuration to use when building the command.</param>
+        /// <returns>The setter expression.</returns>
+        public IExpressionItem GetSetterExpression(CommandOptions options)
         {
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter(context);
-            return formatter.GetUnaliasedReference(_column) + " = " + formatter.GetUnaliasedReference(_value);
+            Expression expression = new Expression();
+            ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
+            expression.AddItem(formatter.GetUnaliasedReference(_column));
+            expression.AddItem(new Token("="));
+            expression.AddItem(formatter.GetUnaliasedReference(_value));
+            return expression;
         }
     }
 }

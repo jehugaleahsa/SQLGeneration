@@ -6,7 +6,7 @@ namespace SQLGeneration
     /// <summary>
     /// Represents a command that can be filtered.
     /// </summary>
-    public interface IFilteredCommand
+    public interface IFilteredCommand : ICommand
     {
         /// <summary>
         /// Gets the filters in the where clause.

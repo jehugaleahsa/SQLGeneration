@@ -212,5 +212,14 @@ namespace SQLGeneration.Properties {
                 return ResourceManager.GetString("UnknownOrder", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encountered an unknown token type..
+        /// </summary>
+        internal static string UnknownTokenType {
+            get {
+                return ResourceManager.GetString("UnknownTokenType", resourceCulture);
+            }
+        }
     }
 }

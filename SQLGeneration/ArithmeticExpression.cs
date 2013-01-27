@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Text;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Represents an arithmetic expression in a command.
     /// </summary>
-    public abstract class ArithmeticExpression : IArithmeticExpression
+    public abstract class ArithmeticExpression : IArithmetic
     {
         private readonly IProjectionItem _leftHand;
         private readonly IProjectionItem _rightHand;
@@ -70,37 +70,38 @@ namespace SQLGeneration
             set;
         }
 
-        string IProjectionItem.GetFullText(BuilderContext context)
+        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            return getExpressionText(context);
+            return getExpression(options);
         }
 
-        string IFilterItem.GetFilterItemText(BuilderContext context)
+        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            return getExpressionText(context);
+            return getExpression(options);
         }
 
-        string IGroupByItem.GetGroupByItemText(BuilderContext context)
+        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            return getExpressionText(context);
+            return getExpression(options);
         }
 
-        private string getExpressionText(BuilderContext context)
+        private IExpressionItem getExpression(CommandOptions options)
         {
-            StringBuilder result = new StringBuilder();
-            if (WrapInParentheses ?? context.Options.WrapArithmeticExpressionsInParentheses)
+            Expression expression = new Expression();
+            if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {
-                result.Append("(");
+                expression.AddItem(new Token("("));
             }
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter(context);
-            string leftHand = formatter.GetUnaliasedReference(_leftHand);
-            string rightHand = formatter.GetUnaliasedReference(_rightHand);
-            result.Append(Combine(context, leftHand, rightHand));
-            if (WrapInParentheses ?? context.Options.WrapArithmeticExpressionsInParentheses)
+            ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
+            IExpressionItem leftHand = formatter.GetUnaliasedReference(_leftHand);
+            IExpressionItem rightHand = formatter.GetUnaliasedReference(_rightHand);
+            IExpressionItem combined = Combine(options, leftHand, rightHand);
+            expression.AddItem(combined);
+            if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {
-                result.Append(")");
+                expression.AddItem(new Token(")"));
             }
-            return result.ToString();
+            return expression;
         }
 
         /// <summary>
@@ -108,8 +109,8 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="leftHand">The left hand operand.</param>
         /// <param name="rightHand">The right hand operand.</param>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The left and right hand operands combined using the operation.</returns>
-        protected abstract string Combine(BuilderContext context, string leftHand, string rightHand);
+        protected abstract IExpressionItem Combine(CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand);
     }
 }

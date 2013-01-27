@@ -6,7 +6,7 @@ namespace SQLGeneration
     /// <summary>
     /// Provides a schema name.
     /// </summary>
-    public class Schema : ISchema
+    public class Schema
     {
         private string _name;
 

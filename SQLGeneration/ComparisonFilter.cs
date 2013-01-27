@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -48,22 +49,22 @@ namespace SQLGeneration
         /// <summary>
         /// Gets a string representing the filter.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override sealed string GetFilterText(BuilderContext context)
+        protected override sealed IExpressionItem GetInnerFilterExpression(CommandOptions options)
         {
-            string leftHand = _leftHand.GetFilterItemText(context);
-            string rightHand = _rightHand.GetFilterItemText(context);
-            return Combine(context, leftHand, rightHand);
+            IExpressionItem leftHand = _leftHand.GetFilterExpression(options);
+            IExpressionItem rightHand = _rightHand.GetFilterExpression(options);
+            return Combine(options, leftHand, rightHand);
         }
 
         /// <summary>
         /// Combines the left and right hand operands with the operation.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <param name="leftHand">The left hand operand.</param>
         /// <param name="rightHand">The right hand operand.</param>
         /// <returns>A string combining the left and right hand operands with the operation.</returns>
-        protected abstract string Combine(BuilderContext context, string leftHand, string rightHand);
+        protected abstract IExpressionItem Combine(CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand);
     }
 }

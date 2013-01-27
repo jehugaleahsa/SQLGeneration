@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
+using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -10,14 +10,14 @@ namespace SQLGeneration
     /// <summary>
     /// Builds a string of a select statement.
     /// </summary>
-    public class SelectBuilder : ISelectBuilder
+    public class SelectBuilder : ISelectBuilder, IFilteredCommand
     {
         private readonly List<IJoinItem> _from;
         private readonly List<IProjectionItem> _projection;
-        private readonly IFilterGroup _where;
-        private readonly List<IOrderBy> _orderBy;
+        private readonly FilterGroup _where;
+        private readonly List<OrderBy> _orderBy;
         private readonly List<IGroupByItem> _groupBy;
-        private readonly IFilterGroup _having;
+        private readonly FilterGroup _having;
 
         /// <summary>
         /// Initializes a new instance of a QueryBuilder.
@@ -27,7 +27,7 @@ namespace SQLGeneration
             _from = new List<IJoinItem>();
             _projection = new List<IProjectionItem>();
             _where = new FilterGroup();
-            _orderBy = new List<IOrderBy>();
+            _orderBy = new List<OrderBy>();
             _groupBy = new List<IGroupByItem>();
             _having = new FilterGroup();
         }
@@ -53,7 +53,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets or sets the TOP clause.
         /// </summary>
-        public ITop Top
+        public Top Top
         {
             get;
             set;
@@ -69,11 +69,6 @@ namespace SQLGeneration
             return new Column(this, columnName);
         }
 
-        IColumn IColumnSource.CreateColumn(string columnName)
-        {
-            return CreateColumn(columnName);
-        }
-
         /// <summary>
         /// Creates a new column under the sub-select with the given alias.
         /// </summary>
@@ -83,11 +78,6 @@ namespace SQLGeneration
         public Column CreateColumn(string columnName, string alias)
         {
             return new Column(this, columnName) { Alias = alias };
-        }
-
-        IColumn IColumnSource.CreateColumn(string columnName, string alias)
-        {
-            return CreateColumn(columnName, alias);
         }
 
         /// <summary>
@@ -166,16 +156,16 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the items used to sort the results.
         /// </summary>
-        public IEnumerable<IOrderBy> OrderBy
+        public IEnumerable<OrderBy> OrderBy
         {
-            get { return new ReadOnlyCollection<IOrderBy>(_orderBy); }
+            get { return new ReadOnlyCollection<OrderBy>(_orderBy); }
         }
 
         /// <summary>
         /// Adds a sort criteria to the query.
         /// </summary>
         /// <param name="item">The sort criteria to add.</param>
-        public void AddOrderBy(IOrderBy item)
+        public void AddOrderBy(OrderBy item)
         {
             if (item == null)
             {
@@ -189,7 +179,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="item">The order by item to remove.</param>
         /// <returns>True if the item was removed; otherwise, false.</returns>
-        public bool RemoveOrderBy(IOrderBy item)
+        public bool RemoveOrderBy(OrderBy item)
         {
             if (item == null)
             {
@@ -290,243 +280,112 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the SQL that represents the query.
         /// </summary>
-        public string GetCommandText()
+        /// <param name="options">The configuration to use when building the command.</param>
+        public IExpressionItem GetCommandExpression(CommandOptions options)
         {
-            return getCommandText(new BuilderContext());
+            if (options == null)
+            {
+                throw new ArgumentNullException("options");
+            }
+            options = options.Clone();
+            options.IsSelect = true;
+            options.IsInsert = false;
+            options.IsUpdate = false;
+            options.IsDelete = false;
+            return getCommandExpression(options);
         }
 
-        /// <summary>
-        /// Gets the SQL that represents the query.
-        /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
-        public string GetCommandText(BuilderContext context)
-        {
-            context = context.Clone();
-            context.IsSelect = true;
-            context.IsInsert = false;
-            context.IsUpdate = false;
-            context.IsDelete = false;
-
-            return getCommandText(context);
-        }
-
-        private string getCommandText(BuilderContext context)
+        private IExpressionItem getCommandExpression(CommandOptions options)
         {
             if (_projection.Count == 0)
             {
                 throw new SQLGenerationException(Resources.NoProjections);
             }
-            List<string> parts = new List<string>();
-            parts.Add(getHeader(context));
-            parts.Add(getProjections(context.Indent()));
-            parts.Add(getFrom(context));
-            parts.Add(getWhere(context));
-            parts.Add(getOrderBy(context));
-            parts.Add(getGroupBy(context));
-            parts.Add(getHaving(context));
-            StringBuilder clauseSeparatorBuilder = new StringBuilder();
-            if (context.Options.OneClausePerLine)
-            {
-                clauseSeparatorBuilder.AppendLine();
-            }
-            else
-            {
-                clauseSeparatorBuilder.Append(' ');
-            }
-            string clauseSeparator = clauseSeparatorBuilder.ToString();
-            return String.Join(clauseSeparator, parts.Where(part => part.Length > 0));
-        }
-
-        private string getHeader(BuilderContext context)
-        {
-            List<string> parts = new List<string>() { "SELECT", getDistinct(), getTop(context) };
-            StringBuilder result = new StringBuilder();
-            if (context.Options.OneClausePerLine)
-            {
-                result.Append(context.GetIndentationText());
-            }
-            result.Append(String.Join(" ", parts.Where(part => part.Length != 0)));
-            return result.ToString();
-        }
-
-        private string getDistinct()
-        {
-            StringBuilder result = new StringBuilder();
+            Expression expression = new Expression();
+            expression.AddItem(new Token("SELECT"));
             if (IsDistinct)
             {
-                result.Append("DISTINCT");
+                expression.AddItem(new Token("DISTINCT"));
             }
-            return result.ToString();
-        }
-
-        private string getTop(BuilderContext context)
-        {
-            StringBuilder result = new StringBuilder();
             if (Top != null)
             {
-                result.Append(Top.GetTopText(context));
+                expression.AddItem(Top.GetTopExpression(options));
             }
-            return result.ToString();
-        }
-
-        private string getProjections(BuilderContext context)
-        {
-            ProjectionItemFormatter projectionFormatter = new ProjectionItemFormatter(context);
-            IEnumerable<string> projections = _projection.Select(item => projectionFormatter.GetDeclaration(item));
-            StringBuilder projectionSeparator = new StringBuilder(",");
-            if (context.Options.OneProjectionPerLine)
-            {
-                string indentation = context.GetIndentationText();
-                projections = projections.Select(item => indentation + item);
-                projectionSeparator.AppendLine();
-            }
-            else
-            {
-                projectionSeparator.Append(' ');
-            }
-            return String.Join(projectionSeparator.ToString(), projections);
-        }
-
-        private string getFrom(BuilderContext context)
-        {
-            StringBuilder result = new StringBuilder();
+            ProjectionItemFormatter projectionFormatter = new ProjectionItemFormatter(options);
+            IEnumerable<IExpressionItem> projections = _projection.Select(item => projectionFormatter.GetDeclaration(item));
+            expression.AddItem(Expression.Join(new Token(","), projections));
             if (_from.Count != 0)
             {
-                if (context.Options.OneClausePerLine)
-                {
-                    result.Append(context.GetIndentationText());
-                }
-                result.Append("FROM ");
-                StringBuilder separatorBuilder = new StringBuilder(",");
-                if (context.Options.OneJoinItemPerLine)
-                {
-                    separatorBuilder.AppendLine();
-                }
-                else
-                {
-                    separatorBuilder.Append(' ');
-                }
-                string joined = String.Join(separatorBuilder.ToString(), _from.Select(joinItem => joinItem.GetDeclaration(context, _where)));
-                result.Append(joined);
+                expression.AddItem(new Token("FROM"));
+                IEnumerable<IExpressionItem> froms = _from.Select(joinItem => joinItem.GetDeclarationExpression(options, _where));
+                expression.AddItem(Expression.Join(new Token(","), froms));
             }
-            return result.ToString();
-        }
-
-        private string getWhere(BuilderContext context)
-        {
-            StringBuilder result = new StringBuilder();
             if (_where.HasFilters)
             {
-                if (context.Options.OneClausePerLine)
-                {
-                    result.Append(context.GetIndentationText());
-                }
-                result.Append("WHERE ");
-                result.Append(_where.GetFilterText(context));
+                expression.AddItem(new Token("WHERE"));
+                expression.AddItem(_where.GetFilterExpression(options));
             }
-            return result.ToString();
-        }
-
-        private string getOrderBy(BuilderContext context)
-        {
-            StringBuilder result = new StringBuilder();
             if (_orderBy.Count > 0)
             {
-                if (context.Options.OneClausePerLine)
-                {
-                    result.Append(context.GetIndentationText());
-                }
-                result.Append("ORDER BY ");
-                IEnumerable<string> orderBys = _orderBy.Select(orderBy => orderBy.GetOrderByText(context));
-                string joined = String.Join(", ", orderBys);
-                result.Append(joined);
+                expression.AddItem(new Token("ORDER BY"));
+                IEnumerable<IExpressionItem> orderBys = _orderBy.Select(orderBy => orderBy.GetOrderByExpression(options));
+                expression.AddItem(Expression.Join(new Token(","), orderBys));
             }
-            return result.ToString();
-        }
-
-        private string getGroupBy(BuilderContext context)
-        {
-            StringBuilder result = new StringBuilder();
             if (_groupBy.Count > 0)
             {
-                if (context.Options.OneClausePerLine)
-                {
-                    result.Append(context.GetIndentationText());
-                }
-                result.Append("GROUP BY ");
-                IEnumerable<string> groupBys = _groupBy.Select(groupBy => groupBy.GetGroupByItemText(context));
-                string joined = String.Join(", ", groupBys);
-                result.Append(joined);
+                expression.AddItem(new Token("GROUP BY"));
+                IEnumerable<IExpressionItem> groupBys = _groupBy.Select(groupBy => groupBy.GetGroupByExpression(options));
+                expression.AddItem(Expression.Join(new Token(","), groupBys));
             }
-            return result.ToString();
-        }
-
-        private string getHaving(BuilderContext context)
-        {
-            StringBuilder result = new StringBuilder();
             if (_having.HasFilters)
             {
-                if (context.Options.OneClausePerLine)
-                {
-                    result.Append(context.GetIndentationText());
-                }
-                result.Append("HAVING ");
-                result.Append(_having.GetFilterText(context));
+                expression.AddItem(new Token("HAVING"));
+                expression.AddItem(_having.GetFilterExpression(options));
             }
-            return result.ToString();
+            return expression;
         }
 
-        string IProjectionItem.GetFullText(BuilderContext context)
+        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            return getSelectContent(context);
+            return getSelectContent(options);
         }
 
-        string IJoinItem.GetDeclaration(BuilderContext context, IFilterGroup where)
+        IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options, FilterGroup where)
         {
-            StringBuilder result = new StringBuilder();
-            result.Append(getSelectContent(context));
+            Expression expression = new Expression();
+            expression.AddItem(getSelectContent(options));
             if (!String.IsNullOrWhiteSpace(Alias))
             {
-                result.Append(' ');
-                if (context.Options.AliasJoinItemsUsingAs)
+                if (options.AliasColumnSourcesUsingAs)
                 {
-                    result.Append("AS ");
+                    expression.AddItem(new Token("AS"));
                 }
-                result.Append(Alias);
+                expression.AddItem(new Token(Alias));
             }
-            return result.ToString();
+            return expression;
         }
 
-        string IColumnSource.GetReference(BuilderContext context)
+        IExpressionItem IColumnSource.GetReferenceExpression(CommandOptions options)
         {
             if (String.IsNullOrWhiteSpace(Alias))
             {
                 throw new SQLGenerationException(Resources.ReferencedQueryWithoutAlias);
             }
-            return Alias;
+            return new Token(Alias);
         }
 
-        string IFilterItem.GetFilterItemText(BuilderContext context)
+        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            return getSelectContent(context);
+            return getSelectContent(options);
         }
 
-        private string getSelectContent(BuilderContext context)
+        private Expression getSelectContent(CommandOptions options)
         {
-            StringBuilder result = new StringBuilder("(");
-            BuilderContext indented = context.Indent();
-            if (context.Options.OneClausePerLine)
-            {
-                result.AppendLine();
-            }
-            result.Append(getCommandText(indented));
-            if (context.Options.OneClausePerLine)
-            {
-                result.AppendLine();
-                result.Append(context.GetIndentationText());
-            }
-            result.Append(')');
-            return result.ToString();
+            Expression expression = new Expression();
+            expression.AddItem(new Token("("));
+            expression.AddItem(getCommandExpression(options));
+            expression.AddItem(new Token(")"));
+            return expression;
         }
 
         bool IValueProvider.IsQuery

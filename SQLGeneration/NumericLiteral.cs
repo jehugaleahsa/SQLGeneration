@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Globalization;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Represents a numeric literal.
     /// </summary>
-    public class NumericLiteral : IArithmetic, ILiteral
+    public class NumericLiteral : IArithmetic, IProjectionItem, IFilterItem, IGroupByItem
     {
         /// <summary>
         /// Initializes a new instance of a NumericLiteral.
@@ -42,19 +43,19 @@ namespace SQLGeneration
             set;
         }
 
-        string IProjectionItem.GetFullText(BuilderContext context)
+        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            return Value.ToString(CultureInfo.InvariantCulture);
+            return new Token(Value.ToString(CultureInfo.InvariantCulture));
         }
 
-        string IFilterItem.GetFilterItemText(BuilderContext context)
+        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            return Value.ToString(CultureInfo.InvariantCulture);
+            return new Token(Value.ToString(CultureInfo.InvariantCulture));
         }
 
-        string IGroupByItem.GetGroupByItemText(BuilderContext context)
+        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            return Value.ToString(CultureInfo.InvariantCulture);
+            return new Token(Value.ToString(CultureInfo.InvariantCulture));
         }
     }
 }

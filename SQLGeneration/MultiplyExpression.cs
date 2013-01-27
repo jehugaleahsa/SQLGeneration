@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -22,11 +23,15 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="leftHand">The left hand operand.</param>
         /// <param name="rightHand">The right hand operand.</param>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The left and right hand operands combined using the operation.</returns>
-        protected override string Combine(BuilderContext context, string leftHand, string rightHand)
+        protected override IExpressionItem Combine(CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand)
         {
-            return leftHand + " * " + rightHand;
+            Expression expression = new Expression();
+            expression.AddItem(leftHand);
+            expression.AddItem(new Token("*"));
+            expression.AddItem(rightHand);
+            return expression;
         }
     }
 }

@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Builds a string of an insert statement.
     /// </summary>
-    public class InsertBuilder : IInsertBuilder
+    public class InsertBuilder : ICommand
     {
-        private readonly ITable _table;
-        private readonly List<IColumn> _columns;
+        private readonly Table _table;
+        private readonly List<Column> _columns;
         private readonly IValueProvider _values;
 
         /// <summary>
@@ -20,7 +20,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="table">The table being inserted into.</param>
         /// <param name="values">The values to insert into the table.</param>
-        public InsertBuilder(ITable table, IValueProvider values)
+        public InsertBuilder(Table table, IValueProvider values)
         {
             if (table == null)
             {
@@ -31,14 +31,14 @@ namespace SQLGeneration
                 throw new ArgumentNullException("values");
             }
             _table = table;
-            _columns = new List<IColumn>();
+            _columns = new List<Column>();
             _values = values;
         }
 
         /// <summary>
         /// Gets the table that is being inserted into.
         /// </summary>
-        public ITable Table
+        public Table Table
         {
             get { return _table; }
         }
@@ -46,16 +46,16 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the columns being inserted into.
         /// </summary>
-        public IEnumerable<IColumn> Columns
+        public IEnumerable<Column> Columns
         {
-            get { return new ReadOnlyCollection<IColumn>(_columns); }
+            get { return new ReadOnlyCollection<Column>(_columns); }
         }
 
         /// <summary>
         /// Adds the column to the insert statement.
         /// </summary>
         /// <param name="column">The column to add.</param>
-        public void AddColumn(IColumn column)
+        public void AddColumn(Column column)
         {
             if (column == null)
             {
@@ -69,7 +69,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="column">The column to remove.</param>
         /// <returns>True if the column was removed; otherwise, false.</returns>
-        public bool RemoveColumn(IColumn column)
+        public bool RemoveColumn(Column column)
         {
             if (column == null)
             {
@@ -89,88 +89,42 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the SQL for the insert statement.
         /// </summary>
-        public string GetCommandText()
+        /// <param name="options">The configuration to use when building the command.</param>
+        public IExpressionItem GetCommandExpression(CommandOptions options)
         {
-            return getCommandText(new BuilderContext());
+            if (options == null)
+            {
+                throw new ArgumentNullException("options");
+            }
+            options = options.Clone();
+            options.IsSelect = false;
+            options.IsInsert = true;
+            options.IsUpdate = false;
+            options.IsDelete = false;
+            IExpressionItem expression = getCommandExpression(options);
+            return expression;
         }
 
-        /// <summary>
-        /// Gets the SQL for the insert statement.
-        /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
-        public string GetCommandText(BuilderContext context)
+        private IExpressionItem getCommandExpression(CommandOptions options)
         {
-            context = context.Clone();
-            context.IsSelect = false;
-            context.IsInsert = true;
-            context.IsUpdate = false;
-            context.IsDelete = false;
-
-            return getCommandText(context);
-        }
-
-        private string getCommandText(BuilderContext context)
-        {
-            StringBuilder result = new StringBuilder("INSERT INTO ");
-            result.Append(_table.GetDeclaration(context, null));
-            if (context.Options.OneClausePerLine)
-            {
-                result.AppendLine();
-            }
-            else
-            {
-                result.Append(' ');
-            }
+            Expression expression = new Expression();
+            expression.AddItem(new Token("INSERT"));
+            expression.AddItem(new Token("INTO"));
+            expression.AddItem(_table.GetDeclarationExpression(options, null));
             if (_columns.Count > 0)
             {
-                result.Append('(');
-                StringBuilder separatorBuilder = new StringBuilder(",");
-                if (context.Options.OneInsertColumnPerLine)
-                {
-                    result.AppendLine();
-                    separatorBuilder.AppendLine();
-                }
-                else
-                {
-                    separatorBuilder.Append(' ');
-                }
-                ProjectionItemFormatter columnFormatter = new ProjectionItemFormatter(context);
-                IEnumerable<string> columns = _columns.Select(column => columnFormatter.GetUnaliasedReference(column));
-                if (context.Options.OneInsertColumnPerLine && context.Options.IndentInsertColumns)
-                {
-                    string indentationText = context.Indent().GetIndentationText();
-                    columns = columns.Select(column => indentationText + column);
-                }
-                string separated = String.Join(separatorBuilder.ToString(), columns);
-                result.Append(separated);
-                if (context.Options.OneInsertColumnPerLine)
-                {
-                    result.AppendLine();
-                }
-                result.Append(')');
-            }
-            if (context.Options.OneClausePerLine)
-            {
-                result.AppendLine();
-            }
-            else
-            {
-                result.Append(' ');
+                expression.AddItem(new Token("("));
+                ProjectionItemFormatter columnFormatter = new ProjectionItemFormatter(options);
+                IEnumerable<IExpressionItem> columns = _columns.Select(column => columnFormatter.GetUnaliasedReference(column));
+                expression.AddItem(Expression.Join(new Token(","), columns));
+                expression.AddItem(new Token(")"));
             }
             if (!_values.IsQuery)
             {
-                result.Append("VALUES");
-                if (context.Options.OneClausePerLine)
-                {
-                    result.AppendLine();
-                }
-                else
-                {
-                    result.Append(' ');
-                }
+                expression.AddItem(new Token("VALUES"));
             }
-            result.Append(_values.GetFilterItemText(context));
-            return result.ToString();
+            expression.AddItem(_values.GetFilterExpression(options));
+            return expression;
         }
     }
 }

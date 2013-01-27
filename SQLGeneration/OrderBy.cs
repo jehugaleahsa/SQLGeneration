@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -7,7 +7,7 @@ namespace SQLGeneration
     /// <summary>
     /// Represents an item in the order by clause of a select statement.
     /// </summary>
-    public class OrderBy : IOrderBy
+    public class OrderBy
     {
         private readonly IProjectionItem _item;
         private Order _order;
@@ -95,24 +95,27 @@ namespace SQLGeneration
             }
         }
 
-        string IOrderBy.GetOrderByText(BuilderContext context)
+        /// <summary>
+        /// Gets the text making up the order by expression.
+        /// </summary>
+        /// <param name="options">The configuration to use when building the command.</param>
+        /// <returns>The order by text.</returns>
+        public IExpressionItem GetOrderByExpression(CommandOptions options)
         {
-            StringBuilder result = new StringBuilder();
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter(context);
-            result.Append(formatter.GetAliasedReference(_item));
+            Expression expression = new Expression();
+            ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
+            expression.AddItem(formatter.GetAliasedReference(_item));
             if (_order != Order.Default)
             {
-                result.Append(" ");
                 OrderConverter converter = new OrderConverter();
-                result.Append(converter.ToString(_order));
+                expression.AddItem(converter.ToToken(_order));
             }
             if (_placement != NullPlacement.Default)
             {
-                result.Append(" ");
                 NullPlacementConverter converter = new NullPlacementConverter();
-                result.Append(converter.ToString(_placement));
+                expression.AddItem(converter.ToToken(_placement));
             }
-            return result.ToString();
+            return expression;
         }
     }
 }

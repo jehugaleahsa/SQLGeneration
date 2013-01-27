@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Text;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Represents a literal string.
     /// </summary>
-    public class StringLiteral : ILiteral
+    public class StringLiteral : IProjectionItem, IFilterItem, IGroupByItem
     {
         /// <summary>
         /// Initializes a new instance of a StringLiteral.
@@ -43,34 +44,31 @@ namespace SQLGeneration
             set;
         }
 
-        string IProjectionItem.GetFullText(BuilderContext context)
+        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            return getText();
+            return getExpression();
         }
 
-        string IFilterItem.GetFilterItemText(BuilderContext context)
+        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            return getText();
+            return getExpression();
         }
 
-        string IGroupByItem.GetGroupByItemText(BuilderContext context)
+        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            return getText();
+            return getExpression();
         }
 
-        private string getText()
+        private IExpressionItem getExpression()
         {
-            StringBuilder builder = new StringBuilder();
-            builder.Append("'");
+            StringBuilder result = new StringBuilder();
+            result.Append("'");
             if (Value != null)
             {
-                // escape quotes
-                int index = builder.Length;
-                builder.Append(Value);
-                builder.Replace("'", "''", index, Value.Length);
+                result.Append(Value.Replace("'", "''"));
             }
-            builder.Append("'");
-            return builder.ToString();
+            result.Append("'");
+            return new Token(result.ToString());
         }
     }
 }

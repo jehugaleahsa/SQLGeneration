@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -7,7 +7,7 @@ namespace SQLGeneration
     /// <summary>
     /// Represents a database column.
     /// </summary>
-    public class Column : IColumn
+    public class Column : IProjectionItem, IGroupByItem, IFilterItem
     {
         private readonly IColumnSource source;
         private readonly string name;
@@ -55,35 +55,28 @@ namespace SQLGeneration
             set;
         }
 
-        string IProjectionItem.GetFullText(BuilderContext context)
+        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            return getColumnText(context);
+            return getColumnExpression(options);
         }
 
-        string IFilterItem.GetFilterItemText(BuilderContext context)
+        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            return getColumnText(context);
+            return getColumnExpression(options);
         }
 
-        string IGroupByItem.GetGroupByItemText(BuilderContext context)
+        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            return getColumnText(context);
+            return getColumnExpression(options);
         }
 
-        private string getColumnText(BuilderContext context)
+        private IExpressionItem getColumnExpression(CommandOptions options)
         {
-            StringBuilder result = new StringBuilder();
-            if (context.IsSelect
-                || (context.IsInsert && context.Options.QualifyInsertColumns)
-                || (context.IsUpdate && context.Options.QualifyUpdateColumn)
-                || (context.IsDelete && context.Options.QualifyDeleteColumns))
-            {
-                string table = source.GetReference(context);
-                result.Append(table);
-                result.Append(".");
-            }
-            result.Append(name);
-            return result.ToString();
+            Expression expression = new Expression();
+            expression.AddItem(source.GetReferenceExpression(options));
+            expression.AddItem(new Token("."));
+            expression.AddItem(new Token(name));
+            return expression;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -21,19 +22,19 @@ namespace SQLGeneration
         /// Gets the ON expression for the join.
         /// </summary>
         /// <returns>The generated text.</returns>
-        protected override string GetOnExpression(BuilderContext context)
+        protected override IExpressionItem GetOnExpression(CommandOptions options)
         {
-            return String.Empty;
+            return new Expression();
         }
 
         /// <summary>
         /// Gets the name of the join type.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The name of the join type.</returns>
-        protected override string GetJoinName(BuilderContext context)
+        protected override IExpressionItem GetJoinNameExpression(CommandOptions options)
         {
-            return "CROSS JOIN";
+            return new Token("CROSS JOIN");
         }
     }
 }

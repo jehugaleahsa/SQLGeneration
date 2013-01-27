@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Provides a list of values that can appear in an 'in' comparison.
     /// </summary>
-    public class ValueList : IValueList
+    public class ValueList : IValueProvider
     {
         private readonly List<IProjectionItem> _values;
 
@@ -73,34 +73,20 @@ namespace SQLGeneration
             return _values.Remove(item);
         }
 
-        string IFilterItem.GetFilterItemText(BuilderContext context)
+        /// <summary>
+        /// Gets the value list as it would appear within a filter expression.
+        /// </summary>
+        /// <param name="options">The configuration to use when building the command.</param>
+        /// <returns>The expression representing the value list.</returns>
+        public IExpressionItem GetFilterExpression(CommandOptions options)
         {
-            StringBuilder result = new StringBuilder("(");
-            StringBuilder separatorBuilder = new StringBuilder(",");
-            if (context.Options.OneValueListItemPerLine)
-            {
-                result.AppendLine();
-                separatorBuilder.AppendLine();
-            }
-            else
-            {
-                separatorBuilder.Append(' ');
-            }
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter(context);
-            IEnumerable<string> values = _values.Select(value => formatter.GetUnaliasedReference(value));
-            if (context.Options.OneValueListItemPerLine && context.Options.IndentValueListItems)
-            {
-                string indentationText = context.Indent().GetIndentationText();
-                values = values.Select(value => indentationText + value);
-            }
-            string separated = String.Join(separatorBuilder.ToString(), values);
-            result.Append(separated);
-            if (context.Options.OneValueListItemPerLine)
-            {
-                result.AppendLine();
-            }
-            result.Append(')');
-            return result.ToString();
+            Expression expression = new Expression();
+            expression.AddItem(new Token("("));
+            ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
+            IEnumerable<IExpressionItem> values = _values.Select(value => formatter.GetUnaliasedReference(value));
+            expression.AddItem(Expression.Join(new Token(","), values));
+            expression.AddItem(new Token(")"));
+            return expression;
         }
 
         bool IValueProvider.IsQuery

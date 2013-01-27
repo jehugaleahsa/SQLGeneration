@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Represents a join that is filtered with an ON expression.
     /// </summary>
-    public abstract class FilteredJoin : Join, IFilteredJoin
+    public abstract class FilteredJoin : Join
     {
-        private readonly IFilterGroup on;
+        private readonly FilterGroup on;
 
         /// <summary>
         /// Initializes a new instance of a FilteredJoin.
@@ -27,10 +27,6 @@ namespace SQLGeneration
             on = new FilterGroup();
             foreach (IFilter filter in filters)
             {
-                if (filter == null)
-                {
-                    throw new ArgumentNullException("filters");
-                }
                 on.AddFilter(filter);
             }
         }
@@ -68,15 +64,14 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the ON expression for the join.
         /// </summary>
+        /// <param name="options">The configuration settings to use.</param>
         /// <returns>The generated text.</returns>
-        protected override string GetOnExpression(BuilderContext context)
+        protected override IExpressionItem GetOnExpression(CommandOptions options)
         {
-            StringBuilder result = new StringBuilder("ON ");
-            BuilderContext clone = context.Clone();
-            clone.Options.OneFilterPerLine = false;
-            clone.Options.IndentFilters = false;
-            result.Append(on.GetFilterText(clone));
-            return result.ToString();
+            Expression expression = new Expression();
+            expression.AddItem(new Token("ON"));
+            expression.AddItem(on.GetFilterExpression(options));
+            return expression;
         }
     }
 }

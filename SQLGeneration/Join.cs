@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using SQLGeneration.Properties;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Represents a join between two tables, joins or sub-queries.
     /// </summary>
-    public abstract class Join : IJoin
+    public abstract class Join : IJoinItem
     {
         private readonly IJoinItem _leftHand;
         private readonly IJoinItem _rightHand;
@@ -65,71 +61,53 @@ namespace SQLGeneration
             }
         }
 
-        string IJoinItem.GetDeclaration(BuilderContext context, IFilterGroup where)
+        IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options, FilterGroup where)
         {
-            StringBuilder result = new StringBuilder();
-            if (WrapInParentheses ?? context.Options.WrapJoinsInParentheses)
+            Expression expression = new Expression();
+            if (WrapInParentheses ?? options.WrapJoinsInParentheses)
             {
-                result.Append("(");
+                expression.AddItem(new Token("("));
             }
-            string leftHand = _leftHand.GetDeclaration(context, where);
-            BuilderContext next = context;
-            if (context.Options.IndentJoinItems)
+            IExpressionItem leftHand = _leftHand.GetDeclarationExpression(options, where);
+            IExpressionItem rightHand = _rightHand.GetDeclarationExpression(options, where);
+            IExpressionItem combined = combine(options, leftHand, rightHand);
+            expression.AddItem(combined);
+            expression.AddItem(GetOnExpression(options));
+            if (WrapInParentheses ?? options.WrapJoinsInParentheses)
             {
-                next = next.Indent();
+                expression.AddItem(new Token(")"));
             }
-            string rightHand = _rightHand.GetDeclaration(next, where);
-            result.Append(combine(next, leftHand, rightHand));
-            result.Append(' ');
-            result.Append(GetOnExpression(context));
-            if (WrapInParentheses ?? context.Options.WrapJoinsInParentheses)
-            {
-                result.Append(")");
-            }
-            return result.ToString();
+            return expression;
         }
 
         /// <summary>
         /// Gets the ON expression for the join.
         /// </summary>
+        /// <param name="options">The configuration settings to use.</param>
         /// <returns>The generated text.</returns>
-        protected abstract string GetOnExpression(BuilderContext context);
+        protected abstract IExpressionItem GetOnExpression(CommandOptions options);
 
         /// <summary>
         /// Combines the left and right items with the type of join.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <param name="leftHand">The left item.</param>
         /// <param name="rightHand">The right item.</param>
         /// <returns>A string combining the left and right items with a join.</returns>
-        private string combine(BuilderContext context, string leftHand, string rightHand)
+        private IExpressionItem combine(CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand)
         {
-            StringBuilder result = new StringBuilder();
-            result.Append(leftHand);
-            if (context.Options.OneJoinItemPerLine)
-            {
-                result.AppendLine();
-                result.Append(context.GetIndentationText());
-            }
-            else
-            {
-                result.Append(' ');
-                if (context.Options.AliasJoinItemsUsingAs)
-                {
-                    result.Append("AS ");
-                }
-            }
-            result.Append(GetJoinName(context));
-            result.Append(' ');
-            result.Append(rightHand);
-            return result.ToString();
+            Expression expression = new Expression();
+            expression.AddItem(leftHand);
+            expression.AddItem(GetJoinNameExpression(options));
+            expression.AddItem(rightHand);
+            return expression;
         }
 
         /// <summary>
         /// Gets the name of the join type.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The name of the join type.</returns>
-        protected abstract string GetJoinName(BuilderContext context);
+        protected abstract IExpressionItem GetJoinNameExpression(CommandOptions options);
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
+using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -10,12 +10,12 @@ namespace SQLGeneration
     /// <summary>
     /// Performs a set operation on the results of two queries.
     /// </summary>
-    public abstract class SelectCombiner : ISelectCombiner
+    public abstract class SelectCombiner : ISelectBuilder
     {
         private readonly List<ISelectBuilder> _queries;
 
         /// <summary>
-        /// Initializes a new instance of a QueryCombiner.
+        /// Initializes a new instance of a SelectCombiner.
         /// </summary>
         protected SelectCombiner()
         {
@@ -32,11 +32,6 @@ namespace SQLGeneration
             return new Column(this, columnName);
         }
 
-        IColumn IColumnSource.CreateColumn(string columnName)
-        {
-            return CreateColumn(columnName);
-        }
-
         /// <summary>
         /// Creates a new column under the multi-select.
         /// </summary>
@@ -46,11 +41,6 @@ namespace SQLGeneration
         public Column CreateColumn(string columnName, string alias)
         {
             return new Column(this, columnName);
-        }
-
-        IColumn IColumnSource.CreateColumn(string columnName, string alias)
-        {
-            return CreateColumn(columnName, alias);
         }
 
         /// <summary>
@@ -89,33 +79,30 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Retrieves the text used to combine two queries.
+        /// Gets the command expression.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
-        /// <returns>The text used to combine two queries.</returns>
-        protected abstract string GetCombinationString(BuilderContext context);
-
-        /// <summary>
-        /// Gets the command text.
-        /// </summary>
-        public string GetCommandText()
+        /// <param name="options">The configuration to use when building the command.</param>
+        /// <returns>The expression making up the command.</returns>
+        public IExpressionItem GetCommandExpression(CommandOptions options)
         {
-            return GetCommandText(new BuilderContext());
-        }
-
-        /// <summary>
-        /// Gets the command text.
-        /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
-        public string GetCommandText(BuilderContext context)
-        {
+            if (options == null)
+            {
+                throw new ArgumentNullException("options");
+            }
             if (_queries.Count == 0)
             {
                 throw new SQLGenerationException(Resources.NoQueries);
             }
-            string combinationString = " " + GetCombinationString(context) + " ";
-            return String.Join(combinationString, from query in _queries select "(" + query.GetCommandText() + ")");
+            IExpressionItem separator = GetCombinationExpression(options);
+            return Expression.Join(separator, _queries.Select(query => query.GetCommandExpression(options)));
         }
+
+        /// <summary>
+        /// Retrieves the text used to combine two queries.
+        /// </summary>
+        /// <param name="options">The configuration to use when building the command.</param>
+        /// <returns>The text used to combine two queries.</returns>
+        protected abstract IExpressionItem GetCombinationExpression(CommandOptions options);
 
         /// <summary>
         /// Gets or sets an alias for the query results.
@@ -126,48 +113,55 @@ namespace SQLGeneration
             set;
         }
 
-        string IJoinItem.GetDeclaration(BuilderContext context, IFilterGroup where)
+        IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options, FilterGroup where)
         {
-            StringBuilder result = new StringBuilder();
+            Expression expression = new Expression();
             if (_queries.Count > 1)
             {
-                result.Append("(");
-                result.Append(GetCommandText());
-                result.Append(")");
+                expression.AddItem(new Token("("));
+                expression.AddItem(GetCommandExpression(options));
+                expression.AddItem(new Token(")"));
             }
             else
             {
-                result.Append(GetCommandText());
+                expression.AddItem(GetCommandExpression(options));
             }
             if (!String.IsNullOrWhiteSpace(Alias))
             {
-                result.Append(' ');
-                if (context.Options.AliasJoinItemsUsingAs)
+                if (options.AliasColumnSourcesUsingAs)
                 {
-                    result.Append("AS ");
+                    expression.AddItem(new Token("AS"));
                 }
-                result.Append(Alias);
+                expression.AddItem(new Token(Alias));
             }
-            return result.ToString();
+            return expression;
         }
 
-        string IColumnSource.GetReference(BuilderContext context)
+        IExpressionItem IColumnSource.GetReferenceExpression(CommandOptions options)
         {
             if (String.IsNullOrWhiteSpace(Alias))
             {
                 throw new SQLGenerationException(Resources.ReferencedQueryCombinerWithoutAlias);
             }
-            return Alias;
+            return new Token(Alias);
         }
 
-        string IProjectionItem.GetFullText(BuilderContext context)
+        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            return '(' + GetCommandText() + ')';
+            Expression expression = new Expression();
+            expression.AddItem(new Token("("));
+            expression.AddItem(GetCommandExpression(options));
+            expression.AddItem(new Token(")"));
+            return expression;
         }
 
-        string IFilterItem.GetFilterItemText(BuilderContext context)
+        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            return '(' + GetCommandText() + ')';
+            Expression expression = new Expression();
+            expression.AddItem(new Token("("));
+            expression.AddItem(GetCommandExpression(options));
+            expression.AddItem(new Token(")"));
+            return expression;
         }
 
         bool IValueProvider.IsQuery

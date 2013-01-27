@@ -168,4 +168,7 @@
   <data name="UnknownOrder" xml:space="preserve">
     <value>Encountered an unknown ordering.</value>
   </data>
+  <data name="UnknownTokenType" xml:space="preserve">
+    <value>Encountered an unknown token type.</value>
+  </data>
 </root>

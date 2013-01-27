@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -55,45 +55,46 @@ namespace SQLGeneration
             set;
         }
 
-        string IFilter.GetFilterText(BuilderContext context)
+        /// <summary>
+        /// Gets the text for the filter expression.
+        /// </summary>
+        /// <param name="options">The configuration to use when building the command.</param>
+        /// <returns>The filter text.</returns>
+        public IExpressionItem GetFilterExpression(CommandOptions options)
         {
-            StringBuilder result = new StringBuilder();
+            Expression expression = new Expression();
             if (Not)
             {
-                result.Append("NOT ");
+                expression.AddItem(new Token("NOT"));
             }
-            bool wrapInParentheses = ShouldWrapInParentheses(context);
+            bool wrapInParentheses = ShouldWrapInParentheses(options);
             if (Not || wrapInParentheses)
             {
-                result.Append("(");
+                expression.AddItem(new Token("("));
             }
-            result.Append(GetFilterText(context));
+            expression.AddItem(GetInnerFilterExpression(options));
             if (Not || wrapInParentheses)
             {
-                if (context.Options.OneFilterPerLine)
-                {
-                    result.Append(context.GetIndentationText());
-                }
-                result.Append(")");
+                expression.AddItem(new Token(")"));
             }
-            return result.ToString();
+            return expression;
         }
 
         /// <summary>
         /// Gets the filter text without parentheses or a not.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected abstract string GetFilterText(BuilderContext context);
+        protected abstract IExpressionItem GetInnerFilterExpression(CommandOptions options);
 
         /// <summary>
         /// Determines whether the filter should be surrounded by parentheses.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>True if the filter should be surround by parentheses; otherwise, false.</returns>
-        protected virtual bool ShouldWrapInParentheses(BuilderContext context)
+        protected virtual bool ShouldWrapInParentheses(CommandOptions options)
         {
-            return WrapInParentheses ?? context.Options.WrapFiltersInParentheses;
+            return WrapInParentheses ?? options.WrapFiltersInParentheses;
         }
     }
 }

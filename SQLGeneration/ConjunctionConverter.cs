@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -35,14 +36,14 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="conjunction">The conjunction to convert to a string.</param>
         /// <returns>The string representation.</returns>
-        public string ToString(Conjunction conjunction)
+        public Token ToToken(Conjunction conjunction)
         {
             switch (conjunction)
             {
                 case Conjunction.And:
-                    return "AND";
+                    return new Token("AND");
                 case Conjunction.Or:
-                    return "OR";
+                    return new Token("OR");
                 default:
                     throw new ArgumentException(Resources.UnknownConjunction, "conjunction");
             }

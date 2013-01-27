@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
+using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -10,31 +10,31 @@ namespace SQLGeneration
     /// <summary>
     /// Builds a string of an update statement.
     /// </summary>
-    public class UpdateBuilder : IUpdateBuilder
+    public class UpdateBuilder : IFilteredCommand
     {
-        private readonly ITable _table;
-        private readonly IList<ISetter> _setters;
-        private readonly IFilterGroup _where;
+        private readonly Table _table;
+        private readonly IList<Setter> _setters;
+        private readonly FilterGroup _where;
 
         /// <summary>
         /// Initializes a new instance of a UpdateBuilder.
         /// </summary>
         /// <param name="table">The table being updated.</param>
-        public UpdateBuilder(ITable table)
+        public UpdateBuilder(Table table)
         {
             if (table == null)
             {
                 throw new ArgumentNullException("table");
             }
             _table = table;
-            _setters = new List<ISetter>();
+            _setters = new List<Setter>();
             _where = new FilterGroup();
         }
 
         /// <summary>
         /// Gets the table that is being updated.
         /// </summary>
-        public ITable Table
+        public Table Table
         {
             get { return _table; }
         }
@@ -42,16 +42,16 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the columns that are being set.
         /// </summary>
-        public IEnumerable<ISetter> Setters
+        public IEnumerable<Setter> Setters
         {
-            get { return new ReadOnlyCollection<ISetter>(_setters); }
+            get { return new ReadOnlyCollection<Setter>(_setters); }
         }
 
         /// <summary>
         /// Adds the setter to the update statement.
         /// </summary>
         /// <param name="setter">The setter to add.</param>
-        public void AddSetter(ISetter setter)
+        public void AddSetter(Setter setter)
         {
             if (setter == null)
             {
@@ -65,7 +65,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="setter">The setter to remove.</param>
         /// <returns>True if the setter is removed; otherwise, false.</returns>
-        public bool RemoveSetter(ISetter setter)
+        public bool RemoveSetter(Setter setter)
         {
             if (setter == null)
             {
@@ -104,76 +104,40 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the command text.
         /// </summary>
-        public string GetCommandText()
+        /// <param name="options">The configuration to use when building the command.</param>
+        public IExpressionItem GetCommandExpression(CommandOptions options)
         {
-            return GetCommandText(new BuilderContext());
+            if (options == null)
+            {
+                throw new ArgumentNullException("options");
+            }
+            options = options.Clone();
+            options.IsSelect = false;
+            options.IsInsert = false;
+            options.IsUpdate = true;
+            options.IsDelete = false;
+            IExpressionItem expression = getCommandExpression(options);
+            return expression;
         }
 
-        /// <summary>
-        /// Gets the command text.
-        /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
-        public string GetCommandText(BuilderContext context)
-        {
-            context = context.Clone();
-            context.IsSelect = false;
-            context.IsInsert = false;
-            context.IsUpdate = true;
-            context.IsDelete = false;
-
-            return getCommandText(context);
-        }
-
-        private string getCommandText(BuilderContext context)
+        private IExpressionItem getCommandExpression(CommandOptions options)
         {
             if (_setters.Count == 0)
             {
                 throw new SQLGenerationException(Resources.NoSetters);
             }
-            StringBuilder result = new StringBuilder("UPDATE ");
-            result.Append(_table.GetDeclaration(context, null));
-            if (context.Options.OneClausePerLine)
-            {
-                result.AppendLine();
-            }
-            else
-            {
-                result.Append(' ');
-            }
-            result.Append("SET");
-            StringBuilder separatorBuilder = new StringBuilder(",");
-            if (context.Options.OneSetterPerLine)
-            {
-                result.AppendLine();
-                separatorBuilder.AppendLine();
-            }
-            else
-            {
-                result.Append(' ');
-                separatorBuilder.Append(' ');
-            }
-            IEnumerable<string> setters = _setters.Select(setter => setter.GetSetterText(context));
-            if (context.Options.OneSetterPerLine && context.Options.IndentSetters)
-            {
-                string indentationText = context.Indent().GetIndentationText();
-                setters = setters.Select(setter => indentationText + setter);
-            }
-            string separated = String.Join(separatorBuilder.ToString(), setters);
-            result.Append(separated);
+            Expression expression = new Expression();
+            expression.AddItem(new Token("UPDATE"));
+            expression.AddItem(_table.GetDeclarationExpression(options, null));
+            expression.AddItem(new Token("SET"));
+            IEnumerable<IExpressionItem> setters = _setters.Select(setter => setter.GetSetterExpression(options));
+            expression.AddItem(Expression.Join(new Token(","), setters));
             if (_where.HasFilters)
             {
-                if (context.Options.OneClausePerLine || context.Options.OneSetterPerLine)
-                {
-                    result.AppendLine();
-                }
-                else
-                {
-                    result.Append(' ');
-                }
-                result.Append("WHERE ");
-                result.Append(_where.GetFilterText(context));
+                expression.AddItem(new Token("WHERE"));
+                expression.AddItem(_where.GetFilterExpression(options));
             }
-            return result.ToString();
+            return expression;
         }
     }
 }

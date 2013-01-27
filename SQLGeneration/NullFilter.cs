@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Text;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Represents a comparison between a value and null.
     /// </summary>
-    public class NullFilter : Filter, INullFilter
+    public class NullFilter : Filter
     {
         private readonly IFilterItem _item;
 
@@ -54,18 +54,19 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the filter text without parentheses or a not.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override string GetFilterText(BuilderContext context)
+        protected override IExpressionItem GetInnerFilterExpression(CommandOptions options)
         {
-            StringBuilder result = new StringBuilder(_item.GetFilterItemText(context));
-            result.Append(" IS");
+            Expression expression = new Expression();
+            expression.AddItem(_item.GetFilterExpression(options));
+            expression.AddItem(new Token("IS"));
             if (!IsNull)
             {
-                result.Append(" NOT");
+                expression.AddItem(new Token("NOT"));
             }
-            result.Append(" NULL");
-            return result.ToString();
+            expression.AddItem(new Token("NULL"));
+            return expression;
         }
     }
 }

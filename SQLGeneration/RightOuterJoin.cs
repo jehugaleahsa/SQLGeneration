@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -32,17 +33,17 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the name of the join type.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The name of the join type.</returns>
-        protected override string GetJoinName(BuilderContext context)
+        protected override IExpressionItem GetJoinNameExpression(CommandOptions options)
         {
             StringBuilder result = new StringBuilder("RIGHT ");
-            if (context.Options.VerboseOuterJoin)
+            if (options.VerboseOuterJoin)
             {
                 result.Append("OUTER ");
             }
             result.Append("JOIN");
-            return result.ToString();
+            return new Token(result.ToString());
         }
     }
 }

@@ -1,11 +1,12 @@
 ﻿using System;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Represents the literal NULL.
     /// </summary>
-    public class NullLiteral : ILiteral
+    public class NullLiteral : IProjectionItem, IFilterItem, IGroupByItem
     {
         /// <summary>
         /// Initializes a new instance of a NullLiteral.
@@ -23,19 +24,19 @@ namespace SQLGeneration
             set;
         }
 
-        string IProjectionItem.GetFullText(BuilderContext context)
+        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            return "NULL";
+            return new Token("NULL");
         }
 
-        string IFilterItem.GetFilterItemText(BuilderContext context)
+        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            return "NULL";
+            return new Token("NULL");
         }
 
-        string IGroupByItem.GetGroupByItemText(BuilderContext context)
+        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            return "NULL";
+            return new Token("NULL");
         }
     }
 }

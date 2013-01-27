@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -10,8 +11,8 @@ namespace SQLGeneration
         /// <summary>
         /// Gets a string representation of the group by.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The generated text.</returns>
-        string GetGroupByItemText(BuilderContext context);
+        IExpressionItem GetGroupByExpression(CommandOptions options);
     }
 }

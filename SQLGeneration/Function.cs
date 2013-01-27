@@ -1,18 +1,18 @@
 ﻿using System;
-using System.Text;
-using SQLGeneration.Properties;
 using System.Collections.Generic;
+using SQLGeneration.Expressions;
+using SQLGeneration.Properties;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Adds a function call to a command.
     /// </summary>
-    public class Function : IFunction
+    public class Function : IProjectionItem, IFilterItem, IGroupByItem
     {
-        private readonly ISchema _schema;
+        private readonly Schema _schema;
         private readonly string _name;
-        private readonly IValueList _arguments;
+        private readonly ValueList _arguments;
 
         /// <summary>
         /// Initializes a new instance of a Function.
@@ -28,7 +28,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="schema">The schema the function exists in.</param>
         /// <param name="name">The name of the function.</param>
-        public Function(ISchema schema, string name)
+        public Function(Schema schema, string name)
             : this(schema, name, new IProjectionItem[0])
         {
         }
@@ -49,7 +49,7 @@ namespace SQLGeneration
         /// <param name="schema">The schema the function exists in.</param>
         /// <param name="name">The name of the function.</param>
         /// <param name="arguments">The arguments being passed to the function.</param>
-        public Function(ISchema schema, string name, params IProjectionItem[] arguments)
+        public Function(Schema schema, string name, params IProjectionItem[] arguments)
         {
             if (String.IsNullOrWhiteSpace(name))
             {
@@ -63,7 +63,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets or sets the schema the functions belongs to.
         /// </summary>
-        public ISchema Schema
+        public Schema Schema
         {
             get
             {
@@ -121,34 +121,32 @@ namespace SQLGeneration
             return _arguments.RemoveValue(item);
         }
 
-        string IProjectionItem.GetFullText(BuilderContext context)
+        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            return getFunctionText(context);
+            return getFunctionExpression(options);
         }
 
-        string IFilterItem.GetFilterItemText(BuilderContext context)
+        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            return getFunctionText(context);
+            return getFunctionExpression(options);
         }
 
-        string IGroupByItem.GetGroupByItemText(BuilderContext context)
+        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            return getFunctionText(context);
+            return getFunctionExpression(options);
         }
 
-        private string getFunctionText(BuilderContext context)
+        private IExpressionItem getFunctionExpression(CommandOptions options)
         {
-            StringBuilder result = new StringBuilder();
+            Expression expression = new Expression();
             if (_schema != null)
             {
-                result.Append(_schema.Name);
-                result.Append(".");
+                expression.AddItem(new Token(_schema.Name));
+                expression.AddItem(new Token("."));
             }
-            result.Append(_name);
-            BuilderContext clone = context.Clone();
-            clone.Options.OneValueListItemPerLine = false;
-            result.Append(_arguments.GetFilterItemText(clone));
-            return result.ToString();
+            expression.AddItem(new Token(_name));
+            expression.AddItem(_arguments.GetFilterExpression(options));
+            return expression;
         }
     }
 }

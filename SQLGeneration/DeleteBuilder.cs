@@ -1,22 +1,22 @@
 ﻿using System;
-using System.Text;
 using System.Collections.Generic;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Builds a string of a delete statement.
     /// </summary>
-    public class DeleteBuilder : IDeleteBuilder
+    public class DeleteBuilder : IFilteredCommand
     {
-        private readonly ITable _table;
-        private readonly IFilterGroup _where;
+        private readonly Table _table;
+        private readonly FilterGroup _where;
 
         /// <summary>
         /// Initializes a new instance of a DeleteBuilder.
         /// </summary>
         /// <param name="table">The table being deleted from.</param>
-        public DeleteBuilder(ITable table)
+        public DeleteBuilder(Table table)
         {
             if (table == null)
             {
@@ -29,7 +29,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the table being deleted from.
         /// </summary>
-        public ITable Table
+        public Table Table
         {
             get { return _table; }
         }
@@ -62,47 +62,37 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets the command text.
-        /// </summary>
-        public string GetCommandText()
-        {
-            return GetCommandText(new BuilderContext());
-        }
-
-        /// <summary>
         /// Gets the command, formatting it using the given options.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The command text.</returns>
-        public string GetCommandText(BuilderContext context)
+        public IExpressionItem GetCommandExpression(CommandOptions options)
         {
-            context = context.Clone();
-            context.IsSelect = false;
-            context.IsInsert = false;
-            context.IsUpdate = false;
-            context.IsDelete = true;
-
-            return getCommandText(context);
+            if (options == null)
+            {
+                throw new ArgumentNullException("options");
+            }
+            options = options.Clone();
+            options.IsSelect = false;
+            options.IsInsert = false;
+            options.IsUpdate = false;
+            options.IsDelete = true;
+            IExpressionItem expression = getCommandExpression(options);
+            return expression;
         }
 
-        private string getCommandText(BuilderContext context)
+        private IExpressionItem getCommandExpression(CommandOptions options)
         {
-            StringBuilder result = new StringBuilder("DELETE FROM ");
-            result.Append(_table.GetDeclaration(context, _where));
-            if (context.Options.OneClausePerLine)
-            {
-                result.AppendLine();
-            }
-            else
-            {
-                result.Append(' ');
-            }
+            Expression expression = new Expression();
+            expression.AddItem(new Token("DELETE"));
+            expression.AddItem(new Token("FROM"));
+            expression.AddItem(_table.GetDeclarationExpression(options, _where));
             if (_where.HasFilters)
             {
-                result.Append("WHERE ");
-                result.Append(_where.GetFilterText(context));
+                expression.AddItem(new Token("WHERE"));
+                expression.AddItem(_where.GetFilterExpression(options));
             }
-            return result.ToString();
+            return expression;
         }
     }
 }

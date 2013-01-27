@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
+using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -10,7 +10,7 @@ namespace SQLGeneration
     /// <summary>
     /// Represents a grouping of filters.
     /// </summary>
-    public class FilterGroup : Filter, IFilterGroup
+    public class FilterGroup : Filter
     {
         private readonly List<IFilter> _filters;
 
@@ -74,61 +74,35 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the filter text without parentheses or a not.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override string GetFilterText(BuilderContext context)
+        protected override IExpressionItem GetInnerFilterExpression(CommandOptions options)
         {
             if (_filters.Count == 0)
             {
                 throw new SQLGenerationException(Resources.EmptyFilterGroup);
             }
-            StringBuilder result = new StringBuilder();
-            if (context.Options.OneFilterPerLine)
-            {
-                result.AppendLine();
-                if (context.Options.IndentFilters)
-                {
-                    result.Append(context.Indent().GetIndentationText());
-                }
-            }
+            Expression expression = new Expression();
             IFilter first = _filters[0];
-            result.Append(first.GetFilterText(context));
+            expression.AddItem(first.GetFilterExpression(options));
             ConjunctionConverter converter = new ConjunctionConverter();
             for (int index = 1; index < _filters.Count; ++index)
             {
                 IFilter filter = _filters[index];
-                if (context.Options.OneFilterPerLine)
-                {
-                    result.AppendLine();
-                    if (context.Options.IndentFilters)
-                    {
-                        result.Append(context.Indent().GetIndentationText());
-                    }
-                }
-                else
-                {
-                    result.Append(' ');
-                }
-                string conjunction = converter.ToString(filter.Conjunction);
-                result.Append(conjunction);
-                result.Append(" ");
-                result.Append(filter.GetFilterText(context));
+                expression.AddItem(converter.ToToken(filter.Conjunction));
+                expression.AddItem(filter.GetFilterExpression(options));
             }
-            if (context.Options.OneFilterPerLine)
-            {
-                result.AppendLine();
-            }
-            return result.ToString();
+            return expression;
         }
 
         /// <summary>
         /// Determines whether the filter should be surrounded by parentheses.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>True if the filter should be surround by parentheses; otherwise, false.</returns>
-        protected override bool ShouldWrapInParentheses(BuilderContext context)
+        protected override bool ShouldWrapInParentheses(CommandOptions options)
         {
-            return (WrapInParentheses ?? false) || (context.Options.WrapFiltersInParentheses && _filters.Any(filter => filter.Conjunction == SQLGeneration.Conjunction.Or));
+            return (WrapInParentheses ?? false) || (options.WrapFiltersInParentheses && _filters.Any(filter => filter.Conjunction == Conjunction.Or));
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -17,11 +18,11 @@ namespace SQLGeneration
         /// <summary>
         /// Retrieves the text used to combine two queries.
         /// </summary>
-        /// <param name="context">The configuration to use when building the command.</param>
+        /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The text used to combine two queries.</returns>
-        protected override string GetCombinationString(BuilderContext context)
+        protected override IExpressionItem GetCombinationExpression(CommandOptions options)
         {
-            return "UNION";
+            return new Token("UNION");
         }
     }
 }

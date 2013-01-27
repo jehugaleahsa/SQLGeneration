@@ -4,15 +4,15 @@ using SQLGeneration.Expressions;
 namespace SQLGeneration
 {
     /// <summary>
-    /// Represents an item that can appear in a filter.
+    /// Represents a SQL statement.
     /// </summary>
-    public interface IFilterItem
+    public interface ICommand
     {
         /// <summary>
-        /// Gets a string representing the item.
+        /// Gets the expression making up the command.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The generated text.</returns>
-        IExpressionItem GetFilterExpression(CommandOptions options);
+        /// <returns>The expressions.</returns>
+        IExpressionItem GetCommandExpression(CommandOptions options);
     }
 }
