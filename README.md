@@ -4,12 +4,21 @@ Provides core classes for generating SQL at runtime.
 
 Download using NuGet: [SQLGeneration](http://nuget.org/packages/SQLGeneration)
 
+## Status Update
+I am currently in the process of simplifying this library. The first part of that will be eliminating any unnecessary interfaces. For whatever reason, I created a lot of interfaces; however, the rest of the library didn't interface with those... interfaces, so, what's the point?
+
+As another part of making things easier, I am trying to support custom SQL formatting. Initially, this project only generated boring SQL that wasn't very human-readable. Since most people will just be sending the output to a database engine, the output format isn't that significant. However, it might be useful to generate pretty SQL for debugging purposes or if the SQL will be copied into a stored procedure or if someone is writing a front-end that displays SQL.
+
+With the latest check-in, I have included a rather dumb formatter that separates every token with a space. This will allow the SQL to be run against a database but isn't minified or human-readable. My goal with the next check in will be generating the minimal output again. Then, I will focus on writing a pretty SQL formatter that can be customized.
+
+I am hoping to make custom formatting possible by generating an abstract syntax tree (AST) that a formatter can navigate. I need to provide enough information about the tokens and their relative position in the SQL to allow a formatter to make formatting decisions. I don't know the exact details yet, but I'm sure that will become more obvious as I work on it.
+
 ## Overview
-Even though there are plenty of decent ORMs out there on the market (most for free), perhaps the day has come where you need to write your own SQL at runtime. Or, perhaps you're just an hacker trying to get fancy, writing your own custom data layer for your system. Whatever your reason for writing SQL at runtime, doing it well can be a tiresome affair. Half the battle is the SQL generation itself. Anything beyond a simple, flat SELECT statement can get pretty tricky.
+Even though there are plenty of decent ORMs out there on the market (most for free), perhaps the day has come where you need to write your own SQL at runtime. Or, perhaps you're just a hacker trying to get fancy, writing your own custom data layer for your system. Whatever your reason for writing SQL at runtime, doing it well can be a tiresome affair. Half the battle is the SQL generation itself. Anything beyond a simple, flat SELECT statement can get pretty tricky.
 
-That's where SQLGeneration comes in. It is an extremely simple library that makes building SQL at runtime easier. It has support for your basic CRUD operations, including variations of SELECT, INSERT, UPDATE and DELETE. It makes it easy to build WHERE clauses, multiple JOINs and complex expressions, like function calls and arithmetic.
+That's where SQLGeneration comes in. It is an extremely simple library that makes building SQL at runtime easier. It has support for your basic CRUD operations, including variations of SELECT, INSERT, UPDATE and DELETE. It makes it easy to build WHERE clauses, multiple JOINs and complex expressions, like function calls and arithmetic expressions.
 
-SQLGeneration doesn't support everything. There are so many vendors with so many extensions to SQL that it would be impossible to capture them all. Still, SQLGeneration provides some options for the more popular vendors. SQLGeneration provides interfaces that you can implement and plug in when you need something that isn't provided. SQLGeneration is a pretty small library, too, so it isn't hard to modify for your own needs.
+SQLGeneration doesn't support everything. There are so many vendors with so many extensions to SQL that it would be impossible to capture them all. Still, SQLGeneration provides some options for the more popular vendors. SQLGeneration provides interfaces that you can implement and plug-in when you need something that isn't provided. SQLGeneration is a pretty small library, too, so it isn't hard to modify for your own needs.
 
 ## Quick Examples
 Someone first digging through SQLGeneration might be overwhelmed by the number of interfaces and classes. Most of these you can ignore unless you are customizing SQLGeneration's behavior. The classes you need to focus on are `SelectBuilder`, `InsertBuilder`, `UpdateBuilder` and `DeleteBuilder`.
