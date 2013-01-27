@@ -22,6 +22,7 @@ namespace SQLGeneration
         /// <returns>The text used to combine two queries.</returns>
         protected override IExpressionItem GetCombinationExpression(CommandOptions options)
         {
+            // "INTERSECT"
             return new Token("INTERSECT");
         }
     }

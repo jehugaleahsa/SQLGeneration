@@ -18,15 +18,6 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets or sets whether to apply a not to the expression.
-        /// </summary>
-        bool Not
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Gets or sets whether to wrap the filter in parentheses.
         /// </summary>
         bool? WrapInParentheses

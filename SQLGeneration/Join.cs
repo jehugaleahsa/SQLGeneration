@@ -70,9 +70,8 @@ namespace SQLGeneration
             }
             IExpressionItem leftHand = _leftHand.GetDeclarationExpression(options, where);
             IExpressionItem rightHand = _rightHand.GetDeclarationExpression(options, where);
-            IExpressionItem combined = combine(options, leftHand, rightHand);
-            expression.AddItem(combined);
-            expression.AddItem(GetOnExpression(options));
+            combine(expression, options, leftHand, rightHand);
+            GetOnExpression(expression, options);
             if (WrapInParentheses ?? options.WrapJoinsInParentheses)
             {
                 expression.AddItem(new Token(")"));
@@ -83,24 +82,16 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the ON expression for the join.
         /// </summary>
+        /// <param name="expression">The expression currently being built.</param>
         /// <param name="options">The configuration settings to use.</param>
         /// <returns>The generated text.</returns>
-        protected abstract IExpressionItem GetOnExpression(CommandOptions options);
+        protected abstract void GetOnExpression(Expression expression, CommandOptions options);
 
-        /// <summary>
-        /// Combines the left and right items with the type of join.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <param name="leftHand">The left item.</param>
-        /// <param name="rightHand">The right item.</param>
-        /// <returns>A string combining the left and right items with a join.</returns>
-        private IExpressionItem combine(CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand)
+        private void combine(Expression expression, CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand)
         {
-            Expression expression = new Expression();
             expression.AddItem(leftHand);
             expression.AddItem(GetJoinNameExpression(options));
             expression.AddItem(rightHand);
-            return expression;
         }
 
         /// <summary>

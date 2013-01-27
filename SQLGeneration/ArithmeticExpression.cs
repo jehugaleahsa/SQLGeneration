@@ -87,6 +87,7 @@ namespace SQLGeneration
 
         private IExpressionItem getExpression(CommandOptions options)
         {
+            // [ "(" ] <Left> <Op> <Right> [ ")" ]
             Expression expression = new Expression();
             if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {

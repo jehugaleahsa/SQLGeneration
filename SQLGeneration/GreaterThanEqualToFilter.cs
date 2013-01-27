@@ -19,19 +19,19 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets the filter text without parentheses or a not.
+        /// Combines the left and right hand operands with the operation.
         /// </summary>
-        /// <param name="leftHand">The left hand side of the comparison.</param>
-        /// <param name="rightHand">The right hand side of the comparison.</param>
+        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>A string representing the filter.</returns>
-        protected override IExpressionItem Combine(CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand)
+        /// <param name="leftHand">The left hand operand.</param>
+        /// <param name="rightHand">The right hand operand.</param>
+        /// <returns>A string combining the left and right hand operands with the operation.</returns>
+        protected override void Combine(Expression expression, CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand)
         {
-            Expression expression = new Expression();
+            // <Left> ">=" <Right> 
             expression.AddItem(leftHand);
             expression.AddItem(new Token(">="));
             expression.AddItem(rightHand);
-            return expression;
         }
     }
 }

@@ -64,20 +64,21 @@ namespace SQLGeneration
         /// <summary>
         /// Gets or sets whether to negate the results of the filter.
         /// </summary>
-        public new bool Not
+        public bool Not
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Gets the filter text without parentheses or a not.
+        /// Gets the filter text irrespective of the parentheses.
         /// </summary>
+        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IExpressionItem GetInnerFilterExpression(CommandOptions options)
+        protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
-            Expression expression = new Expression();
+            // <Value> [ "NOT" ] "BETWEEN" <Lower> "AND" <Upper>
             expression.AddItem(_value.GetFilterExpression(options));
             if (Not)
             {
@@ -87,7 +88,6 @@ namespace SQLGeneration
             expression.AddItem(_lowerBound.GetFilterExpression(options));
             expression.AddItem(new Token("AND"));
             expression.AddItem(_upperBound.GetFilterExpression(options));
-            return expression;
         }
     }
 }

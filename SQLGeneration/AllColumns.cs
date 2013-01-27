@@ -40,6 +40,7 @@ namespace SQLGeneration
 
         IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
+            // [ <Source> "." ] "*"
             Expression expression = new Expression();
             StringBuilder builder = new StringBuilder();
             if (source != null)

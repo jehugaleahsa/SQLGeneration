@@ -64,14 +64,14 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the ON expression for the join.
         /// </summary>
+        /// <param name="expression">The expression currently being built.</param>
         /// <param name="options">The configuration settings to use.</param>
         /// <returns>The generated text.</returns>
-        protected override IExpressionItem GetOnExpression(CommandOptions options)
+        protected override void GetOnExpression(Expression expression, CommandOptions options)
         {
-            Expression expression = new Expression();
+            // "ON" <Filter>
             expression.AddItem(new Token("ON"));
             expression.AddItem(on.GetFilterExpression(options));
-            return expression;
         }
     }
 }

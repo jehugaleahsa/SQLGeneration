@@ -107,6 +107,7 @@ namespace SQLGeneration
 
         private IExpressionItem getCommandExpression(CommandOptions options)
         {
+            // "INSERT" [ "INTO" ] <Source> [ "(" <ColumnList> ")" ] { "VALUES" "(" <ValueList> ")" | <SubSelect> }
             Expression expression = new Expression();
             expression.AddItem(new Token("INSERT"));
             expression.AddItem(new Token("INTO"));
@@ -114,9 +115,7 @@ namespace SQLGeneration
             if (_columns.Count > 0)
             {
                 expression.AddItem(new Token("("));
-                ProjectionItemFormatter columnFormatter = new ProjectionItemFormatter(options);
-                IEnumerable<IExpressionItem> columns = _columns.Select(column => columnFormatter.GetUnaliasedReference(column));
-                expression.AddItem(Expression.Join(new Token(","), columns));
+                expression.AddItem(buildColumnList(options, 0));
                 expression.AddItem(new Token(")"));
             }
             if (!_values.IsQuery)
@@ -125,6 +124,28 @@ namespace SQLGeneration
             }
             expression.AddItem(_values.GetFilterExpression(options));
             return expression;
+        }
+
+        private IExpressionItem buildColumnList(CommandOptions options, int columnIndex)
+        {
+            if (columnIndex == _columns.Count - 1)
+            {
+                Column column = _columns[columnIndex];
+                ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
+                return formatter.GetUnaliasedReference(column);
+            }
+            else
+            {
+                IExpressionItem right = buildColumnList(options, columnIndex + 1);
+                ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
+                Column column = _columns[columnIndex];
+                IExpressionItem left = formatter.GetUnaliasedReference(column);
+                Expression expression = new Expression();
+                expression.AddItem(left);
+                expression.AddItem(new Token(","));
+                expression.AddItem(right);
+                return expression;
+            }
         }
     }
 }

@@ -47,24 +47,26 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets a string representing the filter.
+        /// Gets the filter text irrespective of the parentheses.
         /// </summary>
+        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override sealed IExpressionItem GetInnerFilterExpression(CommandOptions options)
+        protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
             IExpressionItem leftHand = _leftHand.GetFilterExpression(options);
             IExpressionItem rightHand = _rightHand.GetFilterExpression(options);
-            return Combine(options, leftHand, rightHand);
+            Combine(expression, options, leftHand, rightHand);
         }
 
         /// <summary>
         /// Combines the left and right hand operands with the operation.
         /// </summary>
+        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <param name="leftHand">The left hand operand.</param>
         /// <param name="rightHand">The right hand operand.</param>
         /// <returns>A string combining the left and right hand operands with the operation.</returns>
-        protected abstract IExpressionItem Combine(CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand);
+        protected abstract void Combine(Expression expression, CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand);
     }
 }

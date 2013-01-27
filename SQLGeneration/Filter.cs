@@ -38,15 +38,6 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets or sets whether to apply a not to the expression.
-        /// </summary>
-        public bool Not
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Gets or sets whether to wrap the filter in parentheses.
         /// </summary>
         public bool? WrapInParentheses
@@ -62,18 +53,15 @@ namespace SQLGeneration
         /// <returns>The filter text.</returns>
         public IExpressionItem GetFilterExpression(CommandOptions options)
         {
+            // [ "(" ] <Filter> [ ")" ]
             Expression expression = new Expression();
-            if (Not)
-            {
-                expression.AddItem(new Token("NOT"));
-            }
             bool wrapInParentheses = ShouldWrapInParentheses(options);
-            if (Not || wrapInParentheses)
+            if (wrapInParentheses)
             {
                 expression.AddItem(new Token("("));
             }
-            expression.AddItem(GetInnerFilterExpression(options));
-            if (Not || wrapInParentheses)
+            GetInnerFilterExpression(expression, options);
+            if (wrapInParentheses)
             {
                 expression.AddItem(new Token(")"));
             }
@@ -81,11 +69,12 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets the filter text without parentheses or a not.
+        /// Gets the filter text irrespective of the parentheses.
         /// </summary>
+        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected abstract IExpressionItem GetInnerFilterExpression(CommandOptions options);
+        protected abstract void GetInnerFilterExpression(Expression expression, CommandOptions options);
 
         /// <summary>
         /// Determines whether the filter should be surrounded by parentheses.

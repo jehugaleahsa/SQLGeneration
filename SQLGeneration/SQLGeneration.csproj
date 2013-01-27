@@ -52,6 +52,7 @@
     <Compile Include="IColumnSource.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="ISelectBuilder.cs" />
+    <Compile Include="NotFilter.cs" />
     <Compile Include="Placeholder.cs" />
     <Compile Include="SQLGenerationException.cs" />
     <Compile Include="EqualToFilter.cs" />

@@ -37,6 +37,7 @@ namespace SQLGeneration
         /// <returns>The name of the join type.</returns>
         protected override IExpressionItem GetJoinNameExpression(CommandOptions options)
         {
+            // { "JOIN" | "INNER JOIN" }
             StringBuilder result = new StringBuilder();
             if (options.VerboseInnerJoin)
             {

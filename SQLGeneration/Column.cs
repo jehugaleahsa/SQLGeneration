@@ -72,9 +72,16 @@ namespace SQLGeneration
 
         private IExpressionItem getColumnExpression(CommandOptions options)
         {
+            // [ <Source> "." ] <Column>
             Expression expression = new Expression();
-            expression.AddItem(source.GetReferenceExpression(options));
-            expression.AddItem(new Token("."));
+            if (options.IsSelect
+                || (options.IsInsert && options.QualifyInsertColumns)
+                || (options.IsUpdate && options.QualifyUpdateColumn)
+                || (options.IsDelete && options.QualifyDeleteColumns))
+            {
+                expression.AddItem(source.GetReferenceExpression(options));
+                expression.AddItem(new Token("."));
+            }
             expression.AddItem(new Token(name));
             return expression;
         }

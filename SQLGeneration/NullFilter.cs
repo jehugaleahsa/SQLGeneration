@@ -52,13 +52,13 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets the filter text without parentheses or a not.
+        /// Gets the filter text irrespective of the parentheses.
         /// </summary>
+        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IExpressionItem GetInnerFilterExpression(CommandOptions options)
+        protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
-            Expression expression = new Expression();
             expression.AddItem(_item.GetFilterExpression(options));
             expression.AddItem(new Token("IS"));
             if (!IsNull)
@@ -66,7 +66,6 @@ namespace SQLGeneration
                 expression.AddItem(new Token("NOT"));
             }
             expression.AddItem(new Token("NULL"));
-            return expression;
         }
     }
 }

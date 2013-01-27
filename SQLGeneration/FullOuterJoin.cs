@@ -37,6 +37,7 @@ namespace SQLGeneration
         /// <returns>The name of the join type.</returns>
         protected override IExpressionItem GetJoinNameExpression(CommandOptions options)
         {
+            // { "FULL OUTER JOIN" | "FULL JOIN" }
             StringBuilder result = new StringBuilder("FULL ");
             if (options.VerboseOuterJoin)
             {

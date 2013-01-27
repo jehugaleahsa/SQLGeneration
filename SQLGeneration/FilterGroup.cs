@@ -72,27 +72,43 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets the filter text without parentheses or a not.
+        /// Gets the filter text irrespective of the parentheses.
         /// </summary>
+        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IExpressionItem GetInnerFilterExpression(CommandOptions options)
+        protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
+            // <Filter> [ {"AND"|"OR"} <Filter> ]
             if (_filters.Count == 0)
             {
                 throw new SQLGenerationException(Resources.EmptyFilterGroup);
             }
-            Expression expression = new Expression();
-            IFilter first = _filters[0];
-            expression.AddItem(first.GetFilterExpression(options));
-            ConjunctionConverter converter = new ConjunctionConverter();
-            for (int index = 1; index < _filters.Count; ++index)
+            expression.AddItem(buildFilterTree(options, 0));
+        }
+
+        private IExpressionItem buildFilterTree(CommandOptions options, int filterIndex)
+        {
+            if (filterIndex == _filters.Count - 1)
             {
-                IFilter filter = _filters[index];
-                expression.AddItem(converter.ToToken(filter.Conjunction));
-                expression.AddItem(filter.GetFilterExpression(options));
+                IFilter current = _filters[filterIndex];
+                return current.GetFilterExpression(options);
             }
-            return expression;
+            else
+            {
+                IFilter current = _filters[filterIndex];
+                IFilter next = _filters[filterIndex + 1];
+
+                IExpressionItem left = current.GetFilterExpression(options);
+                IExpressionItem right = buildFilterTree(options, filterIndex + 1);
+
+                ConjunctionConverter converter = new ConjunctionConverter();
+                Expression filterExpression = new Expression();
+                filterExpression.AddItem(left);
+                filterExpression.AddItem(converter.ToToken(next.Conjunction));
+                filterExpression.AddItem(right);
+                return filterExpression;
+            }
         }
 
         /// <summary>
