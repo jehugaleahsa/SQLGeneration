@@ -83,17 +83,17 @@ namespace SQLGeneration
         public bool VerboseOuterJoin { get; set; }
 
         /// <summary>
-        /// Gets or sets whether columns should be fully qualified within an insert statement.
+        /// Gets or sets whether columns should be fully qualified within an INSERT statement.
         /// </summary>
         public bool QualifyInsertColumns { get; set; }
 
         /// <summary>
-        /// Gets or sets whether columns should be fully qualified within an update statement.
+        /// Gets or sets whether columns should be fully qualified within an UPDATE statement.
         /// </summary>
         public bool QualifyUpdateColumn { get; set; }
 
         /// <summary>
-        /// Gets or sets whether columns should be fully qualified within a delete statement.
+        /// Gets or sets whether columns should be fully qualified within a DELETE statement.
         /// </summary>
         public bool QualifyDeleteColumns { get; set; }
     }
