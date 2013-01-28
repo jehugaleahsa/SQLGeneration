@@ -27,6 +27,7 @@ namespace SQLGeneration
         /// <returns>The left and right hand operands combined using the operation.</returns>
         protected override IExpressionItem Combine(CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand)
         {
+            // <Left> "-" <Right>
             Expression expression = new Expression();
             expression.AddItem(leftHand);
             expression.AddItem(new Token("-"));

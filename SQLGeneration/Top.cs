@@ -60,9 +60,10 @@ namespace SQLGeneration
         /// <returns>The generated text.</returns>
         public IExpressionItem GetTopExpression(CommandOptions options)
         {
+            // "TOP" <Arithmetic> [ "PERCENT" ] [ "WITH TIES" ]
             Expression expression = new Expression();
             expression.AddItem(new Token("TOP"));
-            expression.AddItem(_expression.GetGroupByExpression(options));
+            expression.AddItem(_expression.GetFilterExpression(options));
             if (IsPercent)
             {
                 expression.AddItem(new Token("PERCENT"));

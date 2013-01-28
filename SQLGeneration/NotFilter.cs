@@ -31,6 +31,7 @@ namespace SQLGeneration
         /// <returns>A string representing the filter.</returns>
         protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
+            // "NOT" "(" <Filter> ")"
             expression.AddItem(new Token("NOT"));
             expression.AddItem(new Token("("));
             expression.AddItem(filter.GetFilterExpression(options));

@@ -43,6 +43,7 @@
     <Compile Include="ComparisonFilter.cs" />
     <Compile Include="CommandOptions.cs" />
     <Compile Include="ConjunctionConverter.cs" />
+    <Compile Include="Except.cs" />
     <Compile Include="CrossJoin.cs" />
     <Compile Include="DeleteBuilder.cs" />
     <Compile Include="DivideExpression.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="IArithmetic.cs" />
     <Compile Include="IColumnSource.cs" />
     <Compile Include="ICommand.cs" />
+    <Compile Include="IRightJoinItem.cs" />
     <Compile Include="ISelectBuilder.cs" />
     <Compile Include="NotFilter.cs" />
     <Compile Include="Placeholder.cs" />

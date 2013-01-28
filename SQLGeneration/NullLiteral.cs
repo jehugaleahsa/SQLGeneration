@@ -26,16 +26,22 @@ namespace SQLGeneration
 
         IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            return new Token("NULL");
+            return getNullLiteral();
         }
 
         IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            return new Token("NULL");
+            return getNullLiteral();
         }
 
         IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
+            return getNullLiteral();
+        }
+
+        private static IExpressionItem getNullLiteral()
+        {
+            // "NULL"
             return new Token("NULL");
         }
     }

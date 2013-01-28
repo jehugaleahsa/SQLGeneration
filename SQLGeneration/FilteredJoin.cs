@@ -17,7 +17,7 @@ namespace SQLGeneration
         /// <param name="left">The left hand item in the join.</param>
         /// <param name="right">The right hand item in the join.</param>
         /// <param name="filters">The filters to apply.</param>
-        protected FilteredJoin(IJoinItem left, IJoinItem right, IEnumerable<IFilter> filters)
+        protected FilteredJoin(IJoinItem left, IRightJoinItem right, IEnumerable<IFilter> filters)
             : base(left, right)
         {
             if (filters == null)

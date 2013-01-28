@@ -45,15 +45,20 @@ namespace SQLGeneration
 
         IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            return new Token(Value.ToString(CultureInfo.InvariantCulture));
+            return getNumericLiteral();
         }
 
         IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            return new Token(Value.ToString(CultureInfo.InvariantCulture));
+            return getNumericLiteral();
         }
 
         IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
+        {
+            return getNumericLiteral();
+        }
+
+        private IExpressionItem getNumericLiteral()
         {
             return new Token(Value.ToString(CultureInfo.InvariantCulture));
         }

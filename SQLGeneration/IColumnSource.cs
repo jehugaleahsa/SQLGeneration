@@ -6,7 +6,7 @@ namespace SQLGeneration
     /// <summary>
     /// Represents an item that can have columns.
     /// </summary>
-    public interface IColumnSource : IJoinItem
+    public interface IColumnSource
     {
         /// <summary>
         /// Gets or sets an alias for the item.

@@ -7,7 +7,7 @@ namespace SQLGeneration
     /// <summary>
     /// Provides a table name.
     /// </summary>
-    public class Table : IColumnSource
+    public class Table : IRightJoinItem, IColumnSource
     {
         private readonly Schema _schema;
         private readonly string _name;
@@ -92,12 +92,12 @@ namespace SQLGeneration
         /// Gets the table declaration expression.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        /// <param name="where">The where clause of the current statement.</param>
         /// <returns>The expression declaring the table.</returns>
-        public IExpressionItem GetDeclarationExpression(CommandOptions options, FilterGroup where)
+        public IExpressionItem GetDeclarationExpression(CommandOptions options)
         {
+            // [ <Schema> "." ] <ID> [ "AS" ] <ID>
             Expression expression = new Expression();
-            expression.AddItem(getFullNameExpression());
+            getFullNameExpression(expression);
             if (!String.IsNullOrWhiteSpace(Alias))
             {
                 if (options.AliasColumnSourcesUsingAs)
@@ -113,7 +113,9 @@ namespace SQLGeneration
         {
             if (String.IsNullOrWhiteSpace(Alias))
             {
-                return getFullNameExpression();
+                Expression expression = new Expression();
+                getFullNameExpression(expression);
+                return expression;
             }
             else
             {
@@ -121,16 +123,14 @@ namespace SQLGeneration
             }
         }
 
-        private IExpressionItem getFullNameExpression()
+        private void getFullNameExpression(Expression expression)
         {
-            Expression expression = new Expression();
             if (_schema != null)
             {
                 expression.AddItem(new Token(_schema.Name));
                 expression.AddItem(new Token("."));
             }
             expression.AddItem(new Token(_name));
-            return expression;
         }
     }
 }

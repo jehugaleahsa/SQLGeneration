@@ -111,7 +111,7 @@ namespace SQLGeneration
             Expression expression = new Expression();
             expression.AddItem(new Token("INSERT"));
             expression.AddItem(new Token("INTO"));
-            expression.AddItem(_table.GetDeclarationExpression(options, null));
+            expression.AddItem(_table.GetDeclarationExpression(options));
             if (_columns.Count > 0)
             {
                 expression.AddItem(new Token("("));

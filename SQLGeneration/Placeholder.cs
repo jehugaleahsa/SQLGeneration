@@ -30,15 +30,20 @@ namespace SQLGeneration
 
         IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            return new Token(value);
+            return getPlaceholder();
         }
 
         IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            return new Token(value);
+            return getPlaceholder();
         }
 
         IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
+        {
+            return getPlaceholder();
+        }
+
+        private IExpressionItem getPlaceholder()
         {
             return new Token(value);
         }

@@ -80,13 +80,39 @@ namespace SQLGeneration
         /// <returns>The expression representing the value list.</returns>
         public IExpressionItem GetFilterExpression(CommandOptions options)
         {
+            // "(" <Projection> [ "," <ValueList> ] ")"
             Expression expression = new Expression();
             expression.AddItem(new Token("("));
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-            IEnumerable<IExpressionItem> values = _values.Select(value => formatter.GetUnaliasedReference(value));
-            expression.AddItem(Expression.Join(new Token(","), values));
+            if (_values.Count > 0)
+            {
+                ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
+                IEnumerable<IExpressionItem> values = _values.Select(value => formatter.GetUnaliasedReference(value));
+                expression.AddItem(Expression.Join(new Token(","), values));
+            }
             expression.AddItem(new Token(")"));
             return expression;
+        }
+
+        private IExpressionItem buildValueList(CommandOptions options, int valueIndex)
+        {
+            if (valueIndex == _values.Count - 1)
+            {
+                IProjectionItem current = _values[valueIndex];
+                ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
+                return formatter.GetUnaliasedReference(current);
+            }
+            else
+            {
+                IExpressionItem right = buildValueList(options, valueIndex + 1);
+                IProjectionItem current = _values[valueIndex];
+                ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
+                IExpressionItem left = formatter.GetUnaliasedReference(current);
+                Expression expression = new Expression();
+                expression.AddItem(left);
+                expression.AddItem(new Token(","));
+                expression.AddItem(right);
+                return expression;
+            }
         }
 
         bool IValueProvider.IsQuery

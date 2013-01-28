@@ -61,6 +61,7 @@ namespace SQLGeneration
 
         private IExpressionItem getExpression()
         {
+            // "'" .* "'"
             StringBuilder result = new StringBuilder();
             result.Append("'");
             if (Value != null)

@@ -13,8 +13,8 @@ namespace SQLGeneration
         /// Initializes a new instance of a FullOuterJoin.
         /// </summary>
         /// <param name="leftHand">The left hand item in the join.</param>
-        /// <param name="rightHand">The right hand item in the join.</param>
-        public FullOuterJoin(IJoinItem leftHand, IJoinItem rightHand)
+        /// <param name="rightHand">The right hand table in the join.</param>
+        public FullOuterJoin(IJoinItem leftHand, Table rightHand)
             : base(leftHand, rightHand, new IFilter[0])
         {
         }
@@ -23,9 +23,9 @@ namespace SQLGeneration
         /// Initializes a new instance of a FullOuterJoin.
         /// </summary>
         /// <param name="leftHand">The left hand item in the join.</param>
-        /// <param name="rightHand">The right hand item in the join.</param>
+        /// <param name="rightHand">The right hand table in the join.</param>
         /// <param name="filters">The filters to join to the join items on.</param>
-        public FullOuterJoin(IJoinItem leftHand, IJoinItem rightHand, params IFilter[] filters)
+        public FullOuterJoin(IJoinItem leftHand, Table rightHand, params IFilter[] filters)
             : base(leftHand, rightHand, filters)
         {
         }
@@ -35,7 +35,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The name of the join type.</returns>
-        protected override IExpressionItem GetJoinNameExpression(CommandOptions options)
+        protected override Token GetJoinNameExpression(CommandOptions options)
         {
             // { "FULL OUTER JOIN" | "FULL JOIN" }
             StringBuilder result = new StringBuilder("FULL ");

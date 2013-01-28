@@ -9,14 +9,14 @@ namespace SQLGeneration
     public abstract class Join : IJoinItem
     {
         private readonly IJoinItem _leftHand;
-        private readonly IJoinItem _rightHand;
+        private readonly IRightJoinItem _rightHand;
 
         /// <summary>
         /// Initializes a new instance of a InnerJoin.
         /// </summary>
-        /// <param name="leftHand">The left hand item in the join.</param>
+        /// <param name="leftHand">The left hand item or join.</param>
         /// <param name="rightHand">The right hand item in the join.</param>
-        protected Join(IJoinItem leftHand, IJoinItem rightHand)
+        protected Join(IJoinItem leftHand, IRightJoinItem rightHand)
         {
             if (leftHand == null)
             {
@@ -51,9 +51,9 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets the item on the right hand side of the join.
+        /// Gets the table on the right hand side of the join.
         /// </summary>
-        public IJoinItem RightHand
+        public IRightJoinItem RightHand
         {
             get
             {
@@ -61,15 +61,16 @@ namespace SQLGeneration
             }
         }
 
-        IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options, FilterGroup where)
+        IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options)
         {
+            // [ "(" ] <Left> <Combiner> <Right> [ "ON" <Filter> ] [ ")" ]
             Expression expression = new Expression();
             if (WrapInParentheses ?? options.WrapJoinsInParentheses)
             {
                 expression.AddItem(new Token("("));
             }
-            IExpressionItem leftHand = _leftHand.GetDeclarationExpression(options, where);
-            IExpressionItem rightHand = _rightHand.GetDeclarationExpression(options, where);
+            IExpressionItem leftHand = _leftHand.GetDeclarationExpression(options);
+            IExpressionItem rightHand = _rightHand.GetDeclarationExpression(options);
             combine(expression, options, leftHand, rightHand);
             GetOnExpression(expression, options);
             if (WrapInParentheses ?? options.WrapJoinsInParentheses)
@@ -99,6 +100,6 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The name of the join type.</returns>
-        protected abstract IExpressionItem GetJoinNameExpression(CommandOptions options);
+        protected abstract Token GetJoinNameExpression(CommandOptions options);
     }
 }

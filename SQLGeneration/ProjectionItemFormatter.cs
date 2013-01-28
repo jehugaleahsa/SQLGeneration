@@ -30,7 +30,6 @@ namespace SQLGeneration
             {
                 throw new ArgumentNullException("item");
             }
-            // TODO - verify this is the right behavior
             IExpressionItem projection = item.GetProjectionExpression(options);
             Expression expression = new Expression();
             expression.AddItem(projection);

@@ -28,6 +28,7 @@ namespace SQLGeneration
         /// <returns>A string combining the left and right hand operands with the operation.</returns>
         protected override void Combine(Expression expression, CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand)
         {
+            // <Left> "<" <Right>
             expression.AddItem(leftHand);
             expression.AddItem(new Token("<"));
             expression.AddItem(rightHand);

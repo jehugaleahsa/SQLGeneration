@@ -11,7 +11,10 @@ namespace SQLGeneration
         /// <summary>
         /// Initializes a new instance of a UnionAll.
         /// </summary>
-        public UnionAll()
+        /// <param name="leftHand">The left hand SELECT command.</param>
+        /// <param name="rightHand">The right hand SELECT command.</param>
+        public UnionAll(ISelectBuilder leftHand, ISelectBuilder rightHand)
+            : base(leftHand, rightHand)
         {
         }
 
@@ -20,8 +23,9 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The text used to combine two queries.</returns>
-        protected override IExpressionItem GetCombinationExpression(CommandOptions options)
+        protected override Token GetCombinationName(CommandOptions options)
         {
+            // "UNION ALL"
             return new Token("UNION ALL");
         }
     }

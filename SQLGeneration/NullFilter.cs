@@ -59,6 +59,7 @@ namespace SQLGeneration
         /// <returns>A string representing the filter.</returns>
         protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
+            // "IS" [ "NOT" ] "NULL"
             expression.AddItem(_item.GetFilterExpression(options));
             expression.AddItem(new Token("IS"));
             if (!IsNull)

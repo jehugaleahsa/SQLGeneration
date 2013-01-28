@@ -122,13 +122,14 @@ namespace SQLGeneration
 
         private IExpressionItem getCommandExpression(CommandOptions options)
         {
+            // "UPDATE" <Table> "SET" <SetterList> [ "WHERE" <Filter> ]
             if (_setters.Count == 0)
             {
                 throw new SQLGenerationException(Resources.NoSetters);
             }
             Expression expression = new Expression();
             expression.AddItem(new Token("UPDATE"));
-            expression.AddItem(_table.GetDeclarationExpression(options, null));
+            expression.AddItem(_table.GetDeclarationExpression(options));
             expression.AddItem(new Token("SET"));
             IEnumerable<IExpressionItem> setters = _setters.Select(setter => setter.GetSetterExpression(options));
             expression.AddItem(Expression.Join(new Token(","), setters));
@@ -138,6 +139,26 @@ namespace SQLGeneration
                 expression.AddItem(_where.GetFilterExpression(options));
             }
             return expression;
+        }
+
+        private IExpressionItem buildSetterList(CommandOptions options, int setterIndex)
+        {
+            if (setterIndex == _setters.Count - 1)
+            {
+                Setter current = _setters[setterIndex];
+                return current.GetSetterExpression(options);
+            }
+            else
+            {
+                IExpressionItem right = buildSetterList(options, setterIndex + 1);
+                Setter current = _setters[setterIndex];
+                IExpressionItem left = current.GetSetterExpression(options);
+                Expression expression = new Expression();
+                expression.AddItem(left);
+                expression.AddItem(new Token(","));
+                expression.AddItem(right);
+                return expression;
+            }
         }
     }
 }

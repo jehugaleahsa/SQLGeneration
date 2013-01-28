@@ -5,7 +5,7 @@ namespace SQLGeneration
     /// <summary>
     /// Builds SELECT statements.
     /// </summary>
-    public interface ISelectBuilder : ICommand, IColumnSource, IProjectionItem, IValueProvider
+    public interface ISelectBuilder : ICommand, IColumnSource, IRightJoinItem, IProjectionItem, IValueProvider
     {
     }
 }

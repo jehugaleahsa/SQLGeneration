@@ -12,14 +12,24 @@ namespace SQLGeneration
     /// </summary>
     public abstract class SelectCombiner : ISelectBuilder
     {
-        private readonly List<ISelectBuilder> _queries;
+        private readonly ISelectBuilder leftHand;
+        private readonly ISelectBuilder rightHand;
 
         /// <summary>
         /// Initializes a new instance of a SelectCombiner.
         /// </summary>
-        protected SelectCombiner()
+        protected SelectCombiner(ISelectBuilder leftHand, ISelectBuilder rightHand)
         {
-            _queries = new List<ISelectBuilder>();
+            if (leftHand == null)
+            {
+                throw new ArgumentNullException("leftHand");
+            }
+            if (rightHand == null)
+            {
+                throw new ArgumentNullException("rightHand");
+            }
+            this.leftHand = leftHand;
+            this.rightHand = rightHand;
         }
 
         /// <summary>
@@ -44,38 +54,19 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets the queries that are to be combined.
+        /// Gets the SELECT command on the left side.
         /// </summary>
-        public IEnumerable<ISelectBuilder> Queries
+        public ISelectBuilder LeftHand
         {
-            get { return new ReadOnlyCollection<ISelectBuilder>(_queries); }
+            get { return leftHand; }
         }
 
         /// <summary>
-        /// Adds the query to the combination.
+        /// Gets the SELECT comman on the right side.
         /// </summary>
-        /// <param name="query">The query to add.</param>
-        public void AddQuery(ISelectBuilder query)
+        public ISelectBuilder RightHand
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException("query");
-            }
-            _queries.Add(query);
-        }
-
-        /// <summary>
-        /// Removes the query from the combination.
-        /// </summary>
-        /// <param name="query">The query to remove.</param>
-        /// <returns>True if the query is removed; otherwise, false.</returns>
-        public bool RemoveQuery(ISelectBuilder query)
-        {
-            if (query == null)
-            {
-                throw new ArgumentNullException("query");
-            }
-            return _queries.Remove(query);
+            get { return rightHand; }
         }
 
         /// <summary>
@@ -85,16 +76,16 @@ namespace SQLGeneration
         /// <returns>The expression making up the command.</returns>
         public IExpressionItem GetCommandExpression(CommandOptions options)
         {
+            // <Select> <Combiner> <Select>
             if (options == null)
             {
                 throw new ArgumentNullException("options");
             }
-            if (_queries.Count == 0)
-            {
-                throw new SQLGenerationException(Resources.NoQueries);
-            }
-            IExpressionItem separator = GetCombinationExpression(options);
-            return Expression.Join(separator, _queries.Select(query => query.GetCommandExpression(options)));
+            Expression expression = new Expression();
+            expression.AddItem(leftHand.GetCommandExpression(options));
+            IExpressionItem separator = GetCombinationName(options);
+            expression.AddItem(rightHand.GetCommandExpression(options));
+            return expression;
         }
 
         /// <summary>
@@ -102,7 +93,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The text used to combine two queries.</returns>
-        protected abstract IExpressionItem GetCombinationExpression(CommandOptions options);
+        protected abstract Token GetCombinationName(CommandOptions options);
 
         /// <summary>
         /// Gets or sets an alias for the query results.
@@ -113,19 +104,12 @@ namespace SQLGeneration
             set;
         }
 
-        IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options, FilterGroup where)
+        IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options)
         {
             Expression expression = new Expression();
-            if (_queries.Count > 1)
-            {
-                expression.AddItem(new Token("("));
-                expression.AddItem(GetCommandExpression(options));
-                expression.AddItem(new Token(")"));
-            }
-            else
-            {
-                expression.AddItem(GetCommandExpression(options));
-            }
+            expression.AddItem(new Token("("));
+            expression.AddItem(GetCommandExpression(options));
+            expression.AddItem(new Token(")"));
             if (!String.IsNullOrWhiteSpace(Alias))
             {
                 if (options.AliasColumnSourcesUsingAs)
@@ -148,14 +132,15 @@ namespace SQLGeneration
 
         IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            Expression expression = new Expression();
-            expression.AddItem(new Token("("));
-            expression.AddItem(GetCommandExpression(options));
-            expression.AddItem(new Token(")"));
-            return expression;
+            return getCombinedCommand(options);
         }
 
         IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
+        {
+            return getCombinedCommand(options);
+        }
+
+        private IExpressionItem getCombinedCommand(CommandOptions options)
         {
             Expression expression = new Expression();
             expression.AddItem(new Token("("));

@@ -87,7 +87,7 @@ namespace SQLGeneration
             Expression expression = new Expression();
             expression.AddItem(new Token("DELETE"));
             expression.AddItem(new Token("FROM"));
-            expression.AddItem(_table.GetDeclarationExpression(options, _where));
+            expression.AddItem(_table.GetDeclarationExpression(options));
             if (_where.HasFilters)
             {
                 expression.AddItem(new Token("WHERE"));

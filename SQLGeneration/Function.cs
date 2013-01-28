@@ -138,7 +138,7 @@ namespace SQLGeneration
 
         private IExpressionItem getFunctionExpression(CommandOptions options)
         {
-            // <Name> "(" [ <ValueList> ] ")"
+            // [ <Schema> "." ] <Name> "(" [ <ValueList> ] ")"
             Expression expression = new Expression();
             if (_schema != null)
             {

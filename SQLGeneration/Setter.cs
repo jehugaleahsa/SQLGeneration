@@ -53,6 +53,7 @@ namespace SQLGeneration
         /// <returns>The setter expression.</returns>
         public IExpressionItem GetSetterExpression(CommandOptions options)
         {
+            // <Column> "=" <Projection>
             Expression expression = new Expression();
             ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
             expression.AddItem(formatter.GetUnaliasedReference(_column));

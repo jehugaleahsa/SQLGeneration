@@ -4,16 +4,16 @@ using SQLGeneration.Expressions;
 namespace SQLGeneration
 {
     /// <summary>
-    /// Unions the items from the first query to the second.
+    /// Removes the items returned by the second query from the first query.
     /// </summary>
-    public class Union : SelectCombiner
+    public class Except : SelectCombiner
     {
         /// <summary>
-        /// Initializes a new instance of a Union.
+        /// Initializes a new instance of a Except.
         /// </summary>
         /// <param name="leftHand">The left hand SELECT command.</param>
         /// <param name="rightHand">The right hand SELECT command.</param>
-        public Union(ISelectBuilder leftHand, ISelectBuilder rightHand)
+        public Except(ISelectBuilder leftHand, ISelectBuilder rightHand)
             : base(leftHand, rightHand)
         {
         }
@@ -25,8 +25,8 @@ namespace SQLGeneration
         /// <returns>The text used to combine two queries.</returns>
         protected override Token GetCombinationName(CommandOptions options)
         {
-            // "UNION"
-            return new Token("UNION");
+            // "EXCEPT"
+            return new Token("EXCEPT");
         }
     }
 }
