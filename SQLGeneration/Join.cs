@@ -64,7 +64,7 @@ namespace SQLGeneration
         IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options)
         {
             // [ "(" ] <Left> <Combiner> <Right> [ "ON" <Filter> ] [ ")" ]
-            Expression expression = new Expression();
+            Expression expression = new Expression(ExpressionItemType.Join);
             if (WrapInParentheses ?? options.WrapJoinsInParentheses)
             {
                 expression.AddItem(new Token("("));

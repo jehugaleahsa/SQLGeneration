@@ -103,7 +103,7 @@ namespace SQLGeneration
         public IExpressionItem GetOrderByExpression(CommandOptions options)
         {
             // <ColumnRef> [ { "ASC" | "DESC" } ] [ { "NULLS FIRST" | "NULLS LAST" } ]
-            Expression expression = new Expression();
+            Expression expression = new Expression(ExpressionItemType.OrderBy);
             ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
             expression.AddItem(formatter.GetAliasedReference(_item));
             if (_order != Order.Default)

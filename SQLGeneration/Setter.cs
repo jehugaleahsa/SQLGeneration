@@ -54,7 +54,7 @@ namespace SQLGeneration
         public IExpressionItem GetSetterExpression(CommandOptions options)
         {
             // <Column> "=" <Projection>
-            Expression expression = new Expression();
+            Expression expression = new Expression(ExpressionItemType.Setter);
             ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
             expression.AddItem(formatter.GetUnaliasedReference(_column));
             expression.AddItem(new Token("="));

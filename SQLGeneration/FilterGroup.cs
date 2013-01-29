@@ -103,7 +103,7 @@ namespace SQLGeneration
                 IExpressionItem right = buildFilterTree(options, filterIndex + 1);
 
                 ConjunctionConverter converter = new ConjunctionConverter();
-                Expression filterExpression = new Expression();
+                Expression filterExpression = new Expression(ExpressionItemType.Filter);
                 filterExpression.AddItem(left);
                 filterExpression.AddItem(converter.ToToken(next.Conjunction));
                 filterExpression.AddItem(right);

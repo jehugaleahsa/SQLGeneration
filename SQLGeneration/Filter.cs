@@ -54,7 +54,7 @@ namespace SQLGeneration
         public IExpressionItem GetFilterExpression(CommandOptions options)
         {
             // [ "(" ] <Filter> [ ")" ]
-            Expression expression = new Expression();
+            Expression expression = new Expression(ExpressionItemType.Filter);
             bool wrapInParentheses = ShouldWrapInParentheses(options);
             if (wrapInParentheses)
             {

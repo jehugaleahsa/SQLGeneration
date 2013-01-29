@@ -33,6 +33,14 @@ namespace SQLGeneration.Expressions
         }
 
         /// <summary>
+        /// Gets the type of the expression.
+        /// </summary>
+        public ExpressionItemType Type
+        {
+            get { return ExpressionItemType.Token; }
+        }
+
+        /// <summary>
         /// Gets the value of the token.
         /// </summary>
         public string Value

@@ -55,25 +55,24 @@ namespace SQLGeneration
             set;
         }
 
-        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
+        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
         {
-            return getColumnExpression(options);
+            getColumnExpression(expression, options);
         }
 
-        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
+        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
         {
-            return getColumnExpression(options);
+            getColumnExpression(expression, options);
         }
 
-        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
+        void IGroupByItem.GetGroupByExpression(Expression expression, CommandOptions options)
         {
-            return getColumnExpression(options);
+            getColumnExpression(expression, options);
         }
 
-        private IExpressionItem getColumnExpression(CommandOptions options)
+        private void getColumnExpression(Expression expression, CommandOptions options)
         {
             // [ <Source> "." ] <Column>
-            Expression expression = new Expression();
             if (options.IsSelect
                 || (options.IsInsert && options.QualifyInsertColumns)
                 || (options.IsUpdate && options.QualifyUpdateColumn)
@@ -83,7 +82,6 @@ namespace SQLGeneration
                 expression.AddItem(new Token("."));
             }
             expression.AddItem(new Token(name));
-            return expression;
         }
     }
 }

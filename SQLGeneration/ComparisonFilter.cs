@@ -54,19 +54,16 @@ namespace SQLGeneration
         /// <returns>A string representing the filter.</returns>
         protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
-            IExpressionItem leftHand = _leftHand.GetFilterExpression(options);
-            IExpressionItem rightHand = _rightHand.GetFilterExpression(options);
-            Combine(expression, options, leftHand, rightHand);
+            _leftHand.GetFilterExpression(expression, options);
+            expression.AddItem(GetCombinerName(options));
+            _rightHand.GetFilterExpression(expression, options);
         }
 
         /// <summary>
-        /// Combines the left and right hand operands with the operation.
+        /// Gets the operator that will compare the left and right hand values.
         /// </summary>
-        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
-        /// <param name="leftHand">The left hand operand.</param>
-        /// <param name="rightHand">The right hand operand.</param>
-        /// <returns>A string combining the left and right hand operands with the operation.</returns>
-        protected abstract void Combine(Expression expression, CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand);
+        /// <returns>A string containing the name of the operation that compares the left and right hand sides.</returns>
+        protected abstract Token GetCombinerName(CommandOptions options);
     }
 }

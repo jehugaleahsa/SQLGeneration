@@ -96,7 +96,7 @@ namespace SQLGeneration
         public IExpressionItem GetDeclarationExpression(CommandOptions options)
         {
             // [ <Schema> "." ] <ID> [ "AS" ] <ID>
-            Expression expression = new Expression();
+            Expression expression = new Expression(ExpressionItemType.TableDeclaration);
             getFullNameExpression(expression);
             if (!String.IsNullOrWhiteSpace(Alias))
             {
@@ -113,7 +113,7 @@ namespace SQLGeneration
         {
             if (String.IsNullOrWhiteSpace(Alias))
             {
-                Expression expression = new Expression();
+                Expression expression = new Expression(ExpressionItemType.TableReference);
                 getFullNameExpression(expression);
                 return expression;
             }

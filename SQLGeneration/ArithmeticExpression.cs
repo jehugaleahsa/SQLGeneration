@@ -70,25 +70,24 @@ namespace SQLGeneration
             set;
         }
 
-        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
+        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
         {
-            return getExpression(options);
+            getExpression(expression, options);
         }
 
-        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
+        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
         {
-            return getExpression(options);
+            getExpression(expression, options);
         }
 
-        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
+        void IGroupByItem.GetGroupByExpression(Expression expression, CommandOptions options)
         {
-            return getExpression(options);
+            getExpression(expression, options);
         }
 
-        private IExpressionItem getExpression(CommandOptions options)
+        private void getExpression(Expression expression, CommandOptions options)
         {
             // [ "(" ] <Left> <Op> <Right> [ ")" ]
-            Expression expression = new Expression();
             if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {
                 expression.AddItem(new Token("("));
@@ -102,7 +101,6 @@ namespace SQLGeneration
             {
                 expression.AddItem(new Token(")"));
             }
-            return expression;
         }
 
         /// <summary>

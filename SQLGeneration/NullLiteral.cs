@@ -24,25 +24,25 @@ namespace SQLGeneration
             set;
         }
 
-        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
+        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
         {
-            return getNullLiteral();
+            getNullLiteral(expression);
         }
 
-        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
+        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
         {
-            return getNullLiteral();
+            getNullLiteral(expression);
         }
 
-        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
+        void IGroupByItem.GetGroupByExpression(Expression expression, CommandOptions options)
         {
-            return getNullLiteral();
+            getNullLiteral(expression);
         }
 
-        private static IExpressionItem getNullLiteral()
+        private static void getNullLiteral(Expression expression)
         {
             // "NULL"
-            return new Token("NULL");
+            expression.AddItem(new Token("NULL"));
         }
     }
 }

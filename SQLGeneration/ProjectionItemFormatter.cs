@@ -30,9 +30,8 @@ namespace SQLGeneration
             {
                 throw new ArgumentNullException("item");
             }
-            IExpressionItem projection = item.GetProjectionExpression(options);
-            Expression expression = new Expression();
-            expression.AddItem(projection);
+            Expression expression = new Expression(ExpressionItemType.ProjectionDeclaration);
+            item.GetProjectionExpression(expression, options);
             if (!String.IsNullOrWhiteSpace(item.Alias))
             {
                 if (options.AliasProjectionsUsingAs)
@@ -61,7 +60,9 @@ namespace SQLGeneration
             }
             else
             {
-                return item.GetProjectionExpression(options);
+                Expression expression = new Expression(ExpressionItemType.ProjectionReference);
+                item.GetProjectionExpression(expression, options);
+                return expression;
             }
         }
 
@@ -76,7 +77,9 @@ namespace SQLGeneration
             {
                 throw new ArgumentNullException("item");
             }
-            return item.GetProjectionExpression(options);
+            Expression expression = new Expression(ExpressionItemType.ProjectionReference);
+            item.GetProjectionExpression(expression, options);
+            return expression;
         }
     }
 }

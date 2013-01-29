@@ -47,6 +47,7 @@
     <Compile Include="CrossJoin.cs" />
     <Compile Include="DeleteBuilder.cs" />
     <Compile Include="DivideExpression.cs" />
+    <Compile Include="Expressions\ExpressionItemType.cs" />
     <Compile Include="FilteredJoin.cs" />
     <Compile Include="Formatters\MinimizingFormatter.cs" />
     <Compile Include="IArithmetic.cs" />

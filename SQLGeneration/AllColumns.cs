@@ -34,14 +34,13 @@ namespace SQLGeneration
         /// </summary>
         public string Alias
         {
-            get;
-            set;
+            get { return String.Empty; }
+            set { }
         }
 
-        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
+        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
         {
             // [ <Source> "." ] "*"
-            Expression expression = new Expression();
             StringBuilder builder = new StringBuilder();
             if (source != null)
             {
@@ -49,7 +48,6 @@ namespace SQLGeneration
                 expression.AddItem(new Token("."));
             }
             expression.AddItem(new Token("*"));
-            return expression;
         }
     }
 }

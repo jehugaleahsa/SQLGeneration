@@ -73,24 +73,15 @@ namespace SQLGeneration
             return _values.Remove(item);
         }
 
-        /// <summary>
-        /// Gets the value list as it would appear within a filter expression.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The expression representing the value list.</returns>
-        public IExpressionItem GetFilterExpression(CommandOptions options)
+        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
         {
-            // "(" <Projection> [ "," <ValueList> ] ")"
-            Expression expression = new Expression();
+            // "(" [ <Projection> [ "," <ValueList> ] ] ")"
             expression.AddItem(new Token("("));
             if (_values.Count > 0)
             {
-                ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-                IEnumerable<IExpressionItem> values = _values.Select(value => formatter.GetUnaliasedReference(value));
-                expression.AddItem(Expression.Join(new Token(","), values));
+                expression.AddItem(buildValueList(options, 0));
             }
             expression.AddItem(new Token(")"));
-            return expression;
         }
 
         private IExpressionItem buildValueList(CommandOptions options, int valueIndex)
@@ -107,7 +98,7 @@ namespace SQLGeneration
                 IProjectionItem current = _values[valueIndex];
                 ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
                 IExpressionItem left = formatter.GetUnaliasedReference(current);
-                Expression expression = new Expression();
+                Expression expression = new Expression(ExpressionItemType.ValueList);
                 expression.AddItem(left);
                 expression.AddItem(new Token(","));
                 expression.AddItem(right);

@@ -17,6 +17,14 @@ namespace SQLGeneration.Expressions
         }
 
         /// <summary>
+        /// Gets the type of the expression item.
+        /// </summary>
+        ExpressionItemType Type
+        {
+            get;
+        }
+
+        /// <summary>
         /// Visits the current expression item.
         /// </summary>
         /// <param name="visiter">A function that will be passed a token when it is encountered.</param>

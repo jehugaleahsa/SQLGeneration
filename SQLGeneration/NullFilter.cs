@@ -60,7 +60,7 @@ namespace SQLGeneration
         protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
             // "IS" [ "NOT" ] "NULL"
-            expression.AddItem(_item.GetFilterExpression(options));
+            _item.GetFilterExpression(expression, options);
             expression.AddItem(new Token("IS"));
             if (!IsNull)
             {

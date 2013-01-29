@@ -81,7 +81,7 @@ namespace SQLGeneration
             {
                 throw new ArgumentNullException("options");
             }
-            Expression expression = new Expression();
+            Expression expression = new Expression(ExpressionItemType.SelectCombiner);
             expression.AddItem(leftHand.GetCommandExpression(options));
             IExpressionItem separator = GetCombinationName(options);
             expression.AddItem(rightHand.GetCommandExpression(options));
@@ -106,7 +106,7 @@ namespace SQLGeneration
 
         IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options)
         {
-            Expression expression = new Expression();
+            Expression expression = new Expression(ExpressionItemType.SelectCombiner);
             expression.AddItem(new Token("("));
             expression.AddItem(GetCommandExpression(options));
             expression.AddItem(new Token(")"));
@@ -130,23 +130,21 @@ namespace SQLGeneration
             return new Token(Alias);
         }
 
-        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
+        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
         {
-            return getCombinedCommand(options);
+            getCombinedCommand(expression, options);
         }
 
-        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
+        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
         {
-            return getCombinedCommand(options);
+            getCombinedCommand(expression, options);
         }
 
-        private IExpressionItem getCombinedCommand(CommandOptions options)
+        private void getCombinedCommand(Expression expression, CommandOptions options)
         {
-            Expression expression = new Expression();
             expression.AddItem(new Token("("));
             expression.AddItem(GetCommandExpression(options));
             expression.AddItem(new Token(")"));
-            return expression;
         }
 
         bool IValueProvider.IsQuery

@@ -43,24 +43,24 @@ namespace SQLGeneration
             set;
         }
 
-        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
+        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
         {
-            return getNumericLiteral();
+            getNumericLiteral(expression);
         }
 
-        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
+        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
         {
-            return getNumericLiteral();
+            getNumericLiteral(expression);
         }
 
-        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
+        void IGroupByItem.GetGroupByExpression(Expression expression, CommandOptions options)
         {
-            return getNumericLiteral();
+            getNumericLiteral(expression);
         }
 
-        private IExpressionItem getNumericLiteral()
+        private void getNumericLiteral(Expression expression)
         {
-            return new Token(Value.ToString(CultureInfo.InvariantCulture));
+            expression.AddItem(new Token(Value.ToString(CultureInfo.InvariantCulture)));
         }
     }
 }

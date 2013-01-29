@@ -127,12 +127,11 @@ namespace SQLGeneration
             {
                 throw new SQLGenerationException(Resources.NoSetters);
             }
-            Expression expression = new Expression();
+            Expression expression = new Expression(ExpressionItemType.UpdateCommand);
             expression.AddItem(new Token("UPDATE"));
             expression.AddItem(_table.GetDeclarationExpression(options));
             expression.AddItem(new Token("SET"));
-            IEnumerable<IExpressionItem> setters = _setters.Select(setter => setter.GetSetterExpression(options));
-            expression.AddItem(Expression.Join(new Token(","), setters));
+            expression.AddItem(buildSetterList(options, 0));
             if (_where.HasFilters)
             {
                 expression.AddItem(new Token("WHERE"));
@@ -153,7 +152,7 @@ namespace SQLGeneration
                 IExpressionItem right = buildSetterList(options, setterIndex + 1);
                 Setter current = _setters[setterIndex];
                 IExpressionItem left = current.GetSetterExpression(options);
-                Expression expression = new Expression();
+                Expression expression = new Expression(ExpressionItemType.Setter);
                 expression.AddItem(left);
                 expression.AddItem(new Token(","));
                 expression.AddItem(right);

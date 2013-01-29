@@ -292,7 +292,7 @@ namespace SQLGeneration
             options.IsInsert = false;
             options.IsUpdate = false;
             options.IsDelete = false;
-            Expression expression = new Expression();
+            Expression expression = new Expression(ExpressionItemType.SelectCommand);
             getCommandExpression(expression, options);
             return expression;
         }
@@ -360,7 +360,7 @@ namespace SQLGeneration
                 IProjectionItem current = _projection[projectionIndex];
                 ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
                 IExpressionItem left = formatter.GetDeclaration(current);
-                Expression expression = new Expression();
+                Expression expression = new Expression(ExpressionItemType.ProjectionItemList);
                 expression.AddItem(left);
                 expression.AddItem(new Token(","));
                 expression.AddItem(right);
@@ -380,7 +380,7 @@ namespace SQLGeneration
                 IExpressionItem right = buildFrom(options, fromIndex + 1);
                 IJoinItem current = _from[fromIndex];
                 IExpressionItem left = current.GetDeclarationExpression(options);
-                Expression expression = new Expression();
+                Expression expression = new Expression(ExpressionItemType.FromList);
                 expression.AddItem(left);
                 expression.AddItem(new Token(","));
                 expression.AddItem(right);
@@ -393,15 +393,16 @@ namespace SQLGeneration
             if (groupByIndex == _groupBy.Count - 1)
             {
                 IGroupByItem current = _groupBy[groupByIndex];
-                return current.GetGroupByExpression(options);
+                Expression expression = new Expression(ExpressionItemType.GroupByList);
+                current.GetGroupByExpression(expression, options);
+                return expression;
             }
             else
             {
                 IExpressionItem right = buildGroupBy(options, groupByIndex + 1);
+                Expression expression = new Expression(ExpressionItemType.GroupByList);
                 IGroupByItem current = _groupBy[groupByIndex];
-                IExpressionItem left = current.GetGroupByExpression(options);
-                Expression expression = new Expression();
-                expression.AddItem(left);
+                current.GetGroupByExpression(expression, options);
                 expression.AddItem(new Token(","));
                 expression.AddItem(right);
                 return expression;
@@ -420,7 +421,7 @@ namespace SQLGeneration
                 IExpressionItem right = buildOrderBy(options, orderByIndex + 1);
                 OrderBy current = _orderBy[orderByIndex];
                 IExpressionItem left = current.GetOrderByExpression(options);
-                Expression expression = new Expression();
+                Expression expression = new Expression(ExpressionItemType.OrderByList);
                 expression.AddItem(left);
                 expression.AddItem(new Token(","));
                 expression.AddItem(right);
@@ -428,15 +429,10 @@ namespace SQLGeneration
             }
         }
 
-        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
-        {
-            return getSelectContent(options);
-        }
-
         IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options)
         {
-            Expression expression = new Expression();
-            expression.AddItem(getSelectContent(options));
+            Expression expression = new Expression(ExpressionItemType.SelectCommand);
+            getSelectContent(expression, options);
             if (!String.IsNullOrWhiteSpace(Alias))
             {
                 if (options.AliasColumnSourcesUsingAs)
@@ -457,18 +453,21 @@ namespace SQLGeneration
             return new Token(Alias);
         }
 
-        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
+        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
         {
-            return getSelectContent(options);
+            getSelectContent(expression, options);
         }
 
-        private Expression getSelectContent(CommandOptions options)
+        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
         {
-            Expression expression = new Expression();
+            getSelectContent(expression, options);
+        }
+
+        private void getSelectContent(Expression expression, CommandOptions options)
+        {
             expression.AddItem(new Token("("));
             getCommandExpression(expression, options);
             expression.AddItem(new Token(")"));
-            return expression;
         }
 
         bool IValueProvider.IsQuery

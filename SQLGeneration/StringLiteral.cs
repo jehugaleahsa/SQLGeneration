@@ -44,22 +44,22 @@ namespace SQLGeneration
             set;
         }
 
-        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
+        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
         {
-            return getExpression();
+            getExpression(expression);
         }
 
-        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
+        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
         {
-            return getExpression();
+            getExpression(expression);
         }
 
-        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
+        void IGroupByItem.GetGroupByExpression(Expression expression, CommandOptions options)
         {
-            return getExpression();
+            getExpression(expression);
         }
 
-        private IExpressionItem getExpression()
+        private void getExpression(Expression expression)
         {
             // "'" .* "'"
             StringBuilder result = new StringBuilder();
@@ -69,7 +69,7 @@ namespace SQLGeneration
                 result.Append(Value.Replace("'", "''"));
             }
             result.Append("'");
-            return new Token(result.ToString());
+            expression.AddItem(new Token(result.ToString()));
         }
     }
 }

@@ -121,33 +121,31 @@ namespace SQLGeneration
             return _arguments.RemoveValue(item);
         }
 
-        IExpressionItem IProjectionItem.GetProjectionExpression(CommandOptions options)
+        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
         {
-            return getFunctionExpression(options);
+            getFunctionExpression(expression, options);
         }
 
-        IExpressionItem IFilterItem.GetFilterExpression(CommandOptions options)
+        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
         {
-            return getFunctionExpression(options);
+            getFunctionExpression(expression, options);
         }
 
-        IExpressionItem IGroupByItem.GetGroupByExpression(CommandOptions options)
+        void IGroupByItem.GetGroupByExpression(Expression expression, CommandOptions options)
         {
-            return getFunctionExpression(options);
+            getFunctionExpression(expression, options);
         }
 
-        private IExpressionItem getFunctionExpression(CommandOptions options)
+        private void getFunctionExpression(Expression expression, CommandOptions options)
         {
             // [ <Schema> "." ] <Name> "(" [ <ValueList> ] ")"
-            Expression expression = new Expression();
             if (_schema != null)
             {
                 expression.AddItem(new Token(_schema.Name));
                 expression.AddItem(new Token("."));
             }
             expression.AddItem(new Token(_name));
-            expression.AddItem(_arguments.GetFilterExpression(options));
-            return expression;
+            ((IFilterItem)_arguments).GetFilterExpression(expression, options);
         }
     }
 }

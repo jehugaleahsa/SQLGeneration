@@ -108,7 +108,7 @@ namespace SQLGeneration
         private IExpressionItem getCommandExpression(CommandOptions options)
         {
             // "INSERT" [ "INTO" ] <Source> [ "(" <ColumnList> ")" ] { "VALUES" "(" <ValueList> ")" | <SubSelect> }
-            Expression expression = new Expression();
+            Expression expression = new Expression(ExpressionItemType.InsertCommand);
             expression.AddItem(new Token("INSERT"));
             expression.AddItem(new Token("INTO"));
             expression.AddItem(_table.GetDeclarationExpression(options));
@@ -122,7 +122,7 @@ namespace SQLGeneration
             {
                 expression.AddItem(new Token("VALUES"));
             }
-            expression.AddItem(_values.GetFilterExpression(options));
+            _values.GetFilterExpression(expression, options);
             return expression;
         }
 
@@ -140,7 +140,7 @@ namespace SQLGeneration
                 ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
                 Column column = _columns[columnIndex];
                 IExpressionItem left = formatter.GetUnaliasedReference(column);
-                Expression expression = new Expression();
+                Expression expression = new Expression(ExpressionItemType.ColumnList);
                 expression.AddItem(left);
                 expression.AddItem(new Token(","));
                 expression.AddItem(right);

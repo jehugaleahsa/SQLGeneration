@@ -8,9 +8,10 @@ namespace SQLGeneration.Expressions
     /// </summary>
     public class Expression : IExpressionItem
     {
-        private static readonly IExpressionItem none = new Expression();
+        private static readonly IExpressionItem none = new Expression(ExpressionItemType.None);
 
         private readonly List<IExpressionItem> items;
+        private readonly ExpressionItemType type;
 
         /// <summary>
         /// Gets an empty expression that should be ignored.
@@ -23,9 +24,11 @@ namespace SQLGeneration.Expressions
         /// <summary>
         /// Initializes a new instance of an Expression.
         /// </summary>
-        public Expression()
+        /// <param name="type">The type of the expression.</param>
+        public Expression(ExpressionItemType type)
         {
             items = new List<IExpressionItem>();
+            this.type = type;
         }
 
         /// <summary>
@@ -35,6 +38,14 @@ namespace SQLGeneration.Expressions
         {
             get;
             set;
+        }
+
+        /// <summary>
+        /// Gets the type of the expression.
+        /// </summary>
+        public ExpressionItemType Type
+        {
+            get { return type; }
         }
 
         /// <summary>
@@ -48,8 +59,11 @@ namespace SQLGeneration.Expressions
             {
                 throw new ArgumentNullException("item");
             }
-            item.Parent = this;
-            items.Add(item);
+            if (item.Type != ExpressionItemType.None)
+            {
+                item.Parent = this;
+                items.Add(item);
+            }
             return this;
         }
 
@@ -62,30 +76,6 @@ namespace SQLGeneration.Expressions
             foreach (IExpressionItem item in items)
             {
                 item.Visit(visiter);
-            }
-        }
-
-        /// <summary>
-        /// Creates a new expression where each given expression or token is separated by the given token.
-        /// </summary>
-        /// <param name="separator">The token to separate the expressions with.</param>
-        /// <param name="expressions">The tokens or expressions to separate.</param>
-        /// <returns>An expression separating the given expressions with the given token.</returns>
-        public static IExpressionItem Join(IExpressionItem separator, IEnumerable<IExpressionItem> expressions)
-        {
-            using (IEnumerator<IExpressionItem> enumerator = expressions.GetEnumerator())
-            {
-                Expression expression = new Expression();
-                if (enumerator.MoveNext())
-                {
-                    expression.AddItem(enumerator.Current);
-                }
-                while (enumerator.MoveNext())
-                {
-                    expression.AddItem(separator);
-                    expression.AddItem(enumerator.Current);
-                }
-                return expression;
             }
         }
     }

@@ -79,15 +79,15 @@ namespace SQLGeneration
         protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
             // <Value> [ "NOT" ] "BETWEEN" <Lower> "AND" <Upper>
-            expression.AddItem(_value.GetFilterExpression(options));
+            _value.GetFilterExpression(expression, options);
             if (Not)
             {
                 expression.AddItem(new Token("NOT"));
             }
             expression.AddItem(new Token("BETWEEN"));
-            expression.AddItem(_lowerBound.GetFilterExpression(options));
+            _lowerBound.GetFilterExpression(expression, options);
             expression.AddItem(new Token("AND"));
-            expression.AddItem(_upperBound.GetFilterExpression(options));
+            _upperBound.GetFilterExpression(expression, options);
         }
     }
 }
