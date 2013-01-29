@@ -78,16 +78,18 @@ namespace SQLGeneration
         /// <returns>A string representing the filter.</returns>
         protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
-            // <Value> [ "NOT" ] "BETWEEN" <Lower> "AND" <Upper>
-            _value.GetFilterExpression(expression, options);
+            // <Between> => <Value> [ "NOT" ] "BETWEEN" <Lower> "AND" <Upper>
+            Expression filterExpression = new Expression(ExpressionItemType.BetweenFilter);
+            _value.GetFilterExpression(filterExpression, options);
             if (Not)
             {
-                expression.AddItem(new Token("NOT"));
+                filterExpression.AddItem(new Token("NOT"));
             }
-            expression.AddItem(new Token("BETWEEN"));
-            _lowerBound.GetFilterExpression(expression, options);
-            expression.AddItem(new Token("AND"));
-            _upperBound.GetFilterExpression(expression, options);
+            filterExpression.AddItem(new Token("BETWEEN"));
+            _lowerBound.GetFilterExpression(filterExpression, options);
+            filterExpression.AddItem(new Token("AND"));
+            _upperBound.GetFilterExpression(filterExpression, options);
+            expression.AddItem(filterExpression);
         }
     }
 }

@@ -6,17 +6,17 @@ namespace SQLGeneration
     /// <summary>
     /// Represents a filter that compares two values together.
     /// </summary>
-    public abstract class ComparisonFilter : Filter, IComparisonFilter
+    public abstract class BinaryFilter : Filter, IComparisonFilter
     {
         private readonly IFilterItem _leftHand;
         private readonly IFilterItem _rightHand;
 
         /// <summary>
-        /// Initializes a new instance of a ComparisonFilter.
+        /// Initializes a new instance of a BinaryFilter.
         /// </summary>
         /// <param name="leftHand">The left hand side of the comparison.</param>
         /// <param name="rightHand">The right hand side of the comparison.</param>
-        protected ComparisonFilter(IFilterItem leftHand, IFilterItem rightHand)
+        protected BinaryFilter(IFilterItem leftHand, IFilterItem rightHand)
         {
             if (leftHand == null)
             {
@@ -54,9 +54,12 @@ namespace SQLGeneration
         /// <returns>A string representing the filter.</returns>
         protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
-            _leftHand.GetFilterExpression(expression, options);
-            expression.AddItem(GetCombinerName(options));
-            _rightHand.GetFilterExpression(expression, options);
+            // <Binary> => <Left> <Op> <Right>
+            Expression binaryExpression = new Expression(ExpressionItemType.BinaryFilter);
+            _leftHand.GetFilterExpression(binaryExpression, options);
+            binaryExpression.AddItem(GetCombinerName(options));
+            _rightHand.GetFilterExpression(binaryExpression, options);
+            expression.AddItem(binaryExpression);
         }
 
         /// <summary>

@@ -6,7 +6,7 @@ namespace SQLGeneration
     /// <summary>
     /// Represents a comparison between two items for equality.
     /// </summary>
-    public class EqualToFilter : ComparisonFilter
+    public class EqualToFilter : BinaryFilter
     {
         /// <summary>
         /// Initializes a new instance of a EqualToFilter.

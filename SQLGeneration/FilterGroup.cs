@@ -79,15 +79,15 @@ namespace SQLGeneration
         /// <returns>A string representing the filter.</returns>
         protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
-            // <Filter> [ {"AND"|"OR"} <Filter> ]
+            // <FilterList> => <Filter> [ {"AND"|"OR"} <FilterList> ]
             if (_filters.Count == 0)
             {
                 throw new SQLGenerationException(Resources.EmptyFilterGroup);
             }
-            expression.AddItem(buildFilterTree(options, 0));
+            expression.AddItem(buildFilterList(options, 0));
         }
 
-        private IExpressionItem buildFilterTree(CommandOptions options, int filterIndex)
+        private IExpressionItem buildFilterList(CommandOptions options, int filterIndex)
         {
             if (filterIndex == _filters.Count - 1)
             {
@@ -100,7 +100,7 @@ namespace SQLGeneration
                 IFilter next = _filters[filterIndex + 1];
 
                 IExpressionItem left = current.GetFilterExpression(options);
-                IExpressionItem right = buildFilterTree(options, filterIndex + 1);
+                IExpressionItem right = buildFilterList(options, filterIndex + 1);
 
                 ConjunctionConverter converter = new ConjunctionConverter();
                 Expression filterExpression = new Expression(ExpressionItemType.Filter);

@@ -12,6 +12,14 @@ namespace SQLGeneration.Expressions
         /// </summary>
         Arithmetic,
         /// <summary>
+        /// The expression is a BETWEEN filter.
+        /// </summary>
+        BetweenFilter,
+        /// <summary>
+        /// The expression is a filter that compares two values using an operator.
+        /// </summary>
+        BinaryFilter,
+        /// <summary>
         /// The expression is a column list within an INSERT command.
         /// </summary>
         ColumnList,
@@ -28,6 +36,10 @@ namespace SQLGeneration.Expressions
         /// </summary>
         FromList,
         /// <summary>
+        /// The expression is a function call.
+        /// </summary>
+        Function,
+        /// <summary>
         /// The expression is a list of projection items in the GROUP BY clause of a SELECT statement.
         /// </summary>
         GroupByList,
@@ -43,6 +55,10 @@ namespace SQLGeneration.Expressions
         /// The expression is empty and should be ignored.
         /// </summary>
         None,
+        /// <summary>
+        /// The expression is a filter comparing a value to null.
+        /// </summary>
+        NullFilter,
         /// <summary>
         /// The expression is an order item in the ORDER BY clause of a SELECT command.
         /// </summary>

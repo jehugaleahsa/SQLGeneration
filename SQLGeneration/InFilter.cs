@@ -6,7 +6,7 @@ namespace SQLGeneration
     /// <summary>
     /// Represents a filter where the values on the left hand must be in the values on the right hand.
     /// </summary>
-    public class InFilter : ComparisonFilter
+    public class InFilter : BinaryFilter
     {
         /// <summary>
         /// Initializes a new instance of a InFilter.

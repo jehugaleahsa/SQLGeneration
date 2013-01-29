@@ -299,12 +299,12 @@ namespace SQLGeneration
 
         private void getCommandExpression(Expression expression, CommandOptions options)
         {
-            // "SELECT" [ "DISTINCT" ] [<Top>] <ProjectionList>
-            // [ "FROM" <Join> ]
-            // [ "WHERE" <Filter> ]
-            // [ "GROUP BY" <GroupByList> ]
-            // [ "HAVING" <Filter> ]
-            // [ "ORDER BY" <OrderByList> ]
+            // <SelectCommand> => "SELECT" [ "DISTINCT" ] [<Top>] <ProjectionList>
+            //      [ "FROM" <Join> ]
+            //      [ "WHERE" <Filter> ]
+            //      [ "GROUP BY" <GroupByList> ]
+            //      [ "HAVING" <Filter> ]
+            //      [ "ORDER BY" <OrderByList> ]
             if (_projection.Count == 0)
             {
                 throw new SQLGenerationException(Resources.NoProjections);

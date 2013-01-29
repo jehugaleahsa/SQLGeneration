@@ -19,20 +19,14 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Combines with the left hand operand with the right hand operand using the operation.
+        /// Gets the token representing the arithmetic operator.
         /// </summary>
-        /// <param name="leftHand">The left hand operand.</param>
-        /// <param name="rightHand">The right hand operand.</param>
         /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The left and right hand operands combined using the operation.</returns>
-        protected override IExpressionItem Combine(CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand)
+        /// <returns>The token representing the arithmetic operator.</returns>
+        protected override Token GetOperatorName(CommandOptions options)
         {
             // <Left> "*" <Right>
-            Expression expression = new Expression(ExpressionItemType.Arithmetic);
-            expression.AddItem(leftHand);
-            expression.AddItem(new Token("*"));
-            expression.AddItem(rightHand);
-            return expression;
+            return new Token("*");
         }
     }
 }

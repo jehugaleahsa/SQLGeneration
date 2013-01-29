@@ -87,29 +87,28 @@ namespace SQLGeneration
 
         private void getExpression(Expression expression, CommandOptions options)
         {
-            // [ "(" ] <Left> <Op> <Right> [ ")" ]
+            // <Arithmetic> => [ "(" ] <Left> <Op> <Right> [ ")" ]
+            Expression arithmeticExpression = new Expression(ExpressionItemType.Arithmetic);
             if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {
-                expression.AddItem(new Token("("));
+                arithmeticExpression.AddItem(new Token("("));
             }
             ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-            IExpressionItem leftHand = formatter.GetUnaliasedReference(_leftHand);
-            IExpressionItem rightHand = formatter.GetUnaliasedReference(_rightHand);
-            IExpressionItem combined = Combine(options, leftHand, rightHand);
-            expression.AddItem(combined);
+            arithmeticExpression.AddItem(formatter.GetUnaliasedReference(_leftHand));
+            arithmeticExpression.AddItem(GetOperatorName(options));
+            arithmeticExpression.AddItem(formatter.GetUnaliasedReference(_rightHand));
             if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {
-                expression.AddItem(new Token(")"));
+                arithmeticExpression.AddItem(new Token(")"));
             }
+            expression.AddItem(arithmeticExpression);
         }
 
         /// <summary>
-        /// Combines with the left hand operand with the right hand operand using the operation.
+        /// Gets the token representing the arithmetic operator.
         /// </summary>
-        /// <param name="leftHand">The left hand operand.</param>
-        /// <param name="rightHand">The right hand operand.</param>
         /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The left and right hand operands combined using the operation.</returns>
-        protected abstract IExpressionItem Combine(CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand);
+        /// <returns>The token representing the arithmetic operator.</returns>
+        protected abstract Token GetOperatorName(CommandOptions options);
     }
 }

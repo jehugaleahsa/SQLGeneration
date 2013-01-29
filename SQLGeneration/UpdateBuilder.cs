@@ -122,7 +122,7 @@ namespace SQLGeneration
 
         private IExpressionItem getCommandExpression(CommandOptions options)
         {
-            // "UPDATE" <Table> "SET" <SetterList> [ "WHERE" <Filter> ]
+            // <UpdateCommand> => "UPDATE" <Table> "SET" <SetterList> [ "WHERE" <Filter> ]
             if (_setters.Count == 0)
             {
                 throw new SQLGenerationException(Resources.NoSetters);

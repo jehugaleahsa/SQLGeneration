@@ -95,7 +95,7 @@ namespace SQLGeneration
         /// <returns>The expression declaring the table.</returns>
         public IExpressionItem GetDeclarationExpression(CommandOptions options)
         {
-            // [ <Schema> "." ] <ID> [ "AS" ] <ID>
+            // <TableDeclaration> => [ <Schema> "." ] <ID> [ "AS" ] <ID>
             Expression expression = new Expression(ExpressionItemType.TableDeclaration);
             getFullNameExpression(expression);
             if (!String.IsNullOrWhiteSpace(Alias))

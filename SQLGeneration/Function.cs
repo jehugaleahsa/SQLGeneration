@@ -138,14 +138,16 @@ namespace SQLGeneration
 
         private void getFunctionExpression(Expression expression, CommandOptions options)
         {
-            // [ <Schema> "." ] <Name> "(" [ <ValueList> ] ")"
+            // <Function> => [ <Schema> "." ] <Name> "(" [ <ValueList> ] ")"
+            Expression functionExpression = new Expression(ExpressionItemType.Function);
             if (_schema != null)
             {
-                expression.AddItem(new Token(_schema.Name));
-                expression.AddItem(new Token("."));
+                functionExpression.AddItem(new Token(_schema.Name));
+                functionExpression.AddItem(new Token("."));
             }
-            expression.AddItem(new Token(_name));
-            ((IFilterItem)_arguments).GetFilterExpression(expression, options);
+            functionExpression.AddItem(new Token(_name));
+            ((IFilterItem)_arguments).GetFilterExpression(functionExpression, options);
+            expression.AddItem(functionExpression);
         }
     }
 }

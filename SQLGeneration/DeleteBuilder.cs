@@ -83,7 +83,7 @@ namespace SQLGeneration
 
         private IExpressionItem getCommandExpression(CommandOptions options)
         {
-            // "DELETE" [ "FROM" ] <Source> [ "WHERE" <Filter> ]
+            // <DeleteCommand> => "DELETE" [ "FROM" ] <Source> [ "WHERE" <Filter> ]
             Expression expression = new Expression(ExpressionItemType.DeleteCommand);
             expression.AddItem(new Token("DELETE"));
             expression.AddItem(new Token("FROM"));

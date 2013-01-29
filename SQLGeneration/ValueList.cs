@@ -75,7 +75,7 @@ namespace SQLGeneration
 
         void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
         {
-            // "(" [ <Projection> [ "," <ValueList> ] ] ")"
+            // <ValueList> => "(" [ <ProjectionReference> [ "," <ValueList> ] ] ")"
             expression.AddItem(new Token("("));
             if (_values.Count > 0)
             {

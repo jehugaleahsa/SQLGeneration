@@ -76,14 +76,14 @@ namespace SQLGeneration
         /// <returns>The expression making up the command.</returns>
         public IExpressionItem GetCommandExpression(CommandOptions options)
         {
-            // <Select> <Combiner> <Select>
+            // <SelectCombiner> => <Select> <Combiner> <Select>
             if (options == null)
             {
                 throw new ArgumentNullException("options");
             }
             Expression expression = new Expression(ExpressionItemType.SelectCombiner);
             expression.AddItem(leftHand.GetCommandExpression(options));
-            IExpressionItem separator = GetCombinationName(options);
+            expression.AddItem(GetCombinationName(options));
             expression.AddItem(rightHand.GetCommandExpression(options));
             return expression;
         }

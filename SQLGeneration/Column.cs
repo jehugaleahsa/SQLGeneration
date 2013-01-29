@@ -72,7 +72,7 @@ namespace SQLGeneration
 
         private void getColumnExpression(Expression expression, CommandOptions options)
         {
-            // [ <Source> "." ] <Column>
+            // [ <Source> "." ] <ID>
             if (options.IsSelect
                 || (options.IsInsert && options.QualifyInsertColumns)
                 || (options.IsUpdate && options.QualifyUpdateColumn)

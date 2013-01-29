@@ -60,13 +60,15 @@ namespace SQLGeneration
         protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
             // "IS" [ "NOT" ] "NULL"
-            _item.GetFilterExpression(expression, options);
-            expression.AddItem(new Token("IS"));
+            Expression filterExpression = new Expression(ExpressionItemType.NullFilter);
+            _item.GetFilterExpression(filterExpression, options);
+            filterExpression.AddItem(new Token("IS"));
             if (!IsNull)
             {
-                expression.AddItem(new Token("NOT"));
+                filterExpression.AddItem(new Token("NOT"));
             }
-            expression.AddItem(new Token("NULL"));
+            filterExpression.AddItem(new Token("NULL"));
+            expression.AddItem(filterExpression);
         }
     }
 }

@@ -6,7 +6,7 @@ namespace SQLGeneration
     /// <summary>
     /// Represents a comparison where the left hand item is greater than or equal to the right hand item.
     /// </summary>
-    public class LikeFilter : ComparisonFilter
+    public class LikeFilter : BinaryFilter
     {
         /// <summary>
         /// Initializes a new instance of a LikeFilter.

@@ -40,7 +40,7 @@
     <Compile Include="ArithmeticExpression.cs" />
     <Compile Include="BetweenFilter.cs" />
     <Compile Include="Column.cs" />
-    <Compile Include="ComparisonFilter.cs" />
+    <Compile Include="BinaryFilter.cs" />
     <Compile Include="CommandOptions.cs" />
     <Compile Include="ConjunctionConverter.cs" />
     <Compile Include="Except.cs" />

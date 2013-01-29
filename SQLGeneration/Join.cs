@@ -69,9 +69,9 @@ namespace SQLGeneration
             {
                 expression.AddItem(new Token("("));
             }
-            IExpressionItem leftHand = _leftHand.GetDeclarationExpression(options);
-            IExpressionItem rightHand = _rightHand.GetDeclarationExpression(options);
-            combine(expression, options, leftHand, rightHand);
+            expression.AddItem(_leftHand.GetDeclarationExpression(options));
+            expression.AddItem(GetJoinNameExpression(options));
+            expression.AddItem(_rightHand.GetDeclarationExpression(options));
             GetOnExpression(expression, options);
             if (WrapInParentheses ?? options.WrapJoinsInParentheses)
             {
@@ -87,13 +87,6 @@ namespace SQLGeneration
         /// <param name="options">The configuration settings to use.</param>
         /// <returns>The generated text.</returns>
         protected abstract void GetOnExpression(Expression expression, CommandOptions options);
-
-        private void combine(Expression expression, CommandOptions options, IExpressionItem leftHand, IExpressionItem rightHand)
-        {
-            expression.AddItem(leftHand);
-            expression.AddItem(GetJoinNameExpression(options));
-            expression.AddItem(rightHand);
-        }
 
         /// <summary>
         /// Gets the name of the join type.
