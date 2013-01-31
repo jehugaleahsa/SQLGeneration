@@ -73,15 +73,17 @@ namespace SQLGeneration
         private void getColumnExpression(Expression expression, CommandOptions options)
         {
             // [ <Source> "." ] <ID>
+            Expression columnExpression = new Expression(ExpressionItemType.Column);
             if (options.IsSelect
                 || (options.IsInsert && options.QualifyInsertColumns)
                 || (options.IsUpdate && options.QualifyUpdateColumn)
                 || (options.IsDelete && options.QualifyDeleteColumns))
             {
-                expression.AddItem(source.GetReferenceExpression(options));
-                expression.AddItem(new Token("."));
+                columnExpression.AddItem(source.GetReferenceExpression(options));
+                columnExpression.AddItem(new Token("."));
             }
-            expression.AddItem(new Token(name));
+            columnExpression.AddItem(new Token(name));
+            expression.AddItem(columnExpression);
         }
     }
 }

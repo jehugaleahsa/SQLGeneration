@@ -40,14 +40,16 @@ namespace SQLGeneration
 
         void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
         {
-            // [ <Source> "." ] "*"
+            // <Column> => [ <Source> "." ] "*"
+            Expression columnExpression = new Expression(ExpressionItemType.Column);
             StringBuilder builder = new StringBuilder();
             if (source != null)
             {
-                expression.AddItem(source.GetReferenceExpression(options));
-                expression.AddItem(new Token("."));
+                columnExpression.AddItem(source.GetReferenceExpression(options));
+                columnExpression.AddItem(new Token("."));
             }
-            expression.AddItem(new Token("*"));
+            columnExpression.AddItem(new Token("*"));
+            expression.AddItem(columnExpression);
         }
     }
 }

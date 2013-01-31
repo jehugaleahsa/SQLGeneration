@@ -20,7 +20,7 @@ namespace SQLGeneration
         private readonly FilterGroup _having;
 
         /// <summary>
-        /// Initializes a new instance of a QueryBuilder.
+        /// Initializes a new instance of a SelectBuilder.
         /// </summary>
         public SelectBuilder()
         {
@@ -450,7 +450,9 @@ namespace SQLGeneration
             {
                 throw new SQLGenerationException(Resources.ReferencedQueryWithoutAlias);
             }
-            return new Token(Alias);
+            Expression expression = new Expression(ExpressionItemType.SelectCommand);
+            expression.AddItem(new Token(Alias));
+            return expression;
         }
 
         void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)

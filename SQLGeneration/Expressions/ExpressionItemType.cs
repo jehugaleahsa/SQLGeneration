@@ -20,6 +20,10 @@ namespace SQLGeneration.Expressions
         /// </summary>
         BinaryFilter,
         /// <summary>
+        /// The expression is part of a column declaration or reference.
+        /// </summary>
+        Column,
+        /// <summary>
         /// The expression is a column list within an INSERT command.
         /// </summary>
         ColumnList,
@@ -55,6 +59,10 @@ namespace SQLGeneration.Expressions
         /// The expression is empty and should be ignored.
         /// </summary>
         None,
+        /// <summary>
+        /// The expression is a logical negation of another filter.
+        /// </summary>
+        NotFilter,
         /// <summary>
         /// The expression is a filter comparing a value to null.
         /// </summary>

@@ -49,6 +49,14 @@ namespace SQLGeneration.Expressions
         }
 
         /// <summary>
+        /// Gets the items making up the expression.
+        /// </summary>
+        public IEnumerable<IExpressionItem> Items
+        {
+            get { return items; }
+        }
+
+        /// <summary>
         /// Adds the given expression or token to the expression.
         /// </summary>
         /// <param name="item">The expression or token to add.</param>

@@ -1,5 +1,6 @@
 ﻿using System;
 using SQLGeneration.Expressions;
+using Expressions = SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {

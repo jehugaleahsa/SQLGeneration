@@ -111,16 +111,16 @@ namespace SQLGeneration
 
         IExpressionItem IColumnSource.GetReferenceExpression(CommandOptions options)
         {
+            Expression expression = new Expression(ExpressionItemType.TableReference);
             if (String.IsNullOrWhiteSpace(Alias))
             {
-                Expression expression = new Expression(ExpressionItemType.TableReference);
                 getFullNameExpression(expression);
-                return expression;
             }
             else
             {
-                return new Token(Alias);
+                expression.AddItem(new Token(Alias));
             }
+            return expression;
         }
 
         private void getFullNameExpression(Expression expression)

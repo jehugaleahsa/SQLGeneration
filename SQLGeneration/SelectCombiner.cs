@@ -127,7 +127,9 @@ namespace SQLGeneration
             {
                 throw new SQLGenerationException(Resources.ReferencedQueryCombinerWithoutAlias);
             }
-            return new Token(Alias);
+            Expression expression = new Expression(ExpressionItemType.SelectCombiner);
+            expression.AddItem(new Token(Alias));
+            return expression;
         }
 
         void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)

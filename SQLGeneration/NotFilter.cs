@@ -32,10 +32,12 @@ namespace SQLGeneration
         protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
         {
             // "NOT" "(" <Filter> ")"
-            expression.AddItem(new Token("NOT"));
-            expression.AddItem(new Token("("));
-            expression.AddItem(filter.GetFilterExpression(options));
-            expression.AddItem(new Token(")"));
+            Expression filterExpression = new Expression(ExpressionItemType.NotFilter);
+            filterExpression.AddItem(new Token("NOT"));
+            filterExpression.AddItem(new Token("("));
+            filterExpression.AddItem(filter.GetFilterExpression(options));
+            filterExpression.AddItem(new Token(")"));
+            expression.AddItem(filterExpression);
         }
     }
 }
