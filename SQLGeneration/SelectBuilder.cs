@@ -309,10 +309,10 @@ namespace SQLGeneration
             {
                 throw new SQLGenerationException(Resources.NoProjections);
             }
-            expression.AddItem(new Token("SELECT"));
+            expression.AddItem(new Token("SELECT", TokenType.Keyword));
             if (IsDistinct)
             {
-                expression.AddItem(new Token("DISTINCT"));
+                expression.AddItem(new Token("DISTINCT", TokenType.Keyword));
             }
             if (Top != null)
             {
@@ -321,27 +321,27 @@ namespace SQLGeneration
             expression.AddItem(buildProjection(options, 0));
             if (_from.Count != 0)
             {
-                expression.AddItem(new Token("FROM"));
+                expression.AddItem(new Token("FROM", TokenType.Keyword));
                 expression.AddItem(buildFrom(options, 0));
             }
             if (_where.HasFilters)
             {
-                expression.AddItem(new Token("WHERE"));
+                expression.AddItem(new Token("WHERE", TokenType.Keyword));
                 expression.AddItem(_where.GetFilterExpression(options));
             }
             if (_groupBy.Count > 0)
             {
-                expression.AddItem(new Token("GROUP BY"));
+                expression.AddItem(new Token("GROUP BY", TokenType.Keyword));
                 expression.AddItem(buildGroupBy(options, 0));
             }
             if (_having.HasFilters)
             {
-                expression.AddItem(new Token("HAVING"));
+                expression.AddItem(new Token("HAVING", TokenType.Keyword));
                 expression.AddItem(_having.GetFilterExpression(options));
             }
             if (_orderBy.Count > 0)
             {
-                expression.AddItem(new Token("ORDER BY"));
+                expression.AddItem(new Token("ORDER BY", TokenType.Keyword));
                 expression.AddItem(buildOrderBy(options, 0));
             }
         }
@@ -362,7 +362,7 @@ namespace SQLGeneration
                 IExpressionItem left = formatter.GetDeclaration(current);
                 Expression expression = new Expression(ExpressionItemType.ProjectionItemList);
                 expression.AddItem(left);
-                expression.AddItem(new Token(","));
+                expression.AddItem(new Token(",", TokenType.Comma));
                 expression.AddItem(right);
                 return expression;
             }
@@ -382,7 +382,7 @@ namespace SQLGeneration
                 IExpressionItem left = current.GetDeclarationExpression(options);
                 Expression expression = new Expression(ExpressionItemType.FromList);
                 expression.AddItem(left);
-                expression.AddItem(new Token(","));
+                expression.AddItem(new Token(",", TokenType.Comma));
                 expression.AddItem(right);
                 return expression;
             }
@@ -403,7 +403,7 @@ namespace SQLGeneration
                 Expression expression = new Expression(ExpressionItemType.GroupByList);
                 IGroupByItem current = _groupBy[groupByIndex];
                 current.GetGroupByExpression(expression, options);
-                expression.AddItem(new Token(","));
+                expression.AddItem(new Token(",", TokenType.Comma));
                 expression.AddItem(right);
                 return expression;
             }
@@ -423,7 +423,7 @@ namespace SQLGeneration
                 IExpressionItem left = current.GetOrderByExpression(options);
                 Expression expression = new Expression(ExpressionItemType.OrderByList);
                 expression.AddItem(left);
-                expression.AddItem(new Token(","));
+                expression.AddItem(new Token(",", TokenType.Comma));
                 expression.AddItem(right);
                 return expression;
             }
@@ -437,9 +437,9 @@ namespace SQLGeneration
             {
                 if (options.AliasColumnSourcesUsingAs)
                 {
-                    expression.AddItem(new Token("AS"));
+                    expression.AddItem(new Token("AS", TokenType.AliasIndicator));
                 }
-                expression.AddItem(new Token(Alias));
+                expression.AddItem(new Token(Alias, TokenType.Alias));
             }
             return expression;
         }
@@ -451,7 +451,7 @@ namespace SQLGeneration
                 throw new SQLGenerationException(Resources.ReferencedQueryWithoutAlias);
             }
             Expression expression = new Expression(ExpressionItemType.SelectCommand);
-            expression.AddItem(new Token(Alias));
+            expression.AddItem(new Token(Alias, TokenType.Alias));
             return expression;
         }
 
@@ -467,9 +467,9 @@ namespace SQLGeneration
 
         private void getSelectContent(Expression expression, CommandOptions options)
         {
-            expression.AddItem(new Token("("));
+            expression.AddItem(new Token("(", TokenType.LeftParenthesis));
             getCommandExpression(expression, options);
-            expression.AddItem(new Token(")"));
+            expression.AddItem(new Token(")", TokenType.RightParenthesis));
         }
 
         bool IValueProvider.IsQuery

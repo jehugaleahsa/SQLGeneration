@@ -70,7 +70,7 @@ namespace SQLGeneration
         protected override void GetOnExpression(Expression expression, CommandOptions options)
         {
             // "ON" <Filter>
-            expression.AddItem(new Token("ON"));
+            expression.AddItem(new Token("ON", TokenType.Keyword));
             expression.AddItem(on.GetFilterExpression(options));
         }
     }

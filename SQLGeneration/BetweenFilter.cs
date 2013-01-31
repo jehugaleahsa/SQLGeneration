@@ -83,11 +83,11 @@ namespace SQLGeneration
             _value.GetFilterExpression(filterExpression, options);
             if (Not)
             {
-                filterExpression.AddItem(new Token("NOT"));
+                filterExpression.AddItem(new Token("NOT", TokenType.Keyword));
             }
-            filterExpression.AddItem(new Token("BETWEEN"));
+            filterExpression.AddItem(new Token("BETWEEN", TokenType.Keyword));
             _lowerBound.GetFilterExpression(filterExpression, options);
-            filterExpression.AddItem(new Token("AND"));
+            filterExpression.AddItem(new Token("AND", TokenType.Keyword));
             _upperBound.GetFilterExpression(filterExpression, options);
             expression.AddItem(filterExpression);
         }

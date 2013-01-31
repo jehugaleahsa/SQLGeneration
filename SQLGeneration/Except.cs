@@ -26,7 +26,7 @@ namespace SQLGeneration
         protected override Token GetCombinationName(CommandOptions options)
         {
             // "EXCEPT"
-            return new Token("EXCEPT");
+            return new Token("EXCEPT", TokenType.SelectCombiner);
         }
     }
 }

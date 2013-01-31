@@ -80,9 +80,9 @@ namespace SQLGeneration
                 || (options.IsDelete && options.QualifyDeleteColumns))
             {
                 columnExpression.AddItem(source.GetReferenceExpression(options));
-                columnExpression.AddItem(new Token("."));
+                columnExpression.AddItem(new Token(".", TokenType.Dot));
             }
-            columnExpression.AddItem(new Token(name));
+            columnExpression.AddItem(new Token(name, TokenType.ColumnName));
             expression.AddItem(columnExpression);
         }
     }

@@ -57,15 +57,16 @@ namespace SQLGeneration.Expressions
         /// <summary>
         /// Attempts to grab a token from the current expression.
         /// </summary>
-        /// <param name="expected">The expected token.</param>
+        /// <param name="expectedType">The type of the expected token.</param>
+        /// <param name="expectedValue">The expected token.</param>
         /// <returns>The extracted token.</returns>
-        public Parser GetNextToken(string expected)
+        public Parser GetNextToken(TokenType expectedType, string expectedValue = null)
         {
             Parser parser = GetNextParser(ExpressionItemType.Token);
             if (parser != null)
             {
                 Token token = (Token)parser.ExpressionItem;
-                if (token.Value != expected)
+                if (token.Type != expectedType || expectedValue != null && token.Value != expectedValue)
                 {
                     return null;
                 }

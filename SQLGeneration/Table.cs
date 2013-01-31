@@ -102,9 +102,9 @@ namespace SQLGeneration
             {
                 if (options.AliasColumnSourcesUsingAs)
                 {
-                    expression.AddItem(new Token("AS"));
+                    expression.AddItem(new Token("AS", TokenType.AliasIndicator));
                 }
-                expression.AddItem(new Token(Alias));
+                expression.AddItem(new Token(Alias, TokenType.Alias));
             }
             return expression;
         }
@@ -118,7 +118,7 @@ namespace SQLGeneration
             }
             else
             {
-                expression.AddItem(new Token(Alias));
+                expression.AddItem(new Token(Alias, TokenType.Alias));
             }
             return expression;
         }
@@ -127,10 +127,10 @@ namespace SQLGeneration
         {
             if (_schema != null)
             {
-                expression.AddItem(new Token(_schema.Name));
-                expression.AddItem(new Token("."));
+                expression.AddItem(new Token(_schema.Name, TokenType.SchemaName));
+                expression.AddItem(new Token(".", TokenType.Dot));
             }
-            expression.AddItem(new Token(_name));
+            expression.AddItem(new Token(_name, TokenType.TableName));
         }
     }
 }

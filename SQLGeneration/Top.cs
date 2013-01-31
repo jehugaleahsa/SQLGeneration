@@ -62,16 +62,15 @@ namespace SQLGeneration
         {
             // <Top> => "TOP" <Arithmetic> [ "PERCENT" ] [ "WITH TIES" ]
             Expression expression = new Expression(ExpressionItemType.Top);
-            expression.AddItem(new Token("TOP"));
+            expression.AddItem(new Token("TOP", TokenType.Keyword));
             _expression.GetFilterExpression(expression, options);
             if (IsPercent)
             {
-                expression.AddItem(new Token("PERCENT"));
+                expression.AddItem(new Token("PERCENT", TokenType.Keyword));
             }
             if (WithTies)
             {
-                expression.AddItem(new Token("WITH"));
-                expression.AddItem(new Token("TIES"));
+                expression.AddItem(new Token("WITH TIES", TokenType.Keyword));
             }
             return expression;
         }

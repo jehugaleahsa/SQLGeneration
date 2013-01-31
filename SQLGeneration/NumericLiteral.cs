@@ -60,7 +60,8 @@ namespace SQLGeneration
 
         private void getNumericLiteral(Expression expression)
         {
-            expression.AddItem(new Token(Value.ToString(CultureInfo.InvariantCulture)));
+            string value = Value.ToString(CultureInfo.InvariantCulture);
+            expression.AddItem(new Token(value, TokenType.Number));
         }
     }
 }

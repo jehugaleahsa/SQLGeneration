@@ -67,7 +67,7 @@ namespace SQLGeneration
             Expression expression = new Expression(ExpressionItemType.Join);
             if (WrapInParentheses ?? options.WrapJoinsInParentheses)
             {
-                expression.AddItem(new Token("("));
+                expression.AddItem(new Token("(", TokenType.LeftParenthesis));
             }
             expression.AddItem(_leftHand.GetDeclarationExpression(options));
             expression.AddItem(GetJoinNameExpression(options));
@@ -75,7 +75,7 @@ namespace SQLGeneration
             GetOnExpression(expression, options);
             if (WrapInParentheses ?? options.WrapJoinsInParentheses)
             {
-                expression.AddItem(new Token(")"));
+                expression.AddItem(new Token(")", TokenType.RightParenthesis));
             }
             return expression;
         }

@@ -62,12 +62,12 @@ namespace SQLGeneration
             // "IS" [ "NOT" ] "NULL"
             Expression filterExpression = new Expression(ExpressionItemType.NullFilter);
             _item.GetFilterExpression(filterExpression, options);
-            filterExpression.AddItem(new Token("IS"));
+            filterExpression.AddItem(new Token("IS", TokenType.Keyword));
             if (!IsNull)
             {
-                filterExpression.AddItem(new Token("NOT"));
+                filterExpression.AddItem(new Token("NOT", TokenType.Keyword));
             }
-            filterExpression.AddItem(new Token("NULL"));
+            filterExpression.AddItem(new Token("NULL", TokenType.Null));
             expression.AddItem(filterExpression);
         }
     }

@@ -9,18 +9,21 @@ namespace SQLGeneration.Expressions
     public class Token : IExpressionItem
     {
         private readonly string value;
+        private readonly TokenType type;
 
         /// <summary>
         /// Initializes a new instance of a Token.
         /// </summary>
         /// <param name="value">The fixed value of the token.</param>
-        public Token(string value)
+        /// <param name="type">The type of the token.</param>
+        public Token(string value, TokenType type)
         {
             if (value == null)
             {
                 throw new ArgumentNullException("value");
             }
             this.value = value;
+            this.type = type;
         }
 
         /// <summary>
@@ -33,9 +36,17 @@ namespace SQLGeneration.Expressions
         }
 
         /// <summary>
+        /// Gets the type of the token.
+        /// </summary>
+        public TokenType Type
+        {
+            get { return type; }
+        }
+
+        /// <summary>
         /// Gets the type of the expression.
         /// </summary>
-        public ExpressionItemType Type
+        ExpressionItemType IExpressionItem.Type
         {
             get { return ExpressionItemType.Token; }
         }

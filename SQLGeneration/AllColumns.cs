@@ -46,9 +46,9 @@ namespace SQLGeneration
             if (source != null)
             {
                 columnExpression.AddItem(source.GetReferenceExpression(options));
-                columnExpression.AddItem(new Token("."));
+                columnExpression.AddItem(new Token(".", TokenType.Dot));
             }
-            columnExpression.AddItem(new Token("*"));
+            columnExpression.AddItem(new Token("*", TokenType.ColumnName));
             expression.AddItem(columnExpression);
         }
     }

@@ -85,12 +85,12 @@ namespace SQLGeneration
         {
             // <DeleteCommand> => "DELETE" [ "FROM" ] <Source> [ "WHERE" <Filter> ]
             Expression expression = new Expression(ExpressionItemType.DeleteCommand);
-            expression.AddItem(new Token("DELETE"));
-            expression.AddItem(new Token("FROM"));
+            expression.AddItem(new Token("DELETE", TokenType.Keyword));
+            expression.AddItem(new Token("FROM", TokenType.Keyword));
             expression.AddItem(_table.GetDeclarationExpression(options));
             if (_where.HasFilters)
             {
-                expression.AddItem(new Token("WHERE"));
+                expression.AddItem(new Token("WHERE", TokenType.Keyword));
                 expression.AddItem(_where.GetFilterExpression(options));
             }
             return expression;

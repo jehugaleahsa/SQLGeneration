@@ -35,7 +35,7 @@ namespace SQLGeneration
         /// <returns>The name of the join type.</returns>
         protected override Token GetJoinNameExpression(CommandOptions options)
         {
-            return new Token("CROSS JOIN");
+            return new Token("CROSS JOIN", TokenType.JoinType);
         }
     }
 }

@@ -69,7 +69,7 @@ namespace SQLGeneration
                 result.Append(Value.Replace("'", "''"));
             }
             result.Append("'");
-            expression.AddItem(new Token(result.ToString()));
+            expression.AddItem(new Token(result.ToString(), TokenType.String));
         }
     }
 }

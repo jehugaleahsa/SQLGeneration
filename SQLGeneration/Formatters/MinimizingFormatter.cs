@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using SQLGeneration.Expressions;
-using System.Linq;
-using System.Text;
 using System.IO;
+using System.Text;
+using SQLGeneration.Expressions;
 
 namespace SQLGeneration.Formatters
 {
@@ -23,6 +21,9 @@ namespace SQLGeneration.Formatters
 
             defineAll();
             defineToken();
+
+            defineArithmetic();
+            defineBetweenFilter();
             defineColumn();
             defineJoin();
             defineProjectionDeclaration();
@@ -50,6 +51,35 @@ namespace SQLGeneration.Formatters
             registry.Define(ExpressionItemType.Token);
         }
 
+        private void defineArithmetic()
+        {
+            registry.Define(ExpressionItemType.Arithmetic)
+                .RequireAny(options =>
+                {
+                    options.Define()
+                        .Require(TokenType.LeftParenthesis)
+                        .Require(ExpressionItemType.Arithmetic)
+                        .Require(TokenType.RightParenthesis);
+                    options.Define()
+                        .Require(ExpressionItemType.ProjectionReference)
+                        .Require(TokenType.ArithmeticOperator)
+                        .Require(ExpressionItemType.ProjectionReference);
+                    options.Define()
+                        .Require(TokenType.Number);
+                });
+        }
+
+        private void defineBetweenFilter()
+        {
+            registry.Define(ExpressionItemType.BetweenFilter)
+                .Require(ExpressionItemType.ProjectionReference)
+                .Optional(TokenType.Keyword, "NOT")
+                .Require(TokenType.Keyword, "BETWEEN")
+                .Require(ExpressionItemType.ProjectionReference)
+                .Require(TokenType.Keyword, "AND")
+                .Require(ExpressionItemType.ProjectionReference);
+        }
+
         private void defineColumn()
         {
             registry.Define(ExpressionItemType.Column)
@@ -57,7 +87,7 @@ namespace SQLGeneration.Formatters
                 {
                     options.Define()
                         .Require(ExpressionItemType.TableReference, ExpressionItemType.SelectCombiner, ExpressionItemType.SelectCommand)
-                        .Require(".");
+                        .Require(TokenType.Dot);
                 })
                 .Require(ExpressionItemType.Token);
         }
@@ -68,28 +98,17 @@ namespace SQLGeneration.Formatters
                 .RequireAny(options =>
                 {
                     options.Define()
-                        .Require("(")
+                        .Require(TokenType.LeftParenthesis)
                         .Require(ExpressionItemType.Join)
-                        .Require(")");
+                        .Require(TokenType.RightParenthesis);
                     options.Define()
                         .Require(ExpressionItemType.Join, ExpressionItemType.SelectCombiner, ExpressionItemType.SelectCommand, ExpressionItemType.TableDeclaration)
-                        .RequireAny(inner =>
-                        {
-                            inner.Define().Require("JOIN");
-                            inner.Define().Require("INNER JOIN");
-                            inner.Define().Require("LEFT JOIN");
-                            inner.Define().Require("LEFT OUTER JOIN");
-                            inner.Define().Require("RIGHT JOIN");
-                            inner.Define().Require("RIGHT OUTER JOIN");
-                            inner.Define().Require("FULL JOIN");
-                            inner.Define().Require("FULL OUTER JOIN");
-                            inner.Define().Require("CROSS JOIN");
-                        })
+                        .Require(TokenType.JoinType)
                         .Require(ExpressionItemType.SelectCombiner, ExpressionItemType.SelectCommand, ExpressionItemType.TableDeclaration)
                         .OptionalAny(inner =>
                         {
                             inner.Define()
-                                .Require("ON")
+                                .Require(TokenType.Keyword, "ON")
                                 .Require(ExpressionItemType.Filter);
                         });
                 });
@@ -102,10 +121,8 @@ namespace SQLGeneration.Formatters
                 .OptionalAny(options =>
                 {
                     options.Define()
-                        .Require("AS")
-                        .Require(ExpressionItemType.Token);
-                    options.Define()
-                        .Require(ExpressionItemType.Token);
+                        .Optional(TokenType.AliasIndicator)
+                        .Require(TokenType.Alias);
                 });
         }
 
@@ -113,7 +130,7 @@ namespace SQLGeneration.Formatters
         {
             registry.Define(ExpressionItemType.ProjectionItemList)
                 .Require(ExpressionItemType.ProjectionDeclaration)
-                .Require(",")
+                .Require(TokenType.Comma)
                 .RequireAny(options =>
                 {
                     options.Define().Require(ExpressionItemType.ProjectionItemList);
@@ -124,14 +141,14 @@ namespace SQLGeneration.Formatters
         private void defineSelectCommand()
         {
             registry.Define(ExpressionItemType.SelectCommand)
-                .Require("SELECT")
-                .Optional("DISTINCT")
+                .Require(TokenType.Keyword, "SELECT")
+                .Optional(TokenType.Keyword, "DISTINCT")
                 .Optional(ExpressionItemType.Top)
                 .Require(ExpressionItemType.ProjectionDeclaration, ExpressionItemType.ProjectionItemList)
                 .OptionalAny(option =>
                 {
                     option.Define()
-                        .Require("FROM")
+                        .Require(TokenType.Keyword, "FROM")
                         .Require(
                             ExpressionItemType.FromList,
                             ExpressionItemType.Join,
@@ -142,25 +159,25 @@ namespace SQLGeneration.Formatters
                 .OptionalAny(option =>
                 {
                     option.Define()
-                        .Require("WHERE")
+                        .Require(TokenType.Keyword, "WHERE")
                         .Require(ExpressionItemType.Filter);
                 })
                 .OptionalAny(option =>
                 {
                     option.Define()
-                        .Require("GROUP BY")
+                        .Require(TokenType.Keyword, "GROUP BY")
                         .Require(ExpressionItemType.GroupByList);
                 })
                 .OptionalAny(option =>
                 {
                     option.Define()
-                        .Require("HAVING")
+                        .Require(TokenType.Keyword, "HAVING")
                         .Require(ExpressionItemType.Filter);
                 })
                 .OptionalAny(option =>
                 {
                     option.Define()
-                        .Require("ORDER BY")
+                        .Require(TokenType.Keyword, "ORDER BY")
                         .Require(ExpressionItemType.OrderByList);
                 });
         }
@@ -171,19 +188,19 @@ namespace SQLGeneration.Formatters
                 .OptionalAny(options =>
                 {
                     options.Define()
-                        .Require(ExpressionItemType.Token)
-                        .Require(".");
+                        .Require(TokenType.SchemaName)
+                        .Require(TokenType.Dot);
                 })
-                .Require(ExpressionItemType.Token);
+                .Require(TokenType.TableName);
         }
 
         private void defineTop()
         {
             registry.Define(ExpressionItemType.Top)
-                .Require("TOP")
-                .Require(ExpressionItemType.Arithmetic, ExpressionItemType.Token)
-                .Optional("PERCENT")
-                .Optional("WITH TIES");
+                .Require(TokenType.Keyword, "TOP")
+                .Require(ExpressionItemType.Arithmetic)
+                .Optional(TokenType.Keyword, "PERCENT")
+                .Optional(TokenType.Keyword, "WITH TIES");
         }
 
         /// <summary>

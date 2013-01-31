@@ -26,7 +26,7 @@ namespace SQLGeneration
         protected override Token GetCombinationName(CommandOptions options)
         {
             // "INTERSECT"
-            return new Token("INTERSECT");
+            return new Token("INTERSECT", TokenType.SelectCombiner);
         }
     }
 }

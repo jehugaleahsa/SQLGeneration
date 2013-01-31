@@ -45,7 +45,7 @@ namespace SQLGeneration
 
         private void getPlaceholder(Expression expression)
         {
-            expression.AddItem(new Token(value));
+            expression.AddItem(new Token(value, TokenType.Placeholder));
         }
     }
 }

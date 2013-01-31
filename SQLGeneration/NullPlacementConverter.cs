@@ -47,9 +47,9 @@ namespace SQLGeneration
                 case NullPlacement.Default:
                     return Expression.None;
                 case NullPlacement.First:
-                    return new Token("NULLS FIRST");
+                    return new Token("NULLS FIRST", TokenType.NullPlacement);
                 case NullPlacement.Last:
-                    return new Token("NULLS LAST");
+                    return new Token("NULLS LAST", TokenType.NullPlacement);
                 default:
                     throw new ArgumentException(Resources.UnknownNullPlacement, "placement");
             }

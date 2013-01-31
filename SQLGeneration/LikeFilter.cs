@@ -26,7 +26,7 @@ namespace SQLGeneration
         protected override Token GetCombinerName(CommandOptions options)
         {
             // <Left> "LIKE" <StringLiteral>
-            return new Token("LIKE");
+            return new Token("LIKE", TokenType.ComparisonOperator);
         }
     }
 }

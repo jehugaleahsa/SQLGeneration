@@ -26,7 +26,7 @@ namespace SQLGeneration
         protected override Token GetOperatorName(CommandOptions options)
         {
             // <Left> "-" <Right>
-            return new Token("-");
+            return new Token("-", TokenType.ArithmeticOperator);
         }
     }
 }

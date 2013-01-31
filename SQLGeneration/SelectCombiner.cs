@@ -107,16 +107,16 @@ namespace SQLGeneration
         IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options)
         {
             Expression expression = new Expression(ExpressionItemType.SelectCombiner);
-            expression.AddItem(new Token("("));
+            expression.AddItem(new Token("(", TokenType.LeftParenthesis));
             expression.AddItem(GetCommandExpression(options));
-            expression.AddItem(new Token(")"));
+            expression.AddItem(new Token(")", TokenType.RightParenthesis));
             if (!String.IsNullOrWhiteSpace(Alias))
             {
                 if (options.AliasColumnSourcesUsingAs)
                 {
-                    expression.AddItem(new Token("AS"));
+                    expression.AddItem(new Token("AS", TokenType.AliasIndicator));
                 }
-                expression.AddItem(new Token(Alias));
+                expression.AddItem(new Token(Alias, TokenType.Alias));
             }
             return expression;
         }
@@ -128,7 +128,7 @@ namespace SQLGeneration
                 throw new SQLGenerationException(Resources.ReferencedQueryCombinerWithoutAlias);
             }
             Expression expression = new Expression(ExpressionItemType.SelectCombiner);
-            expression.AddItem(new Token(Alias));
+            expression.AddItem(new Token(Alias, TokenType.Alias));
             return expression;
         }
 
@@ -144,9 +144,9 @@ namespace SQLGeneration
 
         private void getCombinedCommand(Expression expression, CommandOptions options)
         {
-            expression.AddItem(new Token("("));
+            expression.AddItem(new Token("(", TokenType.LeftParenthesis));
             expression.AddItem(GetCommandExpression(options));
-            expression.AddItem(new Token(")"));
+            expression.AddItem(new Token(")", TokenType.RightParenthesis));
         }
 
         bool IValueProvider.IsQuery

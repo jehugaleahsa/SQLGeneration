@@ -45,9 +45,9 @@ namespace SQLGeneration
             switch (order)
             {
                 case Order.Ascending:
-                    return new Token("ASC");
+                    return new Token("ASC", TokenType.OrderDirection);
                 case Order.Descending:
-                    return new Token("DESC");
+                    return new Token("DESC", TokenType.OrderDirection);
                 default:
                     throw new ArgumentException(Resources.UnknownOrder, "order");
             }

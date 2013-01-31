@@ -44,7 +44,7 @@ namespace SQLGeneration
                 result.Append("OUTER ");
             }
             result.Append("JOIN");
-            return new Token(result.ToString());
+            return new Token(result.ToString(), TokenType.JoinType);
         }
     }
 }

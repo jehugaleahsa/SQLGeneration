@@ -142,10 +142,10 @@ namespace SQLGeneration
             Expression functionExpression = new Expression(ExpressionItemType.Function);
             if (_schema != null)
             {
-                functionExpression.AddItem(new Token(_schema.Name));
-                functionExpression.AddItem(new Token("."));
+                functionExpression.AddItem(new Token(_schema.Name, TokenType.SchemaName));
+                functionExpression.AddItem(new Token(".", TokenType.Dot));
             }
-            functionExpression.AddItem(new Token(_name));
+            functionExpression.AddItem(new Token(_name, TokenType.FunctionName));
             ((IFilterItem)_arguments).GetFilterExpression(functionExpression, options);
             expression.AddItem(functionExpression);
         }

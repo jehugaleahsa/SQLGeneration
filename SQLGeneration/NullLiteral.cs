@@ -42,7 +42,7 @@ namespace SQLGeneration
         private static void getNullLiteral(Expression expression)
         {
             // "NULL"
-            expression.AddItem(new Token("NULL"));
+            expression.AddItem(new Token("NULL", TokenType.Null));
         }
     }
 }

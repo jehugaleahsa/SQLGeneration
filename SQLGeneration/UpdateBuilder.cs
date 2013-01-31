@@ -128,13 +128,13 @@ namespace SQLGeneration
                 throw new SQLGenerationException(Resources.NoSetters);
             }
             Expression expression = new Expression(ExpressionItemType.UpdateCommand);
-            expression.AddItem(new Token("UPDATE"));
+            expression.AddItem(new Token("UPDATE", TokenType.Keyword));
             expression.AddItem(_table.GetDeclarationExpression(options));
-            expression.AddItem(new Token("SET"));
+            expression.AddItem(new Token("SET", TokenType.Keyword));
             expression.AddItem(buildSetterList(options, 0));
             if (_where.HasFilters)
             {
-                expression.AddItem(new Token("WHERE"));
+                expression.AddItem(new Token("WHERE", TokenType.Keyword));
                 expression.AddItem(_where.GetFilterExpression(options));
             }
             return expression;
@@ -154,7 +154,7 @@ namespace SQLGeneration
                 IExpressionItem left = current.GetSetterExpression(options);
                 Expression expression = new Expression(ExpressionItemType.Setter);
                 expression.AddItem(left);
-                expression.AddItem(new Token(","));
+                expression.AddItem(new Token(",", TokenType.Comma));
                 expression.AddItem(right);
                 return expression;
             }

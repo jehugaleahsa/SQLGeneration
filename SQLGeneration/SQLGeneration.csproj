@@ -52,6 +52,7 @@
     <Compile Include="Expressions\ExpressionRegistry.cs" />
     <Compile Include="Expressions\OptionList.cs" />
     <Compile Include="Expressions\Parser.cs" />
+    <Compile Include="Expressions\TokenType.cs" />
     <Compile Include="FilteredJoin.cs" />
     <Compile Include="Formatters\MinimizingFormatter.cs" />
     <Compile Include="IArithmetic.cs" />

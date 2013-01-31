@@ -36,9 +36,9 @@ namespace SQLGeneration
             {
                 if (options.AliasProjectionsUsingAs)
                 {
-                    expression.AddItem(new Token("AS"));
+                    expression.AddItem(new Token("AS", TokenType.AliasIndicator));
                 }
-                expression.AddItem(new Token(item.Alias));
+                expression.AddItem(new Token(item.Alias, TokenType.Alias));
             }
             return expression;
         }
@@ -56,7 +56,7 @@ namespace SQLGeneration
             }
             if (!String.IsNullOrWhiteSpace(item.Alias))
             {
-                return new Token(item.Alias);
+                return new Token(item.Alias, TokenType.Alias);
             }
             else
             {

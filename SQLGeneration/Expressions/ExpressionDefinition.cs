@@ -26,13 +26,14 @@ namespace SQLGeneration.Expressions
         /// <summary>
         /// Requires that a token with given value appears next in the expression.
         /// </summary>
+        /// <param name="type">The type of the expected token.</param>
         /// <param name="token">The expected token.</param>
         /// <returns>The udpated definition.</returns>
-        public ExpressionDefinition Require(string token)
+        public ExpressionDefinition Require(TokenType type, string token = null)
         {
             Func<Parser, InspectionResult> inspector = parser =>
             {
-                Parser nextParser = parser.GetNextToken(token);
+                Parser nextParser = parser.GetNextToken(type, token);
                 if (nextParser == null)
                 {
                     return new InspectionResult() { IsMatch = false };
@@ -106,13 +107,14 @@ namespace SQLGeneration.Expressions
         /// <summary>
         /// Requires that a token with given value appears next in the expression.
         /// </summary>
+        /// <param name="type">The type of the expected token.</param>
         /// <param name="token">The expected token.</param>
         /// <returns>The udpated definition.</returns>
-        public ExpressionDefinition Optional(string token)
+        public ExpressionDefinition Optional(TokenType type, string token = null)
         {
             Func<Parser, InspectionResult> inspector = parser =>
             {
-                Parser nextParser = parser.GetNextToken(token);
+                Parser nextParser = parser.GetNextToken(type, token);
                 if (nextParser == null)
                 {
                     return new InspectionResult() { IsMatch = true };

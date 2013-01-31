@@ -57,7 +57,7 @@ namespace SQLGeneration
             Expression expression = new Expression(ExpressionItemType.Setter);
             ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
             expression.AddItem(formatter.GetUnaliasedReference(_column));
-            expression.AddItem(new Token("="));
+            expression.AddItem(new Token("=", TokenType.Assignment));
             expression.AddItem(formatter.GetUnaliasedReference(_value));
             return expression;
         }

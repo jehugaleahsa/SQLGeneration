@@ -48,6 +48,10 @@ namespace SQLGeneration.Expressions
         /// </summary>
         GroupByList,
         /// <summary>
+        /// The expression is an IN filter.
+        /// </summary>
+        InFilter,
+        /// <summary>
         /// The expression is an INSERT command.
         /// </summary>
         InsertCommand,

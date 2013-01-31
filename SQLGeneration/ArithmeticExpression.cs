@@ -92,7 +92,7 @@ namespace SQLGeneration
             Expression arithmeticExpression = new Expression(ExpressionItemType.Arithmetic);
             if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {
-                arithmeticExpression.AddItem(new Token("("));
+                arithmeticExpression.AddItem(new Token("(", TokenType.LeftParenthesis));
             }
             ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
             arithmeticExpression.AddItem(formatter.GetUnaliasedReference(_leftHand));
@@ -100,7 +100,7 @@ namespace SQLGeneration
             arithmeticExpression.AddItem(formatter.GetUnaliasedReference(_rightHand));
             if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {
-                arithmeticExpression.AddItem(new Token(")"));
+                arithmeticExpression.AddItem(new Token(")", TokenType.RightParenthesis));
             }
             expression.AddItem(arithmeticExpression);
         }

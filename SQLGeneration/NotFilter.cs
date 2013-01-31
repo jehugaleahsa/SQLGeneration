@@ -33,10 +33,10 @@ namespace SQLGeneration
         {
             // "NOT" "(" <Filter> ")"
             Expression filterExpression = new Expression(ExpressionItemType.NotFilter);
-            filterExpression.AddItem(new Token("NOT"));
-            filterExpression.AddItem(new Token("("));
+            filterExpression.AddItem(new Token("NOT", TokenType.Keyword));
+            filterExpression.AddItem(new Token("(", TokenType.LeftParenthesis));
             filterExpression.AddItem(filter.GetFilterExpression(options));
-            filterExpression.AddItem(new Token(")"));
+            filterExpression.AddItem(new Token(")", TokenType.RightParenthesis));
             expression.AddItem(filterExpression);
         }
     }

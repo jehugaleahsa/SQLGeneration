@@ -41,9 +41,9 @@ namespace SQLGeneration
             switch (conjunction)
             {
                 case Conjunction.And:
-                    return new Token("AND");
+                    return new Token("AND", TokenType.Conjunction);
                 case Conjunction.Or:
-                    return new Token("OR");
+                    return new Token("OR", TokenType.Conjunction);
                 default:
                     throw new ArgumentException(Resources.UnknownConjunction, "conjunction");
             }

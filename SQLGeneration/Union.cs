@@ -26,7 +26,7 @@ namespace SQLGeneration
         protected override Token GetCombinationName(CommandOptions options)
         {
             // "UNION"
-            return new Token("UNION");
+            return new Token("UNION", TokenType.SelectCombiner);
         }
     }
 }

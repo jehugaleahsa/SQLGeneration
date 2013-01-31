@@ -26,7 +26,7 @@ namespace SQLGeneration
         protected override Token GetCombinationName(CommandOptions options)
         {
             // "MINUS"
-            return new Token("MINUS");
+            return new Token("MINUS", TokenType.SelectCombiner);
         }
     }
 }

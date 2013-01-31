@@ -76,12 +76,12 @@ namespace SQLGeneration
         void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
         {
             // <ValueList> => "(" [ <ProjectionReference> [ "," <ValueList> ] ] ")"
-            expression.AddItem(new Token("("));
+            expression.AddItem(new Token("(", TokenType.LeftParenthesis));
             if (_values.Count > 0)
             {
                 expression.AddItem(buildValueList(options, 0));
             }
-            expression.AddItem(new Token(")"));
+            expression.AddItem(new Token(")", TokenType.RightParenthesis));
         }
 
         private IExpressionItem buildValueList(CommandOptions options, int valueIndex)
@@ -100,7 +100,7 @@ namespace SQLGeneration
                 IExpressionItem left = formatter.GetUnaliasedReference(current);
                 Expression expression = new Expression(ExpressionItemType.ValueList);
                 expression.AddItem(left);
-                expression.AddItem(new Token(","));
+                expression.AddItem(new Token(",", TokenType.Comma));
                 expression.AddItem(right);
                 return expression;
             }

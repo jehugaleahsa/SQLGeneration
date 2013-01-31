@@ -109,18 +109,18 @@ namespace SQLGeneration
         {
             // "INSERT" [ "INTO" ] <Source> [ "(" <ColumnList> ")" ] { "VALUES" "(" <ValueList> ")" | <SubSelect> }
             Expression expression = new Expression(ExpressionItemType.InsertCommand);
-            expression.AddItem(new Token("INSERT"));
-            expression.AddItem(new Token("INTO"));
+            expression.AddItem(new Token("INSERT", TokenType.Keyword));
+            expression.AddItem(new Token("INTO", TokenType.Keyword));
             expression.AddItem(_table.GetDeclarationExpression(options));
             if (_columns.Count > 0)
             {
-                expression.AddItem(new Token("("));
+                expression.AddItem(new Token("(", TokenType.LeftParenthesis));
                 expression.AddItem(buildColumnList(options, 0));
-                expression.AddItem(new Token(")"));
+                expression.AddItem(new Token(")", TokenType.RightParenthesis));
             }
             if (!_values.IsQuery)
             {
-                expression.AddItem(new Token("VALUES"));
+                expression.AddItem(new Token("VALUES", TokenType.Keyword));
             }
             _values.GetFilterExpression(expression, options);
             return expression;
@@ -142,7 +142,7 @@ namespace SQLGeneration
                 IExpressionItem left = formatter.GetUnaliasedReference(column);
                 Expression expression = new Expression(ExpressionItemType.ColumnList);
                 expression.AddItem(left);
-                expression.AddItem(new Token(","));
+                expression.AddItem(new Token(",", TokenType.Comma));
                 expression.AddItem(right);
                 return expression;
             }

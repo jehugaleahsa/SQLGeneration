@@ -58,12 +58,12 @@ namespace SQLGeneration
             bool wrapInParentheses = ShouldWrapInParentheses(options);
             if (wrapInParentheses)
             {
-                expression.AddItem(new Token("("));
+                expression.AddItem(new Token("(", TokenType.LeftParenthesis));
             }
             GetInnerFilterExpression(expression, options);
             if (wrapInParentheses)
             {
-                expression.AddItem(new Token(")"));
+                expression.AddItem(new Token(")", TokenType.RightParenthesis));
             }
             return expression;
         }
