@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -33,12 +32,33 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets or sets the alias of the command.
+        /// Gets or sets the alias of the command when it appears the FROM clause.
         /// </summary>
-        public string Alias
+        public string ColumnSourceAlias
         {
             get;
             set;
+        }
+
+        string IColumnSource.Alias
+        {
+            get { return ColumnSourceAlias; }
+            set { ColumnSourceAlias = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the alias of the command when it appears as a projection.
+        /// </summary>
+        public string ProjectionAlias
+        {
+            get;
+            set;
+        }
+
+        string IProjectionItem.Alias
+        {
+            get { return ProjectionAlias; }
+            set { ProjectionAlias = value; }
         }
 
         /// <summary>
@@ -281,7 +301,7 @@ namespace SQLGeneration
         /// Gets the SQL that represents the query.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        public IExpressionItem GetCommandExpression(CommandOptions options)
+        public IEnumerable<string> GetCommandExpression(CommandOptions options)
         {
             if (options == null)
             {
@@ -292,12 +312,10 @@ namespace SQLGeneration
             options.IsInsert = false;
             options.IsUpdate = false;
             options.IsDelete = false;
-            Expression expression = new Expression(ExpressionItemType.SelectCommand);
-            getCommandExpression(expression, options);
-            return expression;
+            return getCommandExpression(options);
         }
 
-        private void getCommandExpression(Expression expression, CommandOptions options)
+        private IEnumerable<string> getCommandExpression(CommandOptions options)
         {
             // <SelectCommand> => "SELECT" [ "DISTINCT" ] [<Top>] <ProjectionList>
             //      [ "FROM" <Join> ]
@@ -309,167 +327,209 @@ namespace SQLGeneration
             {
                 throw new SQLGenerationException(Resources.NoProjections);
             }
-            expression.AddItem(new Token("SELECT", TokenType.Keyword));
+            yield return "SELECT";
             if (IsDistinct)
             {
-                expression.AddItem(new Token("DISTINCT", TokenType.Keyword));
+                yield return "DISTINCT";
             }
             if (Top != null)
             {
-                expression.AddItem(Top.GetTopExpression(options));
+                foreach (string token in Top.GetTopExpression(options))
+                {
+                    yield return token;
+                }
             }
-            expression.AddItem(buildProjection(options, 0));
+            foreach (string token in buildProjection(options, 0))
+            {
+                yield return token;
+            }
             if (_from.Count != 0)
             {
-                expression.AddItem(new Token("FROM", TokenType.Keyword));
-                expression.AddItem(buildFrom(options, 0));
+                yield return "FROM";
+                foreach (string token in buildFrom(options, 0))
+                {
+                    yield return token;
+                }
             }
             if (_where.HasFilters)
             {
-                expression.AddItem(new Token("WHERE", TokenType.Keyword));
-                expression.AddItem(_where.GetFilterExpression(options));
+                yield return "WHERE";
+                foreach (string token in _where.GetFilterExpression(options))
+                {
+                    yield return token;
+                }
             }
             if (_groupBy.Count > 0)
             {
-                expression.AddItem(new Token("GROUP BY", TokenType.Keyword));
-                expression.AddItem(buildGroupBy(options, 0));
+                yield return "GROUP BY";
+                foreach (string token in buildGroupBy(options, 0))
+                {
+                    yield return token;
+                }
             }
             if (_having.HasFilters)
             {
-                expression.AddItem(new Token("HAVING", TokenType.Keyword));
-                expression.AddItem(_having.GetFilterExpression(options));
+                yield return "HAVING";
+                foreach (string token in _having.GetFilterExpression(options))
+                {
+                    yield return token;
+                }
             }
             if (_orderBy.Count > 0)
             {
-                expression.AddItem(new Token("ORDER BY", TokenType.Keyword));
-                expression.AddItem(buildOrderBy(options, 0));
+                yield return "ORDER BY";
+                foreach (string token in buildOrderBy(options, 0))
+                {
+                    yield return token;
+                }
             }
         }
 
-        private IExpressionItem buildProjection(CommandOptions options, int projectionIndex)
+        private IEnumerable<string> buildProjection(CommandOptions options, int projectionIndex)
         {
             if (projectionIndex == _projection.Count - 1)
             {
                 IProjectionItem current = _projection[projectionIndex];
                 ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-                return formatter.GetDeclaration(current);
+                foreach (string token in formatter.GetDeclaration(current))
+                {
+                    yield return token;
+                }
             }
             else
             {
-                IExpressionItem right = buildProjection(options, projectionIndex + 1);
                 IProjectionItem current = _projection[projectionIndex];
                 ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-                IExpressionItem left = formatter.GetDeclaration(current);
-                Expression expression = new Expression(ExpressionItemType.ProjectionItemList);
-                expression.AddItem(left);
-                expression.AddItem(new Token(",", TokenType.Comma));
-                expression.AddItem(right);
-                return expression;
+                foreach (string token in formatter.GetDeclaration(current))
+                {
+                    yield return token;
+                }
+                yield return ",";
+                foreach (string token in buildProjection(options, projectionIndex + 1))
+                {
+                    yield return token;
+                }
             }
         }
 
-        private IExpressionItem buildFrom(CommandOptions options, int fromIndex)
+        private IEnumerable<string> buildFrom(CommandOptions options, int fromIndex)
         {
             if (fromIndex == _from.Count - 1)
             {
                 IJoinItem current = _from[fromIndex];
-                return current.GetDeclarationExpression(options);
+                foreach (string token in current.GetDeclarationExpression(options))
+                {
+                    yield return token;
+                }
             }
             else
             {
-                IExpressionItem right = buildFrom(options, fromIndex + 1);
                 IJoinItem current = _from[fromIndex];
-                IExpressionItem left = current.GetDeclarationExpression(options);
-                Expression expression = new Expression(ExpressionItemType.FromList);
-                expression.AddItem(left);
-                expression.AddItem(new Token(",", TokenType.Comma));
-                expression.AddItem(right);
-                return expression;
+                foreach (string token in current.GetDeclarationExpression(options))
+                {
+                    yield return token;
+                }
+                yield return ",";
+                foreach (string token in buildFrom(options, fromIndex + 1))
+                {
+                    yield return token;
+                }
             }
         }
 
-        private IExpressionItem buildGroupBy(CommandOptions options, int groupByIndex)
+        private IEnumerable<string> buildGroupBy(CommandOptions options, int groupByIndex)
         {
             if (groupByIndex == _groupBy.Count - 1)
             {
                 IGroupByItem current = _groupBy[groupByIndex];
-                Expression expression = new Expression(ExpressionItemType.GroupByList);
-                current.GetGroupByExpression(expression, options);
-                return expression;
+                foreach (string token in current.GetGroupByExpression(options))
+                {
+                    yield return token;
+                }
             }
             else
             {
-                IExpressionItem right = buildGroupBy(options, groupByIndex + 1);
-                Expression expression = new Expression(ExpressionItemType.GroupByList);
                 IGroupByItem current = _groupBy[groupByIndex];
-                current.GetGroupByExpression(expression, options);
-                expression.AddItem(new Token(",", TokenType.Comma));
-                expression.AddItem(right);
-                return expression;
+                foreach (string token in current.GetGroupByExpression(options))
+                {
+                    yield return token;
+                }
+                yield return ",";
+                foreach (string token in buildGroupBy(options, groupByIndex + 1))
+                {
+                    yield return token;
+                }
             }
         }
 
-        private IExpressionItem buildOrderBy(CommandOptions options, int orderByIndex)
+        private IEnumerable<string> buildOrderBy(CommandOptions options, int orderByIndex)
         {
             if (orderByIndex == _orderBy.Count - 1)
             {
                 OrderBy current = _orderBy[orderByIndex];
-                return current.GetOrderByExpression(options);
+                foreach (string token in current.GetOrderByExpression(options))
+                {
+                    yield return token;
+                }
             }
             else
             {
-                IExpressionItem right = buildOrderBy(options, orderByIndex + 1);
                 OrderBy current = _orderBy[orderByIndex];
-                IExpressionItem left = current.GetOrderByExpression(options);
-                Expression expression = new Expression(ExpressionItemType.OrderByList);
-                expression.AddItem(left);
-                expression.AddItem(new Token(",", TokenType.Comma));
-                expression.AddItem(right);
-                return expression;
+                foreach (string token in current.GetOrderByExpression(options))
+                {
+                    yield return token;
+                }
+                yield return ",";
+                foreach (string token in buildOrderBy(options, orderByIndex + 1))
+                {
+                    yield return token;
+                }
             }
         }
 
-        IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options)
+        IEnumerable<string> IJoinItem.GetDeclarationExpression(CommandOptions options)
         {
-            Expression expression = new Expression(ExpressionItemType.SelectCommand);
-            getSelectContent(expression, options);
-            if (!String.IsNullOrWhiteSpace(Alias))
+            foreach (string token in getSelectContent(options))
+            {
+                yield return token;
+            }
+            if (!String.IsNullOrWhiteSpace(ColumnSourceAlias))
             {
                 if (options.AliasColumnSourcesUsingAs)
                 {
-                    expression.AddItem(new Token("AS", TokenType.AliasIndicator));
+                    yield return "AS";
                 }
-                expression.AddItem(new Token(Alias, TokenType.Alias));
+                yield return ColumnSourceAlias;
             }
-            return expression;
         }
 
-        IExpressionItem IColumnSource.GetReferenceExpression(CommandOptions options)
+        IEnumerable<string> IColumnSource.GetReferenceExpression(CommandOptions options)
         {
-            if (String.IsNullOrWhiteSpace(Alias))
+            if (String.IsNullOrWhiteSpace(ColumnSourceAlias))
             {
                 throw new SQLGenerationException(Resources.ReferencedQueryWithoutAlias);
             }
-            Expression expression = new Expression(ExpressionItemType.SelectCommand);
-            expression.AddItem(new Token(Alias, TokenType.Alias));
-            return expression;
+            yield return ColumnSourceAlias;
         }
 
-        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            getSelectContent(expression, options);
+            return getSelectContent(options);
         }
 
-        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            getSelectContent(expression, options);
+            return getSelectContent(options);
         }
 
-        private void getSelectContent(Expression expression, CommandOptions options)
+        IEnumerable<string> getSelectContent(CommandOptions options)
         {
-            expression.AddItem(new Token("(", TokenType.LeftParenthesis));
-            getCommandExpression(expression, options);
-            expression.AddItem(new Token(")", TokenType.RightParenthesis));
+            yield return "(";
+            foreach (string token in getCommandExpression(options))
+            {
+                yield return token;
+            }
+            yield return ")";
         }
 
         bool IValueProvider.IsQuery

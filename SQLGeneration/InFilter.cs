@@ -1,5 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -49,17 +49,20 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the filter text irrespective of the parentheses.
         /// </summary>
-        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
+        protected override IEnumerable<string> GetInnerFilterExpression(CommandOptions options)
         {
             // <InFilter> => <Left> "IN" <Right>
-            Expression inExpression = new Expression(ExpressionItemType.InFilter);
-            leftHand.GetFilterExpression(inExpression, options);
-            inExpression.AddItem(new Token("IN", TokenType.Keyword));
-            values.GetFilterExpression(inExpression, options);
-            expression.AddItem(inExpression);
+            foreach (string token in leftHand.GetFilterExpression(options))
+            {
+                yield return token;
+            }
+            yield return "IN";
+            foreach (string token in values.GetFilterExpression(options))
+            {
+                yield return token;
+            }
         }
     }
 }

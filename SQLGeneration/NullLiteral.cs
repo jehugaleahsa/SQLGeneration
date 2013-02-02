@@ -1,5 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -24,25 +24,25 @@ namespace SQLGeneration
             set;
         }
 
-        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            getNullLiteral(expression);
+            yield return getNullLiteral();
         }
 
-        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            getNullLiteral(expression);
+            yield return getNullLiteral();
         }
 
-        void IGroupByItem.GetGroupByExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            getNullLiteral(expression);
+            yield return getNullLiteral();
         }
 
-        private static void getNullLiteral(Expression expression)
+        private static string getNullLiteral()
         {
             // "NULL"
-            expression.AddItem(new Token("NULL", TokenType.Null));
+            return "NULL";
         }
     }
 }

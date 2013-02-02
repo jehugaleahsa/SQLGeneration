@@ -1,6 +1,6 @@
 ﻿using System;
-using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -40,16 +40,16 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="placement">The null placement to convert to a string.</param>
         /// <returns>The string representation.</returns>
-        public IExpressionItem ToToken(NullPlacement placement)
+        public string ToToken(NullPlacement placement)
         {
             switch (placement)
             {
                 case NullPlacement.Default:
-                    return Expression.None;
+                    return String.Empty;
                 case NullPlacement.First:
-                    return new Token("NULLS FIRST", TokenType.NullPlacement);
+                    return "NULLS FIRST";
                 case NullPlacement.Last:
-                    return new Token("NULLS LAST", TokenType.NullPlacement);
+                    return "NULLS LAST";
                 default:
                     throw new ArgumentException(Resources.UnknownNullPlacement, "placement");
             }

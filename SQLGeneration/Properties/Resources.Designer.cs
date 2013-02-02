@@ -70,11 +70,29 @@ namespace SQLGeneration.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Encountered a null or blank expression type..
+        /// </summary>
+        internal static string BlankExpressionType {
+            get {
+                return ResourceManager.GetString("BlankExpressionType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Encountered a null or blank function name..
         /// </summary>
         internal static string BlankFunctionName {
             get {
                 return ResourceManager.GetString("BlankFunctionName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encountered a null or blank expression item name..
+        /// </summary>
+        internal static string BlankItemName {
+            get {
+                return ResourceManager.GetString("BlankItemName", resourceCulture);
             }
         }
         
@@ -111,6 +129,24 @@ namespace SQLGeneration.Properties {
         internal static string BlankTableName {
             get {
                 return ResourceManager.GetString("BlankTableName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encountered a null or blank expected token value..
+        /// </summary>
+        internal static string BlankTokenValue {
+            get {
+                return ResourceManager.GetString("BlankTokenValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An attempt was made to define two expressions items with the same name..
+        /// </summary>
+        internal static string DuplicateExpressionItemName {
+            get {
+                return ResourceManager.GetString("DuplicateExpressionItemName", resourceCulture);
             }
         }
         

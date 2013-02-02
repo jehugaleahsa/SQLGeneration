@@ -1,5 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -24,23 +24,24 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="item">The item being declared.</param>
         /// <returns>A string declaring the projection item.</returns>
-        public IExpressionItem GetDeclaration(IProjectionItem item)
+        public IEnumerable<string> GetDeclaration(IProjectionItem item)
         {
             if (item == null)
             {
                 throw new ArgumentNullException("item");
             }
-            Expression expression = new Expression(ExpressionItemType.ProjectionDeclaration);
-            item.GetProjectionExpression(expression, options);
+            foreach (string token in item.GetProjectionExpression(options))
+            {
+                yield return token;
+            }
             if (!String.IsNullOrWhiteSpace(item.Alias))
             {
                 if (options.AliasProjectionsUsingAs)
                 {
-                    expression.AddItem(new Token("AS", TokenType.AliasIndicator));
+                    yield return "AS";
                 }
-                expression.AddItem(new Token(item.Alias, TokenType.Alias));
+                yield return item.Alias;
             }
-            return expression;
         }
 
         /// <summary>
@@ -48,7 +49,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="item">The item being printed.</param>
         /// <returns>A string referencing the projection item.</returns>
-        public IExpressionItem GetAliasedReference(IProjectionItem item)
+        public IEnumerable<string> GetAliasedReference(IProjectionItem item)
         {
             if (item == null)
             {
@@ -56,13 +57,14 @@ namespace SQLGeneration
             }
             if (!String.IsNullOrWhiteSpace(item.Alias))
             {
-                return new Token(item.Alias, TokenType.Alias);
+                yield return item.Alias;
             }
             else
             {
-                Expression expression = new Expression(ExpressionItemType.ProjectionReference);
-                item.GetProjectionExpression(expression, options);
-                return expression;
+                foreach (string token in item.GetProjectionExpression(options))
+                {
+                    yield return token;
+                }
             }
         }
 
@@ -71,15 +73,13 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="item">The item being printed.</param>
         /// <returns>A string referencing the projection item.</returns>
-        public IExpressionItem GetUnaliasedReference(IProjectionItem item)
+        public IEnumerable<string> GetUnaliasedReference(IProjectionItem item)
         {
             if (item == null)
             {
                 throw new ArgumentNullException("item");
             }
-            Expression expression = new Expression(ExpressionItemType.ProjectionReference);
-            item.GetProjectionExpression(expression, options);
-            return expression;
+            return item.GetProjectionExpression(options);
         }
     }
 }

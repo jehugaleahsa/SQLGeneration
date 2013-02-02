@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -90,7 +89,7 @@ namespace SQLGeneration
         /// Gets the SQL for the insert statement.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        public IExpressionItem GetCommandExpression(CommandOptions options)
+        public IEnumerable<string> GetCommandExpression(CommandOptions options)
         {
             if (options == null)
             {
@@ -101,50 +100,61 @@ namespace SQLGeneration
             options.IsInsert = true;
             options.IsUpdate = false;
             options.IsDelete = false;
-            IExpressionItem expression = getCommandExpression(options);
-            return expression;
+            return getCommandExpression(options);
         }
 
-        private IExpressionItem getCommandExpression(CommandOptions options)
+        private IEnumerable<string> getCommandExpression(CommandOptions options)
         {
             // "INSERT" [ "INTO" ] <Source> [ "(" <ColumnList> ")" ] { "VALUES" "(" <ValueList> ")" | <SubSelect> }
-            Expression expression = new Expression(ExpressionItemType.InsertCommand);
-            expression.AddItem(new Token("INSERT", TokenType.Keyword));
-            expression.AddItem(new Token("INTO", TokenType.Keyword));
-            expression.AddItem(_table.GetDeclarationExpression(options));
+            yield return "INSERT";
+            yield return "INTO";
+            foreach (string token in _table.GetDeclarationExpression(options))
+            {
+                yield return token;
+            }
             if (_columns.Count > 0)
             {
-                expression.AddItem(new Token("(", TokenType.LeftParenthesis));
-                expression.AddItem(buildColumnList(options, 0));
-                expression.AddItem(new Token(")", TokenType.RightParenthesis));
+                yield return "(";
+                foreach (string token in buildColumnList(options, 0))
+                {
+                    yield return token;
+                }
+                yield return ")";
             }
             if (!_values.IsQuery)
             {
-                expression.AddItem(new Token("VALUES", TokenType.Keyword));
+                yield return "VALUES";
             }
-            _values.GetFilterExpression(expression, options);
-            return expression;
+            foreach (string token in _values.GetFilterExpression(options))
+            {
+                yield return token;
+            }
         }
 
-        private IExpressionItem buildColumnList(CommandOptions options, int columnIndex)
+        private IEnumerable<string> buildColumnList(CommandOptions options, int columnIndex)
         {
             if (columnIndex == _columns.Count - 1)
             {
                 Column column = _columns[columnIndex];
                 ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-                return formatter.GetUnaliasedReference(column);
+                foreach (string token in formatter.GetUnaliasedReference(column))
+                {
+                    yield return token;
+                }
             }
             else
             {
-                IExpressionItem right = buildColumnList(options, columnIndex + 1);
                 ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
                 Column column = _columns[columnIndex];
-                IExpressionItem left = formatter.GetUnaliasedReference(column);
-                Expression expression = new Expression(ExpressionItemType.ColumnList);
-                expression.AddItem(left);
-                expression.AddItem(new Token(",", TokenType.Comma));
-                expression.AddItem(right);
-                return expression;
+                foreach (string token in formatter.GetUnaliasedReference(column))
+                {
+                    yield return token;
+                }
+                yield return ",";
+                foreach (string token in buildColumnList(options, columnIndex + 1))
+                {
+                    yield return token;
+                }
             }
         }
     }

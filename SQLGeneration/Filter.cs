@@ -1,6 +1,6 @@
 ﻿using System;
-using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -51,30 +51,30 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The filter text.</returns>
-        public IExpressionItem GetFilterExpression(CommandOptions options)
+        public IEnumerable<string> GetFilterExpression(CommandOptions options)
         {
             // <Filter> => [ "(" ] <Filter> [ ")" ]
-            Expression expression = new Expression(ExpressionItemType.Filter);
             bool wrapInParentheses = ShouldWrapInParentheses(options);
             if (wrapInParentheses)
             {
-                expression.AddItem(new Token("(", TokenType.LeftParenthesis));
+                yield return "(";
             }
-            GetInnerFilterExpression(expression, options);
+            foreach (string token in GetInnerFilterExpression(options))
+            {
+                yield return token;
+            }
             if (wrapInParentheses)
             {
-                expression.AddItem(new Token(")", TokenType.RightParenthesis));
+                yield return ")";
             }
-            return expression;
         }
 
         /// <summary>
         /// Gets the filter text irrespective of the parentheses.
         /// </summary>
-        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected abstract void GetInnerFilterExpression(Expression expression, CommandOptions options);
+        protected abstract IEnumerable<string> GetInnerFilterExpression(CommandOptions options);
 
         /// <summary>
         /// Determines whether the filter should be surrounded by parentheses.

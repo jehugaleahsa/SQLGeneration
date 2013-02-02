@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -105,7 +104,7 @@ namespace SQLGeneration
         /// Gets the command text.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        public IExpressionItem GetCommandExpression(CommandOptions options)
+        public IEnumerable<string> GetCommandExpression(CommandOptions options)
         {
             if (options == null)
             {
@@ -116,47 +115,58 @@ namespace SQLGeneration
             options.IsInsert = false;
             options.IsUpdate = true;
             options.IsDelete = false;
-            IExpressionItem expression = getCommandExpression(options);
-            return expression;
+            return getCommandExpression(options);
         }
 
-        private IExpressionItem getCommandExpression(CommandOptions options)
+        private IEnumerable<string> getCommandExpression(CommandOptions options)
         {
             // <UpdateCommand> => "UPDATE" <Table> "SET" <SetterList> [ "WHERE" <Filter> ]
             if (_setters.Count == 0)
             {
                 throw new SQLGenerationException(Resources.NoSetters);
             }
-            Expression expression = new Expression(ExpressionItemType.UpdateCommand);
-            expression.AddItem(new Token("UPDATE", TokenType.Keyword));
-            expression.AddItem(_table.GetDeclarationExpression(options));
-            expression.AddItem(new Token("SET", TokenType.Keyword));
-            expression.AddItem(buildSetterList(options, 0));
+            yield return "UPDATE";
+            foreach (string token in _table.GetDeclarationExpression(options))
+            {
+                yield return token;
+            }
+            yield return "SET";
+            foreach (string token in buildSetterList(options, 0))
+            {
+                yield return token;
+            }
             if (_where.HasFilters)
             {
-                expression.AddItem(new Token("WHERE", TokenType.Keyword));
-                expression.AddItem(_where.GetFilterExpression(options));
+                yield return "WHERE";
+                foreach (string token in _where.GetFilterExpression(options))
+                {
+                    yield return token;
+                }
             }
-            return expression;
         }
 
-        private IExpressionItem buildSetterList(CommandOptions options, int setterIndex)
+        private IEnumerable<string> buildSetterList(CommandOptions options, int setterIndex)
         {
             if (setterIndex == _setters.Count - 1)
             {
                 Setter current = _setters[setterIndex];
-                return current.GetSetterExpression(options);
+                foreach (string token in current.GetSetterExpression(options))
+                {
+                    yield return token;
+                }
             }
             else
             {
-                IExpressionItem right = buildSetterList(options, setterIndex + 1);
                 Setter current = _setters[setterIndex];
-                IExpressionItem left = current.GetSetterExpression(options);
-                Expression expression = new Expression(ExpressionItemType.Setter);
-                expression.AddItem(left);
-                expression.AddItem(new Token(",", TokenType.Comma));
-                expression.AddItem(right);
-                return expression;
+                foreach (string token in current.GetSetterExpression(options))
+                {
+                    yield return token;
+                }
+                yield return ",";
+                foreach (string token in buildSetterList(options, setterIndex + 1))
+                {
+                    yield return token;
+                }
             }
         }
     }

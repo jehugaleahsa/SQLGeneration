@@ -1,5 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -26,18 +26,18 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the filter text irrespective of the parentheses.
         /// </summary>
-        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
+        protected override IEnumerable<string> GetInnerFilterExpression(CommandOptions options)
         {
             // "NOT" "(" <Filter> ")"
-            Expression filterExpression = new Expression(ExpressionItemType.NotFilter);
-            filterExpression.AddItem(new Token("NOT", TokenType.Keyword));
-            filterExpression.AddItem(new Token("(", TokenType.LeftParenthesis));
-            filterExpression.AddItem(filter.GetFilterExpression(options));
-            filterExpression.AddItem(new Token(")", TokenType.RightParenthesis));
-            expression.AddItem(filterExpression);
+            yield return "NOT";
+            yield return "(";
+            foreach (string token in filter.GetFilterExpression(options))
+            {
+                yield return token;
+            }
+            yield return ")";
         }
     }
 }

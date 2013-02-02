@@ -1,5 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -20,9 +20,8 @@ namespace SQLGeneration
         /// <summary>
         /// Gets a string representing the item in a declaration, without the alias.
         /// </summary>
-        /// <param name="expression">The expression currently being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The generated text.</returns>
-        void GetProjectionExpression(Expression expression, CommandOptions options);
+        IEnumerable<string> GetProjectionExpression(CommandOptions options);
     }
 }

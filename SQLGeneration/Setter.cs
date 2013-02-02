@@ -1,5 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -51,15 +51,19 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The setter expression.</returns>
-        public IExpressionItem GetSetterExpression(CommandOptions options)
+        public IEnumerable<string> GetSetterExpression(CommandOptions options)
         {
             // <Setter> => <Column> "=" <Projection>
-            Expression expression = new Expression(ExpressionItemType.Setter);
             ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-            expression.AddItem(formatter.GetUnaliasedReference(_column));
-            expression.AddItem(new Token("=", TokenType.Assignment));
-            expression.AddItem(formatter.GetUnaliasedReference(_value));
-            return expression;
+            foreach (string token in formatter.GetUnaliasedReference(_column))
+            {
+                yield return token;
+            }
+            yield return "=";
+            foreach (string token in formatter.GetUnaliasedReference(_value))
+            {
+                yield return token;
+            }
         }
     }
 }

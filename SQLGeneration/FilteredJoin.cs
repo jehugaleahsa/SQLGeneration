@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -64,14 +63,16 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the ON expression for the join.
         /// </summary>
-        /// <param name="expression">The expression currently being built.</param>
         /// <param name="options">The configuration settings to use.</param>
         /// <returns>The generated text.</returns>
-        protected override void GetOnExpression(Expression expression, CommandOptions options)
+        protected override IEnumerable<string> GetOnExpression(CommandOptions options)
         {
             // "ON" <Filter>
-            expression.AddItem(new Token("ON", TokenType.Keyword));
-            expression.AddItem(on.GetFilterExpression(options));
+            yield return "ON";
+            foreach (string token in on.GetFilterExpression(options))
+            {
+                yield return token;
+            }
         }
     }
 }

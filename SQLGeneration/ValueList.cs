@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -73,36 +72,44 @@ namespace SQLGeneration
             return _values.Remove(item);
         }
 
-        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
         {
             // <ValueList> => "(" [ <ProjectionReference> [ "," <ValueList> ] ] ")"
-            expression.AddItem(new Token("(", TokenType.LeftParenthesis));
+            yield return "(";
             if (_values.Count > 0)
             {
-                expression.AddItem(buildValueList(options, 0));
+                foreach (string token in buildValueList(options, 0))
+                {
+                    yield return token;
+                }
             }
-            expression.AddItem(new Token(")", TokenType.RightParenthesis));
+            yield return ")";
         }
 
-        private IExpressionItem buildValueList(CommandOptions options, int valueIndex)
+        private IEnumerable<string> buildValueList(CommandOptions options, int valueIndex)
         {
             if (valueIndex == _values.Count - 1)
             {
                 IProjectionItem current = _values[valueIndex];
                 ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-                return formatter.GetUnaliasedReference(current);
+                foreach (string token in formatter.GetUnaliasedReference(current))
+                {
+                    yield return token;
+                }
             }
             else
             {
-                IExpressionItem right = buildValueList(options, valueIndex + 1);
                 IProjectionItem current = _values[valueIndex];
                 ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-                IExpressionItem left = formatter.GetUnaliasedReference(current);
-                Expression expression = new Expression(ExpressionItemType.ValueList);
-                expression.AddItem(left);
-                expression.AddItem(new Token(",", TokenType.Comma));
-                expression.AddItem(right);
-                return expression;
+                foreach (string token in formatter.GetUnaliasedReference(current))
+                {
+                    yield return token;
+                }
+                yield return ",";
+                foreach (string token in buildValueList(options, valueIndex + 1))
+                {
+                    yield return token;
+                }
             }
         }
 

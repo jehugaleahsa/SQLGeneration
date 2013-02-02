@@ -1,6 +1,6 @@
 ﻿using System;
-using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -93,44 +93,46 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The expression declaring the table.</returns>
-        public IExpressionItem GetDeclarationExpression(CommandOptions options)
+        public IEnumerable<string> GetDeclarationExpression(CommandOptions options)
         {
             // <TableDeclaration> => [ <Schema> "." ] <ID> [ "AS" ] <ID>
-            Expression expression = new Expression(ExpressionItemType.TableDeclaration);
-            getFullNameExpression(expression);
+            foreach (string token in getFullNameExpression())
+            {
+                yield return token;
+            }
             if (!String.IsNullOrWhiteSpace(Alias))
             {
                 if (options.AliasColumnSourcesUsingAs)
                 {
-                    expression.AddItem(new Token("AS", TokenType.AliasIndicator));
+                    yield return "AS";
                 }
-                expression.AddItem(new Token(Alias, TokenType.Alias));
+                yield return Alias;
             }
-            return expression;
         }
 
-        IExpressionItem IColumnSource.GetReferenceExpression(CommandOptions options)
+        IEnumerable<string> IColumnSource.GetReferenceExpression(CommandOptions options)
         {
-            Expression expression = new Expression(ExpressionItemType.TableReference);
             if (String.IsNullOrWhiteSpace(Alias))
             {
-                getFullNameExpression(expression);
+                foreach (string token in getFullNameExpression())
+                {
+                    yield return token;
+                }
             }
             else
             {
-                expression.AddItem(new Token(Alias, TokenType.Alias));
+                yield return Alias;
             }
-            return expression;
         }
 
-        private void getFullNameExpression(Expression expression)
+        private IEnumerable<string> getFullNameExpression()
         {
             if (_schema != null)
             {
-                expression.AddItem(new Token(_schema.Name, TokenType.SchemaName));
-                expression.AddItem(new Token(".", TokenType.Dot));
+                yield return _schema.Name;
+                yield return ".";
             }
-            expression.AddItem(new Token(_name, TokenType.TableName));
+            yield return _name;
         }
     }
 }

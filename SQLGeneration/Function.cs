@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -121,33 +120,34 @@ namespace SQLGeneration
             return _arguments.RemoveValue(item);
         }
 
-        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            getFunctionExpression(expression, options);
+            return getFunctionExpression(options);
         }
 
-        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            getFunctionExpression(expression, options);
+            return getFunctionExpression(options);
         }
 
-        void IGroupByItem.GetGroupByExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            getFunctionExpression(expression, options);
+            return getFunctionExpression(options);
         }
 
-        private void getFunctionExpression(Expression expression, CommandOptions options)
+        private IEnumerable<string> getFunctionExpression(CommandOptions options)
         {
             // <Function> => [ <Schema> "." ] <Name> "(" [ <ValueList> ] ")"
-            Expression functionExpression = new Expression(ExpressionItemType.Function);
             if (_schema != null)
             {
-                functionExpression.AddItem(new Token(_schema.Name, TokenType.SchemaName));
-                functionExpression.AddItem(new Token(".", TokenType.Dot));
+                yield return _schema.Name;
+                yield return ".";
             }
-            functionExpression.AddItem(new Token(_name, TokenType.FunctionName));
-            ((IFilterItem)_arguments).GetFilterExpression(functionExpression, options);
-            expression.AddItem(functionExpression);
+            yield return _name;
+            foreach (string token in ((IFilterItem)_arguments).GetFilterExpression(options))
+            {
+                yield return token;
+            }
         }
     }
 }

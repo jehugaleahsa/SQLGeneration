@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -74,40 +73,43 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the filter text irrespective of the parentheses.
         /// </summary>
-        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
+        protected override IEnumerable<string> GetInnerFilterExpression(CommandOptions options)
         {
             // <FilterList> => <Filter> [ {"AND"|"OR"} <FilterList> ]
             if (_filters.Count == 0)
             {
                 throw new SQLGenerationException(Resources.EmptyFilterGroup);
             }
-            expression.AddItem(buildFilterList(options, 0));
+            return buildFilterList(options, 0);
         }
 
-        private IExpressionItem buildFilterList(CommandOptions options, int filterIndex)
+        private IEnumerable<string> buildFilterList(CommandOptions options, int filterIndex)
         {
             if (filterIndex == _filters.Count - 1)
             {
                 IFilter current = _filters[filterIndex];
-                return current.GetFilterExpression(options);
+                foreach (string token in current.GetFilterExpression(options))
+                {
+                    yield return token;
+                }
             }
             else
             {
                 IFilter current = _filters[filterIndex];
                 IFilter next = _filters[filterIndex + 1];
 
-                IExpressionItem left = current.GetFilterExpression(options);
-                IExpressionItem right = buildFilterList(options, filterIndex + 1);
-
+                foreach (string token in current.GetFilterExpression(options))
+                {
+                    yield return token;
+                }
                 ConjunctionConverter converter = new ConjunctionConverter();
-                Expression filterExpression = new Expression(ExpressionItemType.Filter);
-                filterExpression.AddItem(left);
-                filterExpression.AddItem(converter.ToToken(next.Conjunction));
-                filterExpression.AddItem(right);
-                return filterExpression;
+                yield return converter.ToToken(next.Conjunction);
+                foreach (string token in buildFilterList(options, filterIndex + 1))
+                {
+                    yield return token;
+                }
             }
         }
 

@@ -1,6 +1,6 @@
 ﻿using System;
-using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -100,23 +100,24 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The order by text.</returns>
-        public IExpressionItem GetOrderByExpression(CommandOptions options)
+        public IEnumerable<string> GetOrderByExpression(CommandOptions options)
         {
             // <OrderBy> => <ColumnRef> [ { "ASC" | "DESC" } ] [ { "NULLS FIRST" | "NULLS LAST" } ]
-            Expression expression = new Expression(ExpressionItemType.OrderBy);
             ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-            expression.AddItem(formatter.GetAliasedReference(_item));
+            foreach (string token in formatter.GetAliasedReference(_item))
+            {
+                yield return token;
+            }
             if (_order != Order.Default)
             {
                 OrderConverter converter = new OrderConverter();
-                expression.AddItem(converter.ToToken(_order));
+                yield return converter.ToToken(_order);
             }
             if (_placement != NullPlacement.Default)
             {
                 NullPlacementConverter converter = new NullPlacementConverter();
-                expression.AddItem(converter.ToToken(_placement));
+                yield return converter.ToToken(_placement);
             }
-            return expression;
         }
     }
 }

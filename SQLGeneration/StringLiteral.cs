@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -44,22 +44,22 @@ namespace SQLGeneration
             set;
         }
 
-        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            getExpression(expression);
+            yield return getString();
         }
 
-        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            getExpression(expression);
+            yield return getString();
         }
 
-        void IGroupByItem.GetGroupByExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            getExpression(expression);
+            yield return getString();
         }
 
-        private void getExpression(Expression expression)
+        private string getString()
         {
             // "'" .* "'"
             StringBuilder result = new StringBuilder();
@@ -69,7 +69,7 @@ namespace SQLGeneration
                 result.Append(Value.Replace("'", "''"));
             }
             result.Append("'");
-            expression.AddItem(new Token(result.ToString(), TokenType.String));
+            return result.ToString();
         }
     }
 }

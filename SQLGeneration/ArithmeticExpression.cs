@@ -1,6 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
-using Expressions = SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -71,38 +70,42 @@ namespace SQLGeneration
             set;
         }
 
-        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            getExpression(expression, options);
+            return getExpression(options);
         }
 
-        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            getExpression(expression, options);
+            return getExpression(options);
         }
 
-        void IGroupByItem.GetGroupByExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            getExpression(expression, options);
+            return getExpression(options);
         }
 
-        private void getExpression(Expression expression, CommandOptions options)
+        private IEnumerable<string> getExpression(CommandOptions options)
         {
             // <Arithmetic> => [ "(" ] <Left> <Op> <Right> [ ")" ]
-            Expression arithmeticExpression = new Expression(ExpressionItemType.Arithmetic);
             if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {
-                arithmeticExpression.AddItem(new Token("(", TokenType.LeftParenthesis));
+                yield return "(";
             }
             ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-            arithmeticExpression.AddItem(formatter.GetUnaliasedReference(_leftHand));
-            arithmeticExpression.AddItem(GetOperatorName(options));
-            arithmeticExpression.AddItem(formatter.GetUnaliasedReference(_rightHand));
+            foreach (string token in formatter.GetUnaliasedReference(_leftHand))
+            {
+                yield return token;
+            }
+            yield return GetOperatorName(options);
+            foreach (string token in formatter.GetUnaliasedReference(_rightHand))
+            {
+                yield return token;
+            }
             if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {
-                arithmeticExpression.AddItem(new Token(")", TokenType.RightParenthesis));
+                yield return ")";
             }
-            expression.AddItem(arithmeticExpression);
         }
 
         /// <summary>
@@ -110,6 +113,6 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The token representing the arithmetic operator.</returns>
-        protected abstract Token GetOperatorName(CommandOptions options);
+        protected abstract string GetOperatorName(CommandOptions options);
     }
 }

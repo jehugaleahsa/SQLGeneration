@@ -1,5 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -49,17 +49,20 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the filter text irrespective of the parentheses.
         /// </summary>
-        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
+        protected override IEnumerable<string> GetInnerFilterExpression(CommandOptions options)
         {
             // <Binary> => <Left> <Op> <Right>
-            Expression binaryExpression = new Expression(ExpressionItemType.BinaryFilter);
-            _leftHand.GetFilterExpression(binaryExpression, options);
-            binaryExpression.AddItem(GetCombinerName(options));
-            _rightHand.GetFilterExpression(binaryExpression, options);
-            expression.AddItem(binaryExpression);
+            foreach (string token in _leftHand.GetFilterExpression(options))
+            {
+                yield return token;
+            }
+            yield return GetCombinerName(options);
+            foreach (string token in _rightHand.GetFilterExpression(options))
+            {
+                yield return token;
+            }
         }
 
         /// <summary>
@@ -67,6 +70,6 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string containing the name of the operation that compares the left and right hand sides.</returns>
-        protected abstract Token GetCombinerName(CommandOptions options);
+        protected abstract string GetCombinerName(CommandOptions options);
     }
 }

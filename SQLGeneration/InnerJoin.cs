@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -35,7 +34,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The name of the join type.</returns>
-        protected override Token GetJoinNameExpression(CommandOptions options)
+        protected override string GetJoinNameExpression(CommandOptions options)
         {
             // { "JOIN" | "INNER JOIN" }
             StringBuilder result = new StringBuilder();
@@ -44,7 +43,7 @@ namespace SQLGeneration
                 result.Append("INNER ");
             }
             result.Append("JOIN");
-            return new Token(result.ToString(), TokenType.JoinType);
+            return result.ToString();
         }
     }
 }

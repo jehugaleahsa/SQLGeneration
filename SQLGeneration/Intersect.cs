@@ -1,5 +1,4 @@
 ﻿using System;
-using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -23,10 +22,10 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The text used to combine two queries.</returns>
-        protected override Token GetCombinationName(CommandOptions options)
+        protected override string GetCombinationName(CommandOptions options)
         {
             // "INTERSECT"
-            return new Token("INTERSECT", TokenType.SelectCombiner);
+            return "INTERSECT";
         }
     }
 }

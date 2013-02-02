@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -74,18 +73,14 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The expression making up the command.</returns>
-        public IExpressionItem GetCommandExpression(CommandOptions options)
+        public IEnumerable<string> GetCommandExpression(CommandOptions options)
         {
             // <SelectCombiner> => <Select> <Combiner> <Select>
             if (options == null)
             {
                 throw new ArgumentNullException("options");
             }
-            Expression expression = new Expression(ExpressionItemType.SelectCombiner);
-            expression.AddItem(leftHand.GetCommandExpression(options));
-            expression.AddItem(GetCombinationName(options));
-            expression.AddItem(rightHand.GetCommandExpression(options));
-            return expression;
+            return getCommandExpression(options);
         }
 
         /// <summary>
@@ -93,60 +88,94 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The text used to combine two queries.</returns>
-        protected abstract Token GetCombinationName(CommandOptions options);
+        protected abstract string GetCombinationName(CommandOptions options);
 
         /// <summary>
-        /// Gets or sets an alias for the query results.
+        /// Gets or sets an alias when the SELECT command appears in the FROM clause.
         /// </summary>
-        public string Alias
+        public string ColumnSourceAlias
         {
             get;
             set;
         }
 
-        IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options)
+        string IColumnSource.Alias
         {
-            Expression expression = new Expression(ExpressionItemType.SelectCombiner);
-            expression.AddItem(new Token("(", TokenType.LeftParenthesis));
-            expression.AddItem(GetCommandExpression(options));
-            expression.AddItem(new Token(")", TokenType.RightParenthesis));
-            if (!String.IsNullOrWhiteSpace(Alias))
+            get { return ColumnSourceAlias; }
+            set { ColumnSourceAlias = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets an alias when the SELECT command appears as a projection.
+        /// </summary>
+        public string ProjectionAlias
+        {
+            get;
+            set;
+        }
+
+        string IProjectionItem.Alias
+        {
+            get { return ProjectionAlias; }
+            set { ProjectionAlias = value; }
+        }
+
+        IEnumerable<string> IJoinItem.GetDeclarationExpression(CommandOptions options)
+        {
+            foreach (string token in getWrappedCommand(options))
+            {
+                yield return token;
+            }
+            if (!String.IsNullOrWhiteSpace(ColumnSourceAlias))
             {
                 if (options.AliasColumnSourcesUsingAs)
                 {
-                    expression.AddItem(new Token("AS", TokenType.AliasIndicator));
+                    yield return "AS";
                 }
-                expression.AddItem(new Token(Alias, TokenType.Alias));
+                yield return ColumnSourceAlias;
             }
-            return expression;
         }
 
-        IExpressionItem IColumnSource.GetReferenceExpression(CommandOptions options)
+        IEnumerable<string> IColumnSource.GetReferenceExpression(CommandOptions options)
         {
-            if (String.IsNullOrWhiteSpace(Alias))
+            if (String.IsNullOrWhiteSpace(ColumnSourceAlias))
             {
                 throw new SQLGenerationException(Resources.ReferencedQueryCombinerWithoutAlias);
             }
-            Expression expression = new Expression(ExpressionItemType.SelectCombiner);
-            expression.AddItem(new Token(Alias, TokenType.Alias));
-            return expression;
+            yield return ColumnSourceAlias;
         }
 
-        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            getCombinedCommand(expression, options);
+            return getWrappedCommand(options);
         }
 
-        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            getCombinedCommand(expression, options);
+            return getWrappedCommand(options);
         }
 
-        private void getCombinedCommand(Expression expression, CommandOptions options)
+        private IEnumerable<string> getWrappedCommand(CommandOptions options)
         {
-            expression.AddItem(new Token("(", TokenType.LeftParenthesis));
-            expression.AddItem(GetCommandExpression(options));
-            expression.AddItem(new Token(")", TokenType.RightParenthesis));
+            yield return "(";
+            foreach (string token in getCommandExpression(options))
+            {
+                yield return token;
+            }
+            yield return ")";
+        }
+
+        private IEnumerable<string> getCommandExpression(CommandOptions options)
+        {
+            foreach (string token in leftHand.GetCommandExpression(options))
+            {
+                yield return token;
+            }
+            yield return GetCombinationName(options);
+            foreach (string token in rightHand.GetCommandExpression(options))
+            {
+                yield return token;
+            }
         }
 
         bool IValueProvider.IsQuery

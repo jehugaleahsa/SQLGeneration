@@ -1,5 +1,4 @@
 ﻿using System;
-using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -23,10 +22,10 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string containing the name of the operation that compares the left and right hand sides.</returns>
-        protected override Token GetCombinerName(CommandOptions options)
+        protected override string GetCombinerName(CommandOptions options)
         {
             // <Left> "LIKE" <StringLiteral>
-            return new Token("LIKE", TokenType.ComparisonOperator);
+            return "LIKE";
         }
     }
 }

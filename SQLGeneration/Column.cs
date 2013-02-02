@@ -1,6 +1,6 @@
 ﻿using System;
-using SQLGeneration.Expressions;
 using SQLGeneration.Properties;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -55,35 +55,36 @@ namespace SQLGeneration
             set;
         }
 
-        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            getColumnExpression(expression, options);
+            return getColumnExpression(options);
         }
 
-        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            getColumnExpression(expression, options);
+            return getColumnExpression(options);
         }
 
-        void IGroupByItem.GetGroupByExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            getColumnExpression(expression, options);
+            return getColumnExpression(options);
         }
 
-        private void getColumnExpression(Expression expression, CommandOptions options)
+        private IEnumerable<string> getColumnExpression(CommandOptions options)
         {
             // [ <Source> "." ] <ID>
-            Expression columnExpression = new Expression(ExpressionItemType.Column);
             if (options.IsSelect
                 || (options.IsInsert && options.QualifyInsertColumns)
                 || (options.IsUpdate && options.QualifyUpdateColumn)
                 || (options.IsDelete && options.QualifyDeleteColumns))
             {
-                columnExpression.AddItem(source.GetReferenceExpression(options));
-                columnExpression.AddItem(new Token(".", TokenType.Dot));
+                foreach (string token in source.GetReferenceExpression(options))
+                {
+                    yield return token;
+                }
+                yield return ".";
             }
-            columnExpression.AddItem(new Token(name, TokenType.ColumnName));
-            expression.AddItem(columnExpression);
+            yield return name;
         }
     }
 }

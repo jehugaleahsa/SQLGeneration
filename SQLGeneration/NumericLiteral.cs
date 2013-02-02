@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Globalization;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -43,25 +43,24 @@ namespace SQLGeneration
             set;
         }
 
-        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
-            getNumericLiteral(expression);
+            yield return getNumericLiteral();
         }
 
-        void IFilterItem.GetFilterExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
         {
-            getNumericLiteral(expression);
+            yield return getNumericLiteral();
         }
 
-        void IGroupByItem.GetGroupByExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IGroupByItem.GetGroupByExpression(CommandOptions options)
         {
-            getNumericLiteral(expression);
+            yield return getNumericLiteral();
         }
 
-        private void getNumericLiteral(Expression expression)
+        private string getNumericLiteral()
         {
-            string value = Value.ToString(CultureInfo.InvariantCulture);
-            expression.AddItem(new Token(value, TokenType.Number));
+            return Value.ToString(CultureInfo.InvariantCulture);
         }
     }
 }

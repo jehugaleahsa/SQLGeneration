@@ -1,5 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -58,21 +58,22 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The generated text.</returns>
-        public IExpressionItem GetTopExpression(CommandOptions options)
+        public IEnumerable<string> GetTopExpression(CommandOptions options)
         {
             // <Top> => "TOP" <Arithmetic> [ "PERCENT" ] [ "WITH TIES" ]
-            Expression expression = new Expression(ExpressionItemType.Top);
-            expression.AddItem(new Token("TOP", TokenType.Keyword));
-            _expression.GetFilterExpression(expression, options);
+            yield return "TOP";
+            foreach (string token in _expression.GetFilterExpression(options))
+            {
+                yield return token;
+            }
             if (IsPercent)
             {
-                expression.AddItem(new Token("PERCENT", TokenType.Keyword));
+                yield return "PERCENT";
             }
             if (WithTies)
             {
-                expression.AddItem(new Token("WITH TIES", TokenType.Keyword));
+                yield return "WITH TIES";
             }
-            return expression;
         }
     }
 }

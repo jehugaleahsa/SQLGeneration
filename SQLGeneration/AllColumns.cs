@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -38,18 +38,19 @@ namespace SQLGeneration
             set { }
         }
 
-        void IProjectionItem.GetProjectionExpression(Expression expression, CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
         {
             // <Column> => [ <Source> "." ] "*"
-            Expression columnExpression = new Expression(ExpressionItemType.Column);
             StringBuilder builder = new StringBuilder();
             if (source != null)
             {
-                columnExpression.AddItem(source.GetReferenceExpression(options));
-                columnExpression.AddItem(new Token(".", TokenType.Dot));
+                foreach (string token in source.GetReferenceExpression(options))
+                {
+                    yield return token;
+                }
+                yield return ".";
             }
-            columnExpression.AddItem(new Token("*", TokenType.ColumnName));
-            expression.AddItem(columnExpression);
+            yield return "*";
         }
     }
 }

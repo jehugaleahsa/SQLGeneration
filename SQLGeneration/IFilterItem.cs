@@ -1,5 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -11,9 +11,8 @@ namespace SQLGeneration
         /// <summary>
         /// Gets a string representing the item.
         /// </summary>
-        /// <param name="expression">The expression currently being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The generated text.</returns>
-        void GetFilterExpression(Expression expression, CommandOptions options);
+        IEnumerable<string> GetFilterExpression(CommandOptions options);
     }
 }

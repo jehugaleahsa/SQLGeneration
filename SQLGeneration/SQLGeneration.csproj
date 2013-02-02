@@ -47,20 +47,28 @@
     <Compile Include="CrossJoin.cs" />
     <Compile Include="DeleteBuilder.cs" />
     <Compile Include="DivideExpression.cs" />
-    <Compile Include="Expressions\ExpressionDefinition.cs" />
-    <Compile Include="Expressions\ExpressionItemType.cs" />
-    <Compile Include="Expressions\ExpressionRegistry.cs" />
-    <Compile Include="Expressions\OptionList.cs" />
-    <Compile Include="Expressions\Parser.cs" />
-    <Compile Include="Expressions\TokenType.cs" />
     <Compile Include="FilteredJoin.cs" />
-    <Compile Include="Formatters\MinimizingFormatter.cs" />
     <Compile Include="IArithmetic.cs" />
     <Compile Include="IColumnSource.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="IRightJoinItem.cs" />
     <Compile Include="ISelectBuilder.cs" />
     <Compile Include="NotFilter.cs" />
+    <Compile Include="Parsing\BuilderTokenizer.cs" />
+    <Compile Include="Parsing\ExpressionDefinition.cs" />
+    <Compile Include="Parsing\Expression.cs" />
+    <Compile Include="Parsing\ExpressionItem.cs" />
+    <Compile Include="Parsing\Grammar.cs" />
+    <Compile Include="Parsing\IExpressionItem.cs" />
+    <Compile Include="Parsing\ITokenRegistry.cs" />
+    <Compile Include="Parsing\ITokenSource.cs" />
+    <Compile Include="Parsing\MatchResult.cs" />
+    <Compile Include="Parsing\MatchResultCollection.cs" />
+    <Compile Include="Parsing\Options.cs" />
+    <Compile Include="Parsing\Parser.cs" />
+    <Compile Include="Parsing\Token.cs" />
+    <Compile Include="Parsing\Tokenizer.cs" />
+    <Compile Include="Parsing\TokenResult.cs" />
     <Compile Include="Placeholder.cs" />
     <Compile Include="SQLGenerationException.cs" />
     <Compile Include="EqualToFilter.cs" />
@@ -77,9 +85,6 @@
     <Compile Include="IGroupByItem.cs" />
     <Compile Include="IJoinItem.cs" />
     <Compile Include="InFilter.cs" />
-    <Compile Include="Expressions\Expression.cs" />
-    <Compile Include="Expressions\IExpressionItem.cs" />
-    <Compile Include="Expressions\Token.cs" />
     <Compile Include="ValueList.cs" />
     <Compile Include="InnerJoin.cs" />
     <Compile Include="InsertBuilder.cs" />
@@ -127,6 +132,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Expressions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using SQLGeneration.Expressions;
 
 namespace SQLGeneration
 {
@@ -66,7 +65,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The command text.</returns>
-        public IExpressionItem GetCommandExpression(CommandOptions options)
+        public IEnumerable<string> GetCommandExpression(CommandOptions options)
         {
             if (options == null)
             {
@@ -77,23 +76,26 @@ namespace SQLGeneration
             options.IsInsert = false;
             options.IsUpdate = false;
             options.IsDelete = true;
-            IExpressionItem expression = getCommandExpression(options);
-            return expression;
+            return getCommandExpression(options);
         }
 
-        private IExpressionItem getCommandExpression(CommandOptions options)
+        private IEnumerable<string> getCommandExpression(CommandOptions options)
         {
             // <DeleteCommand> => "DELETE" [ "FROM" ] <Source> [ "WHERE" <Filter> ]
-            Expression expression = new Expression(ExpressionItemType.DeleteCommand);
-            expression.AddItem(new Token("DELETE", TokenType.Keyword));
-            expression.AddItem(new Token("FROM", TokenType.Keyword));
-            expression.AddItem(_table.GetDeclarationExpression(options));
+            yield return "DELETE";
+            yield return "FROM";
+            foreach (string token in _table.GetDeclarationExpression(options))
+            {
+                yield return token;
+            }
             if (_where.HasFilters)
             {
-                expression.AddItem(new Token("WHERE", TokenType.Keyword));
-                expression.AddItem(_where.GetFilterExpression(options));
+                yield return "WHERE";
+                foreach (string token in _where.GetFilterExpression(options))
+                {
+                    yield return token;
+                }
             }
-            return expression;
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -37,6 +37,6 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string referencing the item.</returns>
-        IExpressionItem GetReferenceExpression(CommandOptions options);
+        IEnumerable<string> GetReferenceExpression(CommandOptions options);
     }
 }

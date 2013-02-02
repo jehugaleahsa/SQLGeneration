@@ -120,8 +120,14 @@
   <data name="BlankColumnName" xml:space="preserve">
     <value>Encountered a null or blank column name.</value>
   </data>
+  <data name="BlankExpressionType" xml:space="preserve">
+    <value>Encountered a null or blank expression type.</value>
+  </data>
   <data name="BlankFunctionName" xml:space="preserve">
     <value>Encountered a null or blank function name.</value>
+  </data>
+  <data name="BlankItemName" xml:space="preserve">
+    <value>Encountered a null or blank expression item name.</value>
   </data>
   <data name="BlankParameterName" xml:space="preserve">
     <value>Encountered a null or blank parameter name.</value>
@@ -134,6 +140,12 @@
   </data>
   <data name="BlankTableName" xml:space="preserve">
     <value>Encountered a null or blank table name.</value>
+  </data>
+  <data name="BlankTokenValue" xml:space="preserve">
+    <value>Encountered a null or blank expected token value.</value>
+  </data>
+  <data name="DuplicateExpressionItemName" xml:space="preserve">
+    <value>An attempt was made to define two expressions items with the same name.</value>
   </data>
   <data name="EmptyFilterGroup" xml:space="preserve">
     <value>An attempt was made to build an empty filter clause.</value>

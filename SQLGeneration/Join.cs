@@ -1,5 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -61,38 +61,44 @@ namespace SQLGeneration
             }
         }
 
-        IExpressionItem IJoinItem.GetDeclarationExpression(CommandOptions options)
+        IEnumerable<string> IJoinItem.GetDeclarationExpression(CommandOptions options)
         {
             // <Join> => [ "(" ] <Left> <Combiner> <Right> [ "ON" <Filter> ] [ ")" ]
-            Expression expression = new Expression(ExpressionItemType.Join);
             if (WrapInParentheses ?? options.WrapJoinsInParentheses)
             {
-                expression.AddItem(new Token("(", TokenType.LeftParenthesis));
+                yield return "(";
             }
-            expression.AddItem(_leftHand.GetDeclarationExpression(options));
-            expression.AddItem(GetJoinNameExpression(options));
-            expression.AddItem(_rightHand.GetDeclarationExpression(options));
-            GetOnExpression(expression, options);
+            foreach (string token in _leftHand.GetDeclarationExpression(options))
+            {
+                yield return token;
+            }
+            yield return GetJoinNameExpression(options);
+            foreach (string token in _rightHand.GetDeclarationExpression(options))
+            {
+                yield return token;
+            }
+            foreach (string token in GetOnExpression(options))
+            {
+                yield return token;
+            }
             if (WrapInParentheses ?? options.WrapJoinsInParentheses)
             {
-                expression.AddItem(new Token(")", TokenType.RightParenthesis));
+                yield return ")";
             }
-            return expression;
         }
 
         /// <summary>
         /// Gets the ON expression for the join.
         /// </summary>
-        /// <param name="expression">The expression currently being built.</param>
         /// <param name="options">The configuration settings to use.</param>
         /// <returns>The generated text.</returns>
-        protected abstract void GetOnExpression(Expression expression, CommandOptions options);
+        protected abstract IEnumerable<string> GetOnExpression(CommandOptions options);
 
         /// <summary>
         /// Gets the name of the join type.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The name of the join type.</returns>
-        protected abstract Token GetJoinNameExpression(CommandOptions options);
+        protected abstract string GetJoinNameExpression(CommandOptions options);
     }
 }

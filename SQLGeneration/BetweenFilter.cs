@@ -1,5 +1,5 @@
 ﻿using System;
-using SQLGeneration.Expressions;
+using System.Collections.Generic;
 
 namespace SQLGeneration
 {
@@ -73,23 +73,29 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the filter text irrespective of the parentheses.
         /// </summary>
-        /// <param name="expression">The filter expression being built.</param>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override void GetInnerFilterExpression(Expression expression, CommandOptions options)
+        protected override IEnumerable<string> GetInnerFilterExpression(CommandOptions options)
         {
             // <Between> => <Value> [ "NOT" ] "BETWEEN" <Lower> "AND" <Upper>
-            Expression filterExpression = new Expression(ExpressionItemType.BetweenFilter);
-            _value.GetFilterExpression(filterExpression, options);
+            foreach (string token in _value.GetFilterExpression(options))
+            {
+                yield return token;
+            }
             if (Not)
             {
-                filterExpression.AddItem(new Token("NOT", TokenType.Keyword));
+                yield return "NOT";
             }
-            filterExpression.AddItem(new Token("BETWEEN", TokenType.Keyword));
-            _lowerBound.GetFilterExpression(filterExpression, options);
-            filterExpression.AddItem(new Token("AND", TokenType.Keyword));
-            _upperBound.GetFilterExpression(filterExpression, options);
-            expression.AddItem(filterExpression);
+            yield return "BETWEEN";
+            foreach (string token in _lowerBound.GetFilterExpression(options))
+            {
+                yield return token;
+            }
+            yield return "AND";
+            foreach (string token in _upperBound.GetFilterExpression(options))
+            {
+                yield return token;
+            }
         }
     }
 }
