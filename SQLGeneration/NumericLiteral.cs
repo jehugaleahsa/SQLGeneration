@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -26,15 +27,6 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets or sets an alias for the literal.
-        /// </summary>
-        public string Alias
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Gets or sets the numeric value of the literal.
         /// </summary>
         public decimal Value
@@ -43,24 +35,31 @@ namespace SQLGeneration
             set;
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
-            yield return getNumericLiteral();
+            return getNumberToken();
         }
 
-        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
         {
-            yield return getNumericLiteral();
+            return getNumberToken();
         }
 
-        IEnumerable<string> IGroupByItem.GetGroupByExpression(CommandOptions options)
+        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
         {
-            yield return getNumericLiteral();
+            return getNumberToken();
         }
 
-        private string getNumericLiteral()
+        private IEnumerable<string> getNumberToken()
         {
-            return Value.ToString(CultureInfo.InvariantCulture);
+            TokenStream stream = new TokenStream();
+            stream.Add(Value.ToString(CultureInfo.InvariantCulture));
+            return stream;
+        }
+
+        string IProjectionItem.GetProjectionName()
+        {
+            return null;
         }
     }
 }

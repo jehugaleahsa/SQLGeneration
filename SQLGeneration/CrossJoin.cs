@@ -6,14 +6,14 @@ namespace SQLGeneration
     /// <summary>
     /// Represents a cross join.
     /// </summary>
-    public class CrossJoin : Join
+    public class CrossJoin : BinaryJoin
     {
         /// <summary>
         /// Initializes a new instance of a CrossJoin.
         /// </summary>
         /// <param name="leftHand">The left hand item in the join.</param>
         /// <param name="rightHand">The right hand table in the join.</param>
-        public CrossJoin(IJoinItem leftHand, Table rightHand)
+        internal CrossJoin(Join leftHand, AliasedSource rightHand)
             : base(leftHand, rightHand)
         {
         }
@@ -23,7 +23,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration settings to use.</param>
         /// <returns>The generated text.</returns>
-        protected override IEnumerable<string> GetOnExpression(CommandOptions options)
+        protected override IEnumerable<string> GetOnTokens(CommandOptions options)
         {
             yield break;
         }
@@ -33,7 +33,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The name of the join type.</returns>
-        protected override string GetJoinNameExpression(CommandOptions options)
+        protected override string GetJoinType(CommandOptions options)
         {
             return "CROSS JOIN";
         }

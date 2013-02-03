@@ -22,7 +22,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The text used to combine two queries.</returns>
-        protected override string GetCombinationName(CommandOptions options)
+        protected override string GetCombinationType(CommandOptions options)
         {
             // "UNION ALL"
             return "UNION ALL";

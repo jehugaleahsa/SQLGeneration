@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -51,19 +52,13 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The setter expression.</returns>
-        public IEnumerable<string> GetSetterExpression(CommandOptions options)
+        internal IEnumerable<string> GetSetterTokens(CommandOptions options)
         {
-            // <Setter> => <Column> "=" <Projection>
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-            foreach (string token in formatter.GetUnaliasedReference(_column))
-            {
-                yield return token;
-            }
-            yield return "=";
-            foreach (string token in formatter.GetUnaliasedReference(_value))
-            {
-                yield return token;
-            }
+            TokenStream stream = new TokenStream();
+            stream.AddRange(((IProjectionItem)_column).GetProjectionTokens(options));
+            stream.Add("=");
+            stream.AddRange(_value.GetProjectionTokens(options));
+            return stream;
         }
     }
 }

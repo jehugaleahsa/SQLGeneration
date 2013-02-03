@@ -1,6 +1,7 @@
 ﻿using System;
 using SQLGeneration.Properties;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -9,30 +10,33 @@ namespace SQLGeneration
     /// </summary>
     public class Column : IProjectionItem, IGroupByItem, IFilterItem
     {
-        private readonly IColumnSource source;
-        private readonly string name;
-
         /// <summary>
         /// Initializes a new instance of a Column.
         /// </summary>
         /// <param name="source">The column source that the column belongs to.</param>
         /// <param name="name">The name of the column.</param>
-        internal Column(IColumnSource source, string name)
+        internal Column(AliasedSource source, string name)
         {
-            if (String.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(Resources.BlankColumnName, "name");
-            }
-            this.source = source;
-            this.name = name;
+            Source = source;
+            Name = name;
         }
 
         /// <summary>
         /// Gets the table that the column belongs to.
         /// </summary>
-        public IColumnSource Source
+        public AliasedSource Source
         {
-            get { return source; }
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets or sets whether the column should be qualified with the source.
+        /// </summary>
+        public bool? Qualify
+        {
+            get;
+            set;
         }
 
         /// <summary>
@@ -40,51 +44,44 @@ namespace SQLGeneration
         /// </summary>
         public string Name
         {
-            get
-            {
-                return name;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the alias of the column.
-        /// </summary>
-        public string Alias
-        {
             get;
-            set;
+            private set;
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
-            return getColumnExpression(options);
+            return getColumnTokens(options);
         }
 
-        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
         {
-            return getColumnExpression(options);
+            return getColumnTokens(options);
         }
 
-        IEnumerable<string> IGroupByItem.GetGroupByExpression(CommandOptions options)
+        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
         {
-            return getColumnExpression(options);
+            return getColumnTokens(options);
         }
 
-        private IEnumerable<string> getColumnExpression(CommandOptions options)
+        private IEnumerable<string> getColumnTokens(CommandOptions options)
         {
-            // [ <Source> "." ] <ID>
-            if (options.IsSelect
+            TokenStream stream = new TokenStream();
+            bool qualify = Qualify ?? (options.IsSelect
                 || (options.IsInsert && options.QualifyInsertColumns)
                 || (options.IsUpdate && options.QualifyUpdateColumn)
-                || (options.IsDelete && options.QualifyDeleteColumns))
+                || (options.IsDelete && options.QualifyDeleteColumns));
+            if (qualify)
             {
-                foreach (string token in source.GetReferenceExpression(options))
-                {
-                    yield return token;
-                }
-                yield return ".";
+                stream.AddRange(Source.GetReferenceTokens(options));
+                stream.Add(".");
             }
-            yield return name;
+            stream.Add(Name);
+            return stream;
+        }
+
+        string IProjectionItem.GetProjectionName()
+        {
+            return Name;
         }
     }
 }

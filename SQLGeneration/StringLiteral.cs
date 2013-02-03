@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -35,31 +36,22 @@ namespace SQLGeneration
             set;
         }
 
-        /// <summary>
-        /// Gets or sets an alias for the string.
-        /// </summary>
-        public string Alias
+        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
-            get;
-            set;
+            return getStringToken();
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
         {
-            yield return getString();
+            return getStringToken();
         }
 
-        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
+        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
         {
-            yield return getString();
+            return getStringToken();
         }
 
-        IEnumerable<string> IGroupByItem.GetGroupByExpression(CommandOptions options)
-        {
-            yield return getString();
-        }
-
-        private string getString()
+        private IEnumerable<string> getStringToken()
         {
             // "'" .* "'"
             StringBuilder result = new StringBuilder();
@@ -69,7 +61,14 @@ namespace SQLGeneration
                 result.Append(Value.Replace("'", "''"));
             }
             result.Append("'");
-            return result.ToString();
+            TokenStream stream = new TokenStream();
+            stream.Add(result.ToString());
+            return stream;
+        }
+
+        string IProjectionItem.GetProjectionName()
+        {
+            return null;
         }
     }
 }

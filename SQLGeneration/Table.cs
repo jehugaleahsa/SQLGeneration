@@ -1,17 +1,15 @@
 ﻿using System;
 using SQLGeneration.Properties;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Provides a table name.
     /// </summary>
-    public class Table : IRightJoinItem, IColumnSource
+    public class Table : IRightJoinItem
     {
-        private readonly Schema _schema;
-        private readonly string _name;
-
         /// <summary>
         /// Initializes a new instance of a Table.
         /// </summary>
@@ -24,27 +22,25 @@ namespace SQLGeneration
         /// <summary>
         /// Initializes a new instance of a Table.
         /// </summary>
-        /// <param name="schema">The schema the table belongs to.</param>
+        /// <param name="qualifier">The schema the table belongs to.</param>
         /// <param name="name">The name of the table.</param>
-        public Table(Schema schema, string name)
+        public Table(Namespace qualifier, string name)
         {
             if (String.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentException(Resources.BlankTableName, "name");
             }
-            _schema = schema;
-            _name = name;
+            Qualifier = qualifier;
+            Name = name;
         }
 
         /// <summary>
         /// Gets or sets the schema the table belongs to.
         /// </summary>
-        public Schema Schema
+        public Namespace Qualifier
         {
-            get
-            {
-                return _schema;
-            }
+            get;
+            private set;
         }
 
         /// <summary>
@@ -52,87 +48,30 @@ namespace SQLGeneration
         /// </summary>
         public string Name
         {
-            get
-            {
-                return _name;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets an alias to use for the table.
-        /// </summary>
-        public string Alias
-        {
             get;
-            set;
+            private set;
         }
 
-        /// <summary>
-        /// Creates a new column under the table.
-        /// </summary>
-        /// <param name="columnName">The name of the column.</param>
-        /// <returns>The column.</returns>
-        public Column CreateColumn(string columnName)
+        IEnumerable<string> IJoinItem.GetDeclarationTokens(CommandOptions options)
         {
-            return new Column(this, columnName);
+            TokenStream stream = new TokenStream();
+            if (Qualifier != null)
+            {
+                stream.AddRange(Qualifier.GetNamespaceTokens());
+                stream.Add(".");
+            }
+            stream.Add(Name);
+            return stream;
         }
 
-        /// <summary>
-        /// Creates a new column under the table with the given alias.
-        /// </summary>
-        /// <param name="columnName">The name of the column.</param>
-        /// <param name="alias">The alias to give the column.</param>
-        /// <returns>The column.</returns>
-        public Column CreateColumn(string columnName, string alias)
+        string IRightJoinItem.GetSourceName()
         {
-            return new Column(this, columnName) { Alias = alias };
+            return Name;
         }
 
-        /// <summary>
-        /// Gets the table declaration expression.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The expression declaring the table.</returns>
-        public IEnumerable<string> GetDeclarationExpression(CommandOptions options)
+        bool IRightJoinItem.IsQuery
         {
-            // <TableDeclaration> => [ <Schema> "." ] <ID> [ "AS" ] <ID>
-            foreach (string token in getFullNameExpression())
-            {
-                yield return token;
-            }
-            if (!String.IsNullOrWhiteSpace(Alias))
-            {
-                if (options.AliasColumnSourcesUsingAs)
-                {
-                    yield return "AS";
-                }
-                yield return Alias;
-            }
-        }
-
-        IEnumerable<string> IColumnSource.GetReferenceExpression(CommandOptions options)
-        {
-            if (String.IsNullOrWhiteSpace(Alias))
-            {
-                foreach (string token in getFullNameExpression())
-                {
-                    yield return token;
-                }
-            }
-            else
-            {
-                yield return Alias;
-            }
-        }
-
-        private IEnumerable<string> getFullNameExpression()
-        {
-            if (_schema != null)
-            {
-                yield return _schema.Name;
-                yield return ".";
-            }
-            yield return _name;
+            get { return false; }
         }
     }
 }

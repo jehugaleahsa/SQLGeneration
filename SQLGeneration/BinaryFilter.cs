@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -51,18 +52,14 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IEnumerable<string> GetInnerFilterExpression(CommandOptions options)
+        protected override IEnumerable<string> GetInnerFilterTokens(CommandOptions options)
         {
             // <Binary> => <Left> <Op> <Right>
-            foreach (string token in _leftHand.GetFilterExpression(options))
-            {
-                yield return token;
-            }
-            yield return GetCombinerName(options);
-            foreach (string token in _rightHand.GetFilterExpression(options))
-            {
-                yield return token;
-            }
+            TokenStream stream = new TokenStream();
+            stream.AddRange(_leftHand.GetFilterTokens(options));
+            stream.Add(GetCombinerName(options));
+            stream.AddRange(_rightHand.GetFilterTokens(options));
+            return stream;
         }
 
         /// <summary>

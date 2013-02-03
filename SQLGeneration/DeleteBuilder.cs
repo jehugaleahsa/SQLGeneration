@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -45,9 +46,10 @@ namespace SQLGeneration
         /// Adds the filter to the where clause.
         /// </summary>
         /// <param name="filter">The filter to add.</param>
-        public void AddWhere(IFilter filter)
+        /// <param name="conjunction">Specifies whether to AND or OR the filter with the other filters in the group.</param>
+        public void AddWhere(IFilter filter, Conjunction conjunction)
         {
-            _where.AddFilter(filter);
+            _where.AddFilter(filter, conjunction);
         }
 
         /// <summary>
@@ -65,7 +67,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The command text.</returns>
-        public IEnumerable<string> GetCommandExpression(CommandOptions options)
+        public IEnumerable<string> GetCommandTokens(CommandOptions options)
         {
             if (options == null)
             {
@@ -76,26 +78,22 @@ namespace SQLGeneration
             options.IsInsert = false;
             options.IsUpdate = false;
             options.IsDelete = true;
-            return getCommandExpression(options);
+            return getCommandTokens(options);
         }
 
-        private IEnumerable<string> getCommandExpression(CommandOptions options)
+        private IEnumerable<string> getCommandTokens(CommandOptions options)
         {
             // <DeleteCommand> => "DELETE" [ "FROM" ] <Source> [ "WHERE" <Filter> ]
-            yield return "DELETE";
-            yield return "FROM";
-            foreach (string token in _table.GetDeclarationExpression(options))
-            {
-                yield return token;
-            }
+            TokenStream stream = new TokenStream();
+            stream.Add("DELETE");
+            stream.Add("FROM");
+            stream.AddRange(((IRightJoinItem)_table).GetDeclarationTokens(options));
             if (_where.HasFilters)
             {
-                yield return "WHERE";
-                foreach (string token in _where.GetFilterExpression(options))
-                {
-                    yield return token;
-                }
+                stream.Add("WHERE");
+                stream.AddRange(((IFilter)_where).GetFilterTokens(options));
             }
+            return stream;
         }
     }
 }

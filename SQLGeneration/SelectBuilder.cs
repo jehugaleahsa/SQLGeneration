@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using SQLGeneration.Properties;
+using SQLGeneration.Parsing;
+using System.Globalization;
 
 namespace SQLGeneration
 {
@@ -12,11 +14,13 @@ namespace SQLGeneration
     public class SelectBuilder : ISelectBuilder, IFilteredCommand
     {
         private readonly List<IJoinItem> _from;
-        private readonly List<IProjectionItem> _projection;
+        private readonly List<AliasedProjection> _projection;
+        private readonly HashSet<string> projectionNames;
         private readonly FilterGroup _where;
         private readonly List<OrderBy> _orderBy;
         private readonly List<IGroupByItem> _groupBy;
         private readonly FilterGroup _having;
+        private readonly SourceCollection sources;
 
         /// <summary>
         /// Initializes a new instance of a SelectBuilder.
@@ -24,41 +28,13 @@ namespace SQLGeneration
         public SelectBuilder()
         {
             _from = new List<IJoinItem>();
-            _projection = new List<IProjectionItem>();
+            _projection = new List<AliasedProjection>();
+            projectionNames = new HashSet<string>();
             _where = new FilterGroup();
             _orderBy = new List<OrderBy>();
             _groupBy = new List<IGroupByItem>();
             _having = new FilterGroup();
-        }
-
-        /// <summary>
-        /// Gets or sets the alias of the command when it appears the FROM clause.
-        /// </summary>
-        public string ColumnSourceAlias
-        {
-            get;
-            set;
-        }
-
-        string IColumnSource.Alias
-        {
-            get { return ColumnSourceAlias; }
-            set { ColumnSourceAlias = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the alias of the command when it appears as a projection.
-        /// </summary>
-        public string ProjectionAlias
-        {
-            get;
-            set;
-        }
-
-        string IProjectionItem.Alias
-        {
-            get { return ProjectionAlias; }
-            set { ProjectionAlias = value; }
+            sources = new SourceCollection();
         }
 
         /// <summary>
@@ -80,34 +56,13 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Creates a new column under the sub-select.
-        /// </summary>
-        /// <param name="columnName">The name of the column.</param>
-        /// <returns>The column.</returns>
-        public Column CreateColumn(string columnName)
-        {
-            return new Column(this, columnName);
-        }
-
-        /// <summary>
-        /// Creates a new column under the sub-select with the given alias.
-        /// </summary>
-        /// <param name="columnName">The name of the column.</param>
-        /// <param name="alias">The alias to give the column.</param>
-        /// <returns>The column.</returns>
-        public Column CreateColumn(string columnName, string alias)
-        {
-            return new Column(this, columnName) { Alias = alias };
-        }
-
-        /// <summary>
         /// Gets the items that are part of the projection.
         /// </summary>
-        public IEnumerable<IProjectionItem> Projection
+        public IEnumerable<AliasedProjection> Projection
         {
             get 
             {
-                return new ReadOnlyCollection<IProjectionItem>(_projection);
+                return new ReadOnlyCollection<AliasedProjection>(_projection);
             }
         }
 
@@ -115,28 +70,41 @@ namespace SQLGeneration
         /// Adds a projection item to the projection.
         /// </summary>
         /// <param name="item">The projection item to add.</param>
+        /// <param name="alias">The alias to refer to the item with.</param>
         /// <returns>The item that was added.</returns>
-        public void AddProjection(IProjectionItem item)
+        public AliasedProjection AddProjection(IProjectionItem item, string alias = null)
         {
             if (item == null)
             {
                 throw new ArgumentNullException("item");
             }
-            _projection.Add(item);
+            AliasedProjection projection = new AliasedProjection(item, alias);
+            string name = projection.GetProjectionName();
+            if (name != null)
+            {
+                if (projectionNames.Contains(name))
+                {
+                    string message = String.Format(CultureInfo.CurrentCulture, Resources.DuplicateProjectionName, name);
+                    throw new SQLGenerationException(message);
+                }
+                projectionNames.Add(name);
+            }
+            _projection.Add(projection);
+            return projection;
         }
 
         /// <summary>
         /// Removes the projection item from the projection.
         /// </summary>
-        /// <param name="item">The projection item to remove.</param>
+        /// <param name="projection">The projection item to remove.</param>
         /// <returns>True if the item was removed; otherwise, false.</returns>
-        public bool RemoveProjection(IProjectionItem item)
+        public bool RemoveProjection(AliasedProjection projection)
         {
-            if (item == null)
+            if (projection == null)
             {
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException("projection");
             }
-            return _projection.Remove(item);
+            return _projection.Remove(projection);
         }
 
         /// <summary>
@@ -148,29 +116,99 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Adds the given join item to the from clause.
+        /// Gets the sources that have been added to the builder.
         /// </summary>
-        /// <param name="joinItem">The join item to add.</param>
-        public void AddJoinItem(IJoinItem joinItem)
+        public SourceCollection Sources
         {
-            if (joinItem == null)
-            {
-                throw new ArgumentNullException("joinItem");
-            }
-            _from.Add(joinItem);
+            get { return sources; }
         }
 
         /// <summary>
-        /// Removes the given join item from the from clause.
+        /// Adds the given table to the FROM clause.
         /// </summary>
-        /// <param name="joinItem">The join item to remove.</param>
-        public bool RemoveJoinItem(IJoinItem joinItem)
+        /// <param name="table">The table to add.</param>
+        /// <param name="alias">The optional alias to give the table within the SELECT statement.</param>
+        /// <returns>An object to support aliasing the table and defining columns.</returns>
+        public AliasedSource AddTable(Table table, string alias = null)
         {
-            if (joinItem == null)
+            if (table == null)
+            {
+                throw new ArgumentNullException("table");
+            }
+            AliasedSource source = new AliasedSource(table, alias);
+            sources.AddSource(source.GetSourceName(), source);
+            _from.Add(source.Source);
+            return source;
+        }
+
+        /// <summary>
+        /// Adds the given SELECT statement to the FROM clause.
+        /// </summary>
+        /// <param name="builder">The SELECT statement to add.</param>
+        /// <param name="alias">The optional alias to give the SELECT statement within the SELECT statement.</param>
+        /// <returns>An object to support aliasing the SELECT statement and defining columns.</returns>
+        public AliasedSource AddTable(ISelectBuilder builder, string alias = null)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException("builder");
+            }
+            AliasedSource source = new AliasedSource(builder, alias);
+            sources.AddSource(source.GetSourceName(), source);
+            _from.Add(source.Source);
+            return source;
+        }
+
+        /// <summary>
+        /// Adds the given join to the FROM clause.
+        /// </summary>
+        /// <param name="join">The join to add.</param>
+        public void AddJoin(Join join)
+        {
+            if (join == null)
+            {
+                throw new ArgumentNullException("join");
+            }
+            sources.AddSources(join.Sources);
+            _from.Add(join);
+        }
+
+        /// <summary>
+        /// Removes the given table or SELECT statement from the FROM clause.
+        /// </summary>
+        /// <param name="source">The table or SELECT statement to remove.</param>
+        /// <returns>True if the table or SELECT statement was found and removed; otherwise, false.</returns>
+        public bool RemoveSource(AliasedSource source)
+        {
+            if (source == null)
             {
                 throw new ArgumentNullException("joinItem");
             }
-            return _from.Remove(joinItem);
+            string sourceName = source.GetSourceName();
+            if (sourceName == null)
+            {
+                return _from.Remove(source.Source);
+            }
+            if (sources.Exists(sourceName) && _from.Remove(source.Source))
+            {
+                sources.Remove(sourceName);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Removes the given join from the FROM clause.
+        /// </summary>
+        /// <param name="join">The join to remove.</param>
+        /// <returns>True if the item was found and removed; otherwise, false.</returns>
+        public bool RemoveJoin(Join join)
+        {
+            if (join == null)
+            {
+                throw new ArgumentNullException("joinItem");
+            }
+            return _from.Remove(join);
         }
 
         /// <summary>
@@ -255,9 +293,10 @@ namespace SQLGeneration
         /// Adds the filter to the where clause.
         /// </summary>
         /// <param name="filter">The filter to add.</param>
-        public void AddWhere(IFilter filter)
+        /// <param name="conjunction">Specifies whether to AND or OR that </param>
+        public void AddWhere(IFilter filter, Conjunction conjunction)
         {
-            _where.AddFilter(filter);
+            _where.AddFilter(filter, conjunction);
         }
 
         /// <summary>
@@ -282,9 +321,10 @@ namespace SQLGeneration
         /// Adds the filter to the having clause.
         /// </summary>
         /// <param name="filter">The filter to add.</param>
-        public void AddHaving(IFilter filter)
+        /// <param name="conjunction">Specifies whether to use AND or OR when testing the filter.</param>
+        public void AddHaving(IFilter filter, Conjunction conjunction)
         {
-            _having.AddFilter(filter);
+            _having.AddFilter(filter, conjunction);
         }
 
         /// <summary>
@@ -301,7 +341,7 @@ namespace SQLGeneration
         /// Gets the SQL that represents the query.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        public IEnumerable<string> GetCommandExpression(CommandOptions options)
+        public IEnumerable<string> GetCommandTokens(CommandOptions options)
         {
             if (options == null)
             {
@@ -312,224 +352,153 @@ namespace SQLGeneration
             options.IsInsert = false;
             options.IsUpdate = false;
             options.IsDelete = false;
-            return getCommandExpression(options);
+            return getCommandTokens(options);
         }
 
-        private IEnumerable<string> getCommandExpression(CommandOptions options)
+        private IEnumerable<string> getCommandTokens(CommandOptions options)
         {
-            // <SelectCommand> => "SELECT" [ "DISTINCT" ] [<Top>] <ProjectionList>
-            //      [ "FROM" <Join> ]
-            //      [ "WHERE" <Filter> ]
-            //      [ "GROUP BY" <GroupByList> ]
-            //      [ "HAVING" <Filter> ]
-            //      [ "ORDER BY" <OrderByList> ]
-            if (_projection.Count == 0)
-            {
-                throw new SQLGenerationException(Resources.NoProjections);
-            }
-            yield return "SELECT";
+            TokenStream stream = new TokenStream();
+            stream.Add("SELECT");
             if (IsDistinct)
             {
-                yield return "DISTINCT";
+                stream.Add("DISTINCT");
             }
             if (Top != null)
             {
-                foreach (string token in Top.GetTopExpression(options))
-                {
-                    yield return token;
-                }
+                stream.AddRange(Top.GetTopTokens(options));
             }
-            foreach (string token in buildProjection(options, 0))
-            {
-                yield return token;
-            }
-            if (_from.Count != 0)
-            {
-                yield return "FROM";
-                foreach (string token in buildFrom(options, 0))
-                {
-                    yield return token;
-                }
-            }
+            stream.AddRange(buildProjection(options));
+            stream.AddRange(buildFrom(options));
             if (_where.HasFilters)
             {
-                yield return "WHERE";
-                foreach (string token in _where.GetFilterExpression(options))
-                {
-                    yield return token;
-                }
+                stream.Add("WHERE");
+                stream.AddRange(((IFilter)_where).GetFilterTokens(options));
             }
-            if (_groupBy.Count > 0)
-            {
-                yield return "GROUP BY";
-                foreach (string token in buildGroupBy(options, 0))
-                {
-                    yield return token;
-                }
-            }
+            stream.AddRange(buildGroupBy(options));
             if (_having.HasFilters)
             {
-                yield return "HAVING";
-                foreach (string token in _having.GetFilterExpression(options))
-                {
-                    yield return token;
-                }
+                stream.Add("HAVING");
+                stream.AddRange(((IFilter)_having).GetFilterTokens(options));
             }
-            if (_orderBy.Count > 0)
+            stream.AddRange(buildOrderBy(options));
+            return stream;
+        }
+
+        private IEnumerable<string> buildProjection(CommandOptions options)
+        {
+            using (IEnumerator<AliasedProjection> enumerator = _projection.GetEnumerator())
             {
-                yield return "ORDER BY";
-                foreach (string token in buildOrderBy(options, 0))
+                if (!enumerator.MoveNext())
                 {
-                    yield return token;
+                    throw new SQLGenerationException(Resources.NoProjections);
                 }
+                TokenStream stream = new TokenStream();
+                stream.AddRange(enumerator.Current.GetDeclarationTokens(options));
+                while (enumerator.MoveNext())
+                {
+                    stream.Add(",");
+                    stream.AddRange(enumerator.Current.GetDeclarationTokens(options));
+                }
+                return stream;
             }
         }
 
-        private IEnumerable<string> buildProjection(CommandOptions options, int projectionIndex)
+        private IEnumerable<string> buildFrom(CommandOptions options)
         {
-            if (projectionIndex == _projection.Count - 1)
+            using (IEnumerator<IJoinItem> enumerator = _from.GetEnumerator())
             {
-                IProjectionItem current = _projection[projectionIndex];
-                ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-                foreach (string token in formatter.GetDeclaration(current))
+                TokenStream stream = new TokenStream();
+                if (enumerator.MoveNext())
                 {
-                    yield return token;
+                    stream.Add("FROM");
+                    stream.AddRange(enumerator.Current.GetDeclarationTokens(options));
+                    while (enumerator.MoveNext())
+                    {
+                        stream.Add(",");
+                        stream.AddRange(enumerator.Current.GetDeclarationTokens(options));
+                    }
                 }
-            }
-            else
-            {
-                IProjectionItem current = _projection[projectionIndex];
-                ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-                foreach (string token in formatter.GetDeclaration(current))
-                {
-                    yield return token;
-                }
-                yield return ",";
-                foreach (string token in buildProjection(options, projectionIndex + 1))
-                {
-                    yield return token;
-                }
+                return stream;
             }
         }
 
-        private IEnumerable<string> buildFrom(CommandOptions options, int fromIndex)
+        private IEnumerable<string> buildGroupBy(CommandOptions options)
         {
-            if (fromIndex == _from.Count - 1)
+            using (IEnumerator<IGroupByItem> enumerator = _groupBy.GetEnumerator())
             {
-                IJoinItem current = _from[fromIndex];
-                foreach (string token in current.GetDeclarationExpression(options))
+                TokenStream stream = new TokenStream();
+                if (enumerator.MoveNext())
                 {
-                    yield return token;
+                    stream.Add("GROUP BY");
+                    stream.AddRange(enumerator.Current.GetGroupByTokens(options));
+                    while (enumerator.MoveNext())
+                    {
+                        stream.Add(",");
+                        stream.AddRange(enumerator.Current.GetGroupByTokens(options));
+                    }
                 }
-            }
-            else
-            {
-                IJoinItem current = _from[fromIndex];
-                foreach (string token in current.GetDeclarationExpression(options))
-                {
-                    yield return token;
-                }
-                yield return ",";
-                foreach (string token in buildFrom(options, fromIndex + 1))
-                {
-                    yield return token;
-                }
+                return stream;
             }
         }
 
-        private IEnumerable<string> buildGroupBy(CommandOptions options, int groupByIndex)
+        private IEnumerable<string> buildOrderBy(CommandOptions options)
         {
-            if (groupByIndex == _groupBy.Count - 1)
+            using (IEnumerator<OrderBy> enumerator = _orderBy.GetEnumerator())
             {
-                IGroupByItem current = _groupBy[groupByIndex];
-                foreach (string token in current.GetGroupByExpression(options))
+                TokenStream stream = new TokenStream();
+                if (enumerator.MoveNext())
                 {
-                    yield return token;
+                    stream.Add("ORDER BY");
+                    stream.AddRange(enumerator.Current.GetOrderByTokens(options));
+                    while (enumerator.MoveNext())
+                    {
+                        stream.Add(",");
+                        stream.AddRange(enumerator.Current.GetOrderByTokens(options));
+                    }
                 }
-            }
-            else
-            {
-                IGroupByItem current = _groupBy[groupByIndex];
-                foreach (string token in current.GetGroupByExpression(options))
-                {
-                    yield return token;
-                }
-                yield return ",";
-                foreach (string token in buildGroupBy(options, groupByIndex + 1))
-                {
-                    yield return token;
-                }
+                return stream;
             }
         }
 
-        private IEnumerable<string> buildOrderBy(CommandOptions options, int orderByIndex)
+        IEnumerable<string> IJoinItem.GetDeclarationTokens(CommandOptions options)
         {
-            if (orderByIndex == _orderBy.Count - 1)
-            {
-                OrderBy current = _orderBy[orderByIndex];
-                foreach (string token in current.GetOrderByExpression(options))
-                {
-                    yield return token;
-                }
-            }
-            else
-            {
-                OrderBy current = _orderBy[orderByIndex];
-                foreach (string token in current.GetOrderByExpression(options))
-                {
-                    yield return token;
-                }
-                yield return ",";
-                foreach (string token in buildOrderBy(options, orderByIndex + 1))
-                {
-                    yield return token;
-                }
-            }
+            TokenStream stream = new TokenStream();
+            stream.AddRange(getSelectContentTokens(options));
+            return stream;
         }
 
-        IEnumerable<string> IJoinItem.GetDeclarationExpression(CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
-            foreach (string token in getSelectContent(options))
-            {
-                yield return token;
-            }
-            if (!String.IsNullOrWhiteSpace(ColumnSourceAlias))
-            {
-                if (options.AliasColumnSourcesUsingAs)
-                {
-                    yield return "AS";
-                }
-                yield return ColumnSourceAlias;
-            }
+            return getSelectContentTokens(options);
         }
 
-        IEnumerable<string> IColumnSource.GetReferenceExpression(CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
         {
-            if (String.IsNullOrWhiteSpace(ColumnSourceAlias))
-            {
-                throw new SQLGenerationException(Resources.ReferencedQueryWithoutAlias);
-            }
-            yield return ColumnSourceAlias;
+            return getSelectContentTokens(options);
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
+        IEnumerable<string> getSelectContentTokens(CommandOptions options)
         {
-            return getSelectContent(options);
+            TokenStream stream = new TokenStream();
+            stream.Add("(");
+            stream.AddRange(getCommandTokens(options));
+            stream.Add(")");
+            return stream;
         }
 
-        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
+        string IRightJoinItem.GetSourceName()
         {
-            return getSelectContent(options);
+            return null;
         }
 
-        IEnumerable<string> getSelectContent(CommandOptions options)
+        string IProjectionItem.GetProjectionName()
         {
-            yield return "(";
-            foreach (string token in getCommandExpression(options))
-            {
-                yield return token;
-            }
-            yield return ")";
+            return null;
+        }
+
+        bool IRightJoinItem.IsQuery
+        {
+            get { return true; }
         }
 
         bool IValueProvider.IsQuery

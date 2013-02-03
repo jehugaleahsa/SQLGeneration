@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -15,34 +16,32 @@ namespace SQLGeneration
         {
         }
 
-        /// <summary>
-        /// Gets or sets an alias for the null.
-        /// </summary>
-        public string Alias
+        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
-            get;
-            set;
+            return getNullToken();
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
         {
-            yield return getNullLiteral();
+            return getNullToken();
         }
 
-        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
+        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
         {
-            yield return getNullLiteral();
+            return getNullToken();
         }
 
-        IEnumerable<string> IGroupByItem.GetGroupByExpression(CommandOptions options)
-        {
-            yield return getNullLiteral();
-        }
-
-        private static string getNullLiteral()
+        private static IEnumerable<string> getNullToken()
         {
             // "NULL"
-            return "NULL";
+            TokenStream stream = new TokenStream();
+            stream.Add("NULL");
+            return stream;
+        }
+
+        string IProjectionItem.GetProjectionName()
+        {
+            return null;
         }
     }
 }

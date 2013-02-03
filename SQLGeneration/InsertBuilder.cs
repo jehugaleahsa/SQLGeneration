@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -89,7 +90,7 @@ namespace SQLGeneration
         /// Gets the SQL for the insert statement.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        public IEnumerable<string> GetCommandExpression(CommandOptions options)
+        public IEnumerable<string> GetCommandTokens(CommandOptions options)
         {
             if (options == null)
             {
@@ -100,61 +101,42 @@ namespace SQLGeneration
             options.IsInsert = true;
             options.IsUpdate = false;
             options.IsDelete = false;
-            return getCommandExpression(options);
+            return getCommandToken(options);
         }
 
-        private IEnumerable<string> getCommandExpression(CommandOptions options)
+        private IEnumerable<string> getCommandToken(CommandOptions options)
         {
             // "INSERT" [ "INTO" ] <Source> [ "(" <ColumnList> ")" ] { "VALUES" "(" <ValueList> ")" | <SubSelect> }
-            yield return "INSERT";
-            yield return "INTO";
-            foreach (string token in _table.GetDeclarationExpression(options))
-            {
-                yield return token;
-            }
-            if (_columns.Count > 0)
-            {
-                yield return "(";
-                foreach (string token in buildColumnList(options, 0))
-                {
-                    yield return token;
-                }
-                yield return ")";
-            }
+            TokenStream stream = new TokenStream();
+            stream.Add("INSERT");
+            stream.Add("INTO");
+            stream.AddRange(((IRightJoinItem)_table).GetDeclarationTokens(options));
+            stream.AddRange(buildColumnList(options));
             if (!_values.IsQuery)
             {
-                yield return "VALUES";
+                stream.Add("VALUES");
             }
-            foreach (string token in _values.GetFilterExpression(options))
-            {
-                yield return token;
-            }
+            stream.AddRange(_values.GetFilterTokens(options));
+            return stream;
         }
 
-        private IEnumerable<string> buildColumnList(CommandOptions options, int columnIndex)
+        private IEnumerable<string> buildColumnList(CommandOptions options)
         {
-            if (columnIndex == _columns.Count - 1)
+            using (IEnumerator<Column> enumerator = _columns.GetEnumerator())
             {
-                Column column = _columns[columnIndex];
-                ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-                foreach (string token in formatter.GetUnaliasedReference(column))
+                TokenStream stream = new TokenStream();
+                if (enumerator.MoveNext())
                 {
-                    yield return token;
+                    stream.Add("(");
+                    stream.AddRange(((IProjectionItem)enumerator.Current).GetProjectionTokens(options));
+                    while (enumerator.MoveNext())
+                    {
+                        stream.Add(",");
+                        stream.AddRange(((IProjectionItem)enumerator.Current).GetProjectionTokens(options));
+                    }
+                    stream.Add(")");
                 }
-            }
-            else
-            {
-                ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-                Column column = _columns[columnIndex];
-                foreach (string token in formatter.GetUnaliasedReference(column))
-                {
-                    yield return token;
-                }
-                yield return ",";
-                foreach (string token in buildColumnList(options, columnIndex + 1))
-                {
-                    yield return token;
-                }
+                return stream;
             }
         }
     }

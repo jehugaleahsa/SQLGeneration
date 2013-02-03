@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using SQLGeneration.Properties;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -85,9 +86,10 @@ namespace SQLGeneration
         /// Adds the filter to the where clause.
         /// </summary>
         /// <param name="filter">The filter to add.</param>
-        public void AddWhere(IFilter filter)
+        /// <param name="conjunction">Specifies whether to use AND or OR when testing the filter.</param>
+        public void AddWhere(IFilter filter, Conjunction conjunction)
         {
-            _where.AddFilter(filter);
+            _where.AddFilter(filter, conjunction);
         }
 
         /// <summary>
@@ -104,7 +106,7 @@ namespace SQLGeneration
         /// Gets the command text.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        public IEnumerable<string> GetCommandExpression(CommandOptions options)
+        public IEnumerable<string> GetCommandTokens(CommandOptions options)
         {
             if (options == null)
             {
@@ -115,58 +117,41 @@ namespace SQLGeneration
             options.IsInsert = false;
             options.IsUpdate = true;
             options.IsDelete = false;
-            return getCommandExpression(options);
+            return getCommandTokens(options);
         }
 
-        private IEnumerable<string> getCommandExpression(CommandOptions options)
+        private IEnumerable<string> getCommandTokens(CommandOptions options)
         {
             // <UpdateCommand> => "UPDATE" <Table> "SET" <SetterList> [ "WHERE" <Filter> ]
-            if (_setters.Count == 0)
-            {
-                throw new SQLGenerationException(Resources.NoSetters);
-            }
-            yield return "UPDATE";
-            foreach (string token in _table.GetDeclarationExpression(options))
-            {
-                yield return token;
-            }
-            yield return "SET";
-            foreach (string token in buildSetterList(options, 0))
-            {
-                yield return token;
-            }
+            TokenStream stream = new TokenStream();
+            stream.Add("UPDATE");
+            stream.AddRange(((IRightJoinItem)_table).GetDeclarationTokens(options));
+            stream.Add("SET");
+            stream.AddRange(buildSetterList(options));
             if (_where.HasFilters)
             {
-                yield return "WHERE";
-                foreach (string token in _where.GetFilterExpression(options))
-                {
-                    yield return token;
-                }
+                stream.Add("WHERE");
+                stream.AddRange(((IFilter)_where).GetFilterTokens(options));
             }
+            return stream;
         }
 
-        private IEnumerable<string> buildSetterList(CommandOptions options, int setterIndex)
+        private IEnumerable<string> buildSetterList(CommandOptions options)
         {
-            if (setterIndex == _setters.Count - 1)
+            using (IEnumerator<Setter> enumerator = _setters.GetEnumerator())
             {
-                Setter current = _setters[setterIndex];
-                foreach (string token in current.GetSetterExpression(options))
+                if (!enumerator.MoveNext())
                 {
-                    yield return token;
+                    throw new SQLGenerationException(Resources.NoSetters);
                 }
-            }
-            else
-            {
-                Setter current = _setters[setterIndex];
-                foreach (string token in current.GetSetterExpression(options))
+                TokenStream stream = new TokenStream();
+                stream.AddRange(enumerator.Current.GetSetterTokens(options));
+                while (enumerator.MoveNext())
                 {
-                    yield return token;
+                    stream.Add(",");
+                    stream.AddRange(enumerator.Current.GetSetterTokens(options));
                 }
-                yield return ",";
-                foreach (string token in buildSetterList(options, setterIndex + 1))
-                {
-                    yield return token;
-                }
+                return stream;
             }
         }
     }

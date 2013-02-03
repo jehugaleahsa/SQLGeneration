@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -8,44 +9,49 @@ namespace SQLGeneration
     /// </summary>
     public class Placeholder : IProjectionItem, IFilterItem, IGroupByItem
     {
-        private readonly string value;
-
         /// <summary>
         /// Initializes a new instance of a Placeholder.
         /// </summary>
         /// <param name="value">The value of the placeholder.</param>
         public Placeholder(string value)
         {
-            this.value = value;
+            Value = value;
         }
 
         /// <summary>
-        /// Gets or sets an alias for the placeholder. This is ignored.
+        /// Gets the value of the placeholder.
         /// </summary>
-        public string Alias
+        public string Value
         {
             get;
-            set;
+            private set;
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
-            return getPlaceholder();
+            return getPlaceholderToken();
         }
 
-        IEnumerable<string> IGroupByItem.GetGroupByExpression(CommandOptions options)
+        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
         {
-            return getPlaceholder();
+            return getPlaceholderToken();
         }
 
-        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
         {
-            return getPlaceholder();
+            return getPlaceholderToken();
         }
 
-        private IEnumerable<string> getPlaceholder()
+        private IEnumerable<string> getPlaceholderToken()
         {
-            yield return value;
+            TokenStream stream = new TokenStream();
+            stream.Add(Value);
+            return stream;
+        }
+
+        string IProjectionItem.GetProjectionName()
+        {
+            return null;
         }
     }
 }

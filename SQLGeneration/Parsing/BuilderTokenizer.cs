@@ -15,7 +15,7 @@ namespace SQLGeneration.Parsing
         /// <param name="command">The command to retrieve the tokens from.</param>
         /// <param name="options">The options to use when generating the command.</param>
         public BuilderTokenizer(ICommand command, CommandOptions options = null)
-            : base(command.GetCommandExpression(options ?? new CommandOptions()))
+            : base(command.GetCommandTokens(options ?? new CommandOptions()))
         {
             Define("AliasIndicator", @"AS", RegexOptions.IgnoreCase);
             Define("ArithmeticOperator", @"\+");

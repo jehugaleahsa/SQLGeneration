@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -15,23 +16,12 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="item">The item to check whether or not is null.</param>
         public NullFilter(IFilterItem item)
-            : this(item, true)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of a NullFilter.
-        /// </summary>
-        /// <param name="item">The item to check whether or not is null.</param>
-        /// <param name="isNull">Specifies whether to check if the column is null or not null.</param>
-        public NullFilter(IFilterItem item, bool isNull)
         {
             if (item == null)
             {
                 throw new ArgumentNullException("item");
             }
             _item = item;
-            IsNull = isNull;
         }
 
         /// <summary>
@@ -43,9 +33,9 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Gets or sets whether to compare the item to null or not null.
+        /// Gets or sets whether to negate the comparison.
         /// </summary>
-        public bool IsNull
+        public bool Not
         {
             get;
             set;
@@ -56,19 +46,18 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IEnumerable<string> GetInnerFilterExpression(CommandOptions options)
+        protected override IEnumerable<string> GetInnerFilterTokens(CommandOptions options)
         {
             // "IS" [ "NOT" ] "NULL"
-            foreach (string token in _item.GetFilterExpression(options))
+            TokenStream stream = new TokenStream();
+            stream.AddRange(_item.GetFilterTokens(options));
+            stream.Add("IS");
+            if (Not)
             {
-                yield return token;
+                stream.Add("NOT");
             }
-            yield return "IS";
-            if (!IsNull)
-            {
-                yield return "NOT";
-            }
-            yield return "NULL";
+            stream.Add("NULL");
+            return stream;
         }
     }
 }

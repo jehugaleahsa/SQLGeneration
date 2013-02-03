@@ -13,6 +13,6 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The expressions.</returns>
-        IEnumerable<string> GetCommandExpression(CommandOptions options);
+        IEnumerable<string> GetCommandTokens(CommandOptions options);
     }
 }

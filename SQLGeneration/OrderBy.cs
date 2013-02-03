@@ -1,6 +1,7 @@
 ﻿using System;
 using SQLGeneration.Properties;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -9,42 +10,42 @@ namespace SQLGeneration
     /// </summary>
     public class OrderBy
     {
-        private readonly IProjectionItem _item;
-        private Order _order;
-        private NullPlacement _placement;
-
         /// <summary>
         /// Initializes a new instance of a OrderBy.
         /// </summary>
-        /// <param name="item">The item to sort by.</param>
-        public OrderBy(IProjectionItem item)
-            : this(item, Order.Default, NullPlacement.Default)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of a OrderBy.
-        /// </summary>
-        /// <param name="item">The item to sort by.</param>
-        /// <param name="order">The order in which to sort the items.</param>
-        public OrderBy(IProjectionItem item, Order order)
-            : this(item, order, NullPlacement.Default)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of a OrderBy.
-        /// </summary>
-        /// <param name="item">The item to sort by.</param>
+        /// <param name="projection">The item to sort by.</param>
         /// <param name="order">The order in which to sort the items.</param>
         /// <param name="nullPlacement">The placement of nulls in the results.</param>
-        public OrderBy(IProjectionItem item, Order order, NullPlacement nullPlacement)
+        public OrderBy(
+            AliasedProjection projection, 
+            Order order = Order.Default, 
+            NullPlacement nullPlacement = NullPlacement.Default)
         {
-            if (item == null)
+            if (projection == null)
             {
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException("projection");
             }
-            _item = item;
+            Projection = projection;
+            Order = order;
+            NullPlacement = nullPlacement;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of a OrderBy.
+        /// </summary>
+        /// <param name="projection">The item to sort by.</param>
+        /// <param name="order">The order in which to sort the items.</param>
+        /// <param name="nullPlacement">The placement of nulls in the results.</param>
+        public OrderBy(
+            IProjectionItem projection,
+            Order order = Order.Default,
+            NullPlacement nullPlacement = NullPlacement.Default)
+        {
+            if (projection == null)
+            {
+                throw new ArgumentNullException("projection");
+            }
+            Projection = new AliasedProjection(projection, null);
             Order = order;
             NullPlacement = nullPlacement;
         }
@@ -52,9 +53,10 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the item to order by.
         /// </summary>
-        public IProjectionItem Item
+        public AliasedProjection Projection
         {
-            get { return _item; }
+            get;
+            private set;
         }
 
         /// <summary>
@@ -62,18 +64,8 @@ namespace SQLGeneration
         /// </summary>
         public Order Order
         {
-            get
-            {
-                return _order;
-            }
-            set
-            {
-                if (!Enum.IsDefined(typeof(Order), value))
-                {
-                    throw new ArgumentException(Resources.UnknownOrder, "value");
-                }
-                _order = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -81,18 +73,8 @@ namespace SQLGeneration
         /// </summary>
         public NullPlacement NullPlacement
         {
-            get
-            {
-                return _placement;
-            }
-            set
-            {
-                if (!Enum.IsDefined(typeof(NullPlacement), value))
-                {
-                    throw new ArgumentException(Resources.UnknownNullPlacement, "value");
-                }
-                _placement = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -100,24 +82,21 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The order by text.</returns>
-        public IEnumerable<string> GetOrderByExpression(CommandOptions options)
+        internal IEnumerable<string> GetOrderByTokens(CommandOptions options)
         {
-            // <OrderBy> => <ColumnRef> [ { "ASC" | "DESC" } ] [ { "NULLS FIRST" | "NULLS LAST" } ]
-            ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-            foreach (string token in formatter.GetAliasedReference(_item))
-            {
-                yield return token;
-            }
-            if (_order != Order.Default)
+            TokenStream stream = new TokenStream();
+            stream.AddRange(Projection.GetReferenceTokens(options));
+            if (Order != Order.Default)
             {
                 OrderConverter converter = new OrderConverter();
-                yield return converter.ToToken(_order);
+                stream.Add(converter.ToToken(Order));
             }
-            if (_placement != NullPlacement.Default)
+            if (NullPlacement != NullPlacement.Default)
             {
                 NullPlacementConverter converter = new NullPlacementConverter();
-                yield return converter.ToToken(_placement);
+                stream.Add(converter.ToToken(NullPlacement));
             }
+            return stream;
         }
     }
 }

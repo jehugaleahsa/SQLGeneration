@@ -151,11 +151,38 @@ namespace SQLGeneration.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Encountered a duplicate projection name: {0}. Use an alias to distinguish between projections with the same name..
+        /// </summary>
+        internal static string DuplicateProjectionName {
+            get {
+                return ResourceManager.GetString("DuplicateProjectionName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encountered a duplicate source name: {0}. Use an alias to distinguish between multiple references to the same table..
+        /// </summary>
+        internal static string DuplicateSourceName {
+            get {
+                return ResourceManager.GetString("DuplicateSourceName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An attempt was made to build an empty filter clause..
         /// </summary>
         internal static string EmptyFilterGroup {
             get {
                 return ResourceManager.GetString("EmptyFilterGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An attempt was made to specify an empty namespace..
+        /// </summary>
+        internal static string EmptyNamespace {
+            get {
+                return ResourceManager.GetString("EmptyNamespace", resourceCulture);
             }
         }
         
@@ -246,6 +273,15 @@ namespace SQLGeneration.Properties {
         internal static string UnknownOrder {
             get {
                 return ResourceManager.GetString("UnknownOrder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An attempt was made to retrieve an unknown table or select statement..
+        /// </summary>
+        internal static string UnknownSource {
+            get {
+                return ResourceManager.GetString("UnknownSource", resourceCulture);
             }
         }
         

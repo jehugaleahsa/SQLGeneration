@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -8,9 +9,6 @@ namespace SQLGeneration
     /// </summary>
     public class InFilter : Filter
     {
-        private readonly IFilterItem leftHand;
-        private readonly IValueProvider values;
-
         /// <summary>
         /// Initializes a new instance of a InFilter.
         /// </summary>
@@ -26,8 +24,17 @@ namespace SQLGeneration
             {
                 throw new ArgumentNullException("values");
             }
-            this.leftHand = leftHand;
-            this.values = values;
+            LeftHand = leftHand;
+            Values = values;
+        }
+
+        /// <summary>
+        /// Gets or sets whether to negate the comparison.
+        /// </summary>
+        public bool Not
+        {
+            get;
+            set;
         }
 
         /// <summary>
@@ -35,7 +42,8 @@ namespace SQLGeneration
         /// </summary>
         public IFilterItem LeftHand
         {
-            get { return leftHand; }
+            get;
+            private set;
         }
 
         /// <summary>
@@ -43,7 +51,8 @@ namespace SQLGeneration
         /// </summary>
         public IValueProvider Values
         {
-            get { return values; }
+            get;
+            private set;
         }
 
         /// <summary>
@@ -51,18 +60,18 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IEnumerable<string> GetInnerFilterExpression(CommandOptions options)
+        protected override IEnumerable<string> GetInnerFilterTokens(CommandOptions options)
         {
-            // <InFilter> => <Left> "IN" <Right>
-            foreach (string token in leftHand.GetFilterExpression(options))
+            // <InFilter> => <Left> [ "NOT" ] "IN" <ValueList>
+            TokenStream stream = new TokenStream();
+            stream.AddRange(LeftHand.GetFilterTokens(options));
+            if (Not)
             {
-                yield return token;
+                stream.Add("NOT");
             }
-            yield return "IN";
-            foreach (string token in values.GetFilterExpression(options))
-            {
-                yield return token;
-            }
+            stream.Add("IN");
+            stream.AddRange(Values.GetFilterTokens(options));
+            return stream;
         }
     }
 }

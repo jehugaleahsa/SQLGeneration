@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using SQLGeneration.Properties;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -32,27 +33,6 @@ namespace SQLGeneration
         }
 
         /// <summary>
-        /// Creates a new column under the table.
-        /// </summary>
-        /// <param name="columnName">The name of the column.</param>
-        /// <returns>The column.</returns>
-        public Column CreateColumn(string columnName)
-        {
-            return new Column(this, columnName);
-        }
-
-        /// <summary>
-        /// Creates a new column under the multi-select.
-        /// </summary>
-        /// <param name="columnName">The name of the column.</param>
-        /// <param name="alias">The alias to give the column.</param>
-        /// <returns>The column.</returns>
-        public Column CreateColumn(string columnName, string alias)
-        {
-            return new Column(this, columnName);
-        }
-
-        /// <summary>
         /// Gets the SELECT command on the left side.
         /// </summary>
         public ISelectBuilder LeftHand
@@ -73,14 +53,14 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The expression making up the command.</returns>
-        public IEnumerable<string> GetCommandExpression(CommandOptions options)
+        public IEnumerable<string> GetCommandTokens(CommandOptions options)
         {
             // <SelectCombiner> => <Select> <Combiner> <Select>
             if (options == null)
             {
                 throw new ArgumentNullException("options");
             }
-            return getCommandExpression(options);
+            return getCommandTokens(options);
         }
 
         /// <summary>
@@ -88,99 +68,59 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The text used to combine two queries.</returns>
-        protected abstract string GetCombinationName(CommandOptions options);
+        protected abstract string GetCombinationType(CommandOptions options);
 
-        /// <summary>
-        /// Gets or sets an alias when the SELECT command appears in the FROM clause.
-        /// </summary>
-        public string ColumnSourceAlias
+        IEnumerable<string> IJoinItem.GetDeclarationTokens(CommandOptions options)
         {
-            get;
-            set;
+            return getWrappedCommandTokens(options);
         }
 
-        string IColumnSource.Alias
+        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
-            get { return ColumnSourceAlias; }
-            set { ColumnSourceAlias = value; }
+            return getWrappedCommandTokens(options);
         }
 
-        /// <summary>
-        /// Gets or sets an alias when the SELECT command appears as a projection.
-        /// </summary>
-        public string ProjectionAlias
+        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
         {
-            get;
-            set;
+            return getWrappedCommandTokens(options);
         }
 
-        string IProjectionItem.Alias
+        private IEnumerable<string> getWrappedCommandTokens(CommandOptions options)
         {
-            get { return ProjectionAlias; }
-            set { ProjectionAlias = value; }
+            TokenStream stream = new TokenStream();
+            stream.Add("(");
+            stream.AddRange(getCommandTokens(options));
+            stream.Add(")");
+            return stream;
         }
 
-        IEnumerable<string> IJoinItem.GetDeclarationExpression(CommandOptions options)
+        private IEnumerable<string> getCommandTokens(CommandOptions options)
         {
-            foreach (string token in getWrappedCommand(options))
-            {
-                yield return token;
-            }
-            if (!String.IsNullOrWhiteSpace(ColumnSourceAlias))
-            {
-                if (options.AliasColumnSourcesUsingAs)
-                {
-                    yield return "AS";
-                }
-                yield return ColumnSourceAlias;
-            }
+            TokenStream stream = new TokenStream();
+            stream.AddRange(leftHand.GetCommandTokens(options));
+            stream.Add(GetCombinationType(options));
+            stream.AddRange(rightHand.GetCommandTokens(options));
+            return stream;
         }
 
-        IEnumerable<string> IColumnSource.GetReferenceExpression(CommandOptions options)
+        string IRightJoinItem.GetSourceName()
         {
-            if (String.IsNullOrWhiteSpace(ColumnSourceAlias))
-            {
-                throw new SQLGenerationException(Resources.ReferencedQueryCombinerWithoutAlias);
-            }
-            yield return ColumnSourceAlias;
+            return null;
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
+        bool IRightJoinItem.IsQuery
         {
-            return getWrappedCommand(options);
-        }
-
-        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
-        {
-            return getWrappedCommand(options);
-        }
-
-        private IEnumerable<string> getWrappedCommand(CommandOptions options)
-        {
-            yield return "(";
-            foreach (string token in getCommandExpression(options))
-            {
-                yield return token;
-            }
-            yield return ")";
-        }
-
-        private IEnumerable<string> getCommandExpression(CommandOptions options)
-        {
-            foreach (string token in leftHand.GetCommandExpression(options))
-            {
-                yield return token;
-            }
-            yield return GetCombinationName(options);
-            foreach (string token in rightHand.GetCommandExpression(options))
-            {
-                yield return token;
-            }
+            get { return true; }
         }
 
         bool IValueProvider.IsQuery
         {
             get { return true; }
+        }
+
+        string IProjectionItem.GetProjectionName()
+        {
+            return null;
         }
     }
 }

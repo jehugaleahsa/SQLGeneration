@@ -1,61 +1,69 @@
 ﻿using System;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
     /// <summary>
     /// Represents a join that is filtered with an ON expression.
     /// </summary>
-    public abstract class FilteredJoin : Join
+    public abstract class FilteredJoin : BinaryJoin
     {
-        private readonly FilterGroup on;
+        private FilterGroup on;
 
         /// <summary>
         /// Initializes a new instance of a FilteredJoin.
         /// </summary>
         /// <param name="left">The left hand item in the join.</param>
         /// <param name="right">The right hand item in the join.</param>
-        /// <param name="filters">The filters to apply.</param>
-        protected FilteredJoin(IJoinItem left, IRightJoinItem right, IEnumerable<IFilter> filters)
+        protected FilteredJoin(Join left, AliasedSource right)
             : base(left, right)
         {
-            if (filters == null)
-            {
-                throw new ArgumentNullException("filters");
-            }
             on = new FilterGroup();
-            foreach (IFilter filter in filters)
+        }
+
+        /// <summary>
+        /// Sets the condition on which the source is joined with the other tables.
+        /// </summary>
+        /// <param name="filterGenerator">A function that creates the join.</param>
+        /// <returns>The current join.</returns>
+        public Join On(Func<Join, IFilter> filterGenerator)
+        {
+            if (filterGenerator == null)
             {
-                on.AddFilter(filter);
+                throw new ArgumentNullException("filterGenerator");
             }
+            FilterGroup newGroup = new FilterGroup();
+            IFilter filter = filterGenerator(this);
+            newGroup.AddFilter(filter, Conjunction.And);
+            on = newGroup;
+            return this;
         }
 
         /// <summary>
         /// Gets the filters by which the left and right hand items are joined.
         /// </summary>
-        public IEnumerable<IFilter> On
+        public IEnumerable<IFilter> OnFilters
         {
-            get
-            {
-                return on.Filters;
-            }
+            get { return on.Filters; }
         }
 
         /// <summary>
-        /// Adds a condition by which the items are joined.
+        /// Adds the filter to the group.
         /// </summary>
-        /// <param name="filter">The join condition.</param>
-        public void AddFilter(IFilter filter)
+        /// <param name="filter">The filter to add.</param>
+        /// <param name="conjunction">Specifies whether to AND or OR the filter with the other filters in the group.</param>
+        public void AddOnFilter(IFilter filter, Conjunction conjunction)
         {
-            on.AddFilter(filter);
+            on.AddFilter(filter, conjunction);
         }
 
         /// <summary>
-        /// Removes a condition by which the items are joined.
+        /// Removes the filter from the group.
         /// </summary>
-        /// <param name="filter">The join condition.</param>
+        /// <param name="filter">The filter to remove.</param>
         /// <returns>True if the filter was removed; otherwise, false.</returns>
-        public bool RemoveFilter(IFilter filter)
+        public bool RemoveOnFilter(IFilter filter)
         {
             return on.RemoveFilter(filter);
         }
@@ -65,14 +73,13 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration settings to use.</param>
         /// <returns>The generated text.</returns>
-        protected override IEnumerable<string> GetOnExpression(CommandOptions options)
+        protected override IEnumerable<string> GetOnTokens(CommandOptions options)
         {
             // "ON" <Filter>
-            yield return "ON";
-            foreach (string token in on.GetFilterExpression(options))
-            {
-                yield return token;
-            }
+            TokenStream stream = new TokenStream();
+            stream.Add("ON");
+            stream.AddRange(((IFilter)on).GetFilterTokens(options));
+            return stream;
         }
     }
 }

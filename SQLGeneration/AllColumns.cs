@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -9,7 +10,7 @@ namespace SQLGeneration
     /// </summary>
     public class AllColumns : IProjectionItem
     {
-        private readonly IColumnSource source;
+        private readonly AliasedSource source;
 
         /// <summary>
         /// Initializes a new instacne of an AllColumns
@@ -24,33 +25,26 @@ namespace SQLGeneration
         /// that selects all the columns from the given table or join.
         /// </summary>
         /// <param name="source">The table or join to select all the columns from.</param>
-        public AllColumns(IColumnSource source)
+        public AllColumns(AliasedSource source)
         {
             this.source = source;
         }
 
-        /// <summary>
-        /// Gets or sets an alias. This is ignored.
-        /// </summary>
-        public string Alias
+        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
-            get { return String.Empty; }
-            set { }
-        }
-
-        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
-        {
-            // <Column> => [ <Source> "." ] "*"
-            StringBuilder builder = new StringBuilder();
+            TokenStream stream = new TokenStream();
             if (source != null)
             {
-                foreach (string token in source.GetReferenceExpression(options))
-                {
-                    yield return token;
-                }
-                yield return ".";
+                stream.AddRange(source.GetReferenceTokens(options));
+                stream.Add(".");
             }
-            yield return "*";
+            stream.Add("*");
+            return stream;
+        }
+
+        string IProjectionItem.GetProjectionName()
+        {
+            return null;
         }
     }
 }

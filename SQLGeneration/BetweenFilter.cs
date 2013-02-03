@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -75,27 +76,20 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IEnumerable<string> GetInnerFilterExpression(CommandOptions options)
+        protected override IEnumerable<string> GetInnerFilterTokens(CommandOptions options)
         {
             // <Between> => <Value> [ "NOT" ] "BETWEEN" <Lower> "AND" <Upper>
-            foreach (string token in _value.GetFilterExpression(options))
-            {
-                yield return token;
-            }
+            TokenStream stream = new TokenStream();
+            stream.AddRange(_value.GetFilterTokens(options));
             if (Not)
             {
-                yield return "NOT";
+                stream.Add("NOT");
             }
-            yield return "BETWEEN";
-            foreach (string token in _lowerBound.GetFilterExpression(options))
-            {
-                yield return token;
-            }
-            yield return "AND";
-            foreach (string token in _upperBound.GetFilterExpression(options))
-            {
-                yield return token;
-            }
+            stream.Add("BETWEEN");
+            stream.AddRange(_lowerBound.GetFilterTokens(options));
+            stream.Add("AND");
+            stream.AddRange(_upperBound.GetFilterTokens(options));
+            return stream;
         }
     }
 }

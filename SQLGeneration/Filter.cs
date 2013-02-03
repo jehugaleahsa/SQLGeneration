@@ -1,6 +1,7 @@
 ﻿using System;
 using SQLGeneration.Properties;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -9,8 +10,6 @@ namespace SQLGeneration
     /// </summary>
     public abstract class Filter : IFilter
     {
-        private Conjunction _conjunction;
-
         /// <summary>
         /// Initializes a new instance of a Filter.
         /// </summary>
@@ -23,18 +22,8 @@ namespace SQLGeneration
         /// </summary>
         public Conjunction Conjunction
         {
-            get
-            {
-                return _conjunction;
-            }
-            set
-            {
-                if (!Enum.IsDefined(typeof(Conjunction), value))
-                {
-                    throw new ArgumentException(Resources.UnknownConjunction, "value");
-                }
-                _conjunction = value;
-            }
+            get;
+            set;
         }
 
         /// <summary>
@@ -46,27 +35,21 @@ namespace SQLGeneration
             set;
         }
 
-        /// <summary>
-        /// Gets the text for the filter expression.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The filter text.</returns>
-        public IEnumerable<string> GetFilterExpression(CommandOptions options)
+        IEnumerable<string> IFilter.GetFilterTokens(CommandOptions options)
         {
             // <Filter> => [ "(" ] <Filter> [ ")" ]
+            TokenStream stream = new TokenStream();
             bool wrapInParentheses = ShouldWrapInParentheses(options);
             if (wrapInParentheses)
             {
-                yield return "(";
+                stream.Add("(");
             }
-            foreach (string token in GetInnerFilterExpression(options))
-            {
-                yield return token;
-            }
+            stream.AddRange(GetInnerFilterTokens(options));
             if (wrapInParentheses)
             {
-                yield return ")";
+                stream.Add(")");
             }
+            return stream;
         }
 
         /// <summary>
@@ -74,7 +57,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected abstract IEnumerable<string> GetInnerFilterExpression(CommandOptions options);
+        protected abstract IEnumerable<string> GetInnerFilterTokens(CommandOptions options);
 
         /// <summary>
         /// Determines whether the filter should be surrounded by parentheses.

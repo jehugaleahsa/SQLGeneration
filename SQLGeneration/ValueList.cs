@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -72,44 +73,24 @@ namespace SQLGeneration
             return _values.Remove(item);
         }
 
-        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
         {
             // <ValueList> => "(" [ <ProjectionReference> [ "," <ValueList> ] ] ")"
-            yield return "(";
-            if (_values.Count > 0)
+            using (IEnumerator<IProjectionItem> enumerator = _values.GetEnumerator())
             {
-                foreach (string token in buildValueList(options, 0))
+                TokenStream stream = new TokenStream();
+                stream.Add("(");
+                if (enumerator.MoveNext())
                 {
-                    yield return token;
+                    stream.AddRange(enumerator.Current.GetProjectionTokens(options));
+                    while (enumerator.MoveNext())
+                    {
+                        stream.Add(",");
+                        stream.AddRange(enumerator.Current.GetProjectionTokens(options));
+                    }
                 }
-            }
-            yield return ")";
-        }
-
-        private IEnumerable<string> buildValueList(CommandOptions options, int valueIndex)
-        {
-            if (valueIndex == _values.Count - 1)
-            {
-                IProjectionItem current = _values[valueIndex];
-                ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-                foreach (string token in formatter.GetUnaliasedReference(current))
-                {
-                    yield return token;
-                }
-            }
-            else
-            {
-                IProjectionItem current = _values[valueIndex];
-                ProjectionItemFormatter formatter = new ProjectionItemFormatter(options);
-                foreach (string token in formatter.GetUnaliasedReference(current))
-                {
-                    yield return token;
-                }
-                yield return ",";
-                foreach (string token in buildValueList(options, valueIndex + 1))
-                {
-                    yield return token;
-                }
+                stream.Add(")");
+                return stream;
             }
         }
 

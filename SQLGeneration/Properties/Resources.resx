@@ -147,8 +147,17 @@
   <data name="DuplicateExpressionItemName" xml:space="preserve">
     <value>An attempt was made to define two expressions items with the same name.</value>
   </data>
+  <data name="DuplicateProjectionName" xml:space="preserve">
+    <value>Encountered a duplicate projection name: {0}. Use an alias to distinguish between projections with the same name.</value>
+  </data>
+  <data name="DuplicateSourceName" xml:space="preserve">
+    <value>Encountered a duplicate source name: {0}. Use an alias to distinguish between multiple references to the same table.</value>
+  </data>
   <data name="EmptyFilterGroup" xml:space="preserve">
     <value>An attempt was made to build an empty filter clause.</value>
+  </data>
+  <data name="EmptyNamespace" xml:space="preserve">
+    <value>An attempt was made to specify an empty namespace.</value>
   </data>
   <data name="EmptyOnExpression" xml:space="preserve">
     <value>An attempt was made to build a join without any filters.</value>
@@ -179,6 +188,9 @@
   </data>
   <data name="UnknownOrder" xml:space="preserve">
     <value>Encountered an unknown ordering.</value>
+  </data>
+  <data name="UnknownSource" xml:space="preserve">
+    <value>An attempt was made to retrieve an unknown table or select statement.</value>
   </data>
   <data name="UnknownTokenType" xml:space="preserve">
     <value>Encountered an unknown token type.</value>

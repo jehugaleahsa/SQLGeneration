@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using SQLGeneration.Properties;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration
 {
@@ -9,9 +10,8 @@ namespace SQLGeneration
     /// </summary>
     public class Function : IProjectionItem, IFilterItem, IGroupByItem
     {
-        private readonly Schema _schema;
-        private readonly string _name;
-        private readonly ValueList _arguments;
+        private readonly Namespace qualifier;
+        private readonly ValueList arguments;
 
         /// <summary>
         /// Initializes a new instance of a Function.
@@ -25,10 +25,10 @@ namespace SQLGeneration
         /// <summary>
         /// Initializes a new instance of a Function.
         /// </summary>
-        /// <param name="schema">The schema the function exists in.</param>
+        /// <param name="qualifier">The schema the function exists in.</param>
         /// <param name="name">The name of the function.</param>
-        public Function(Schema schema, string name)
-            : this(schema, name, new IProjectionItem[0])
+        public Function(Namespace qualifier, string name)
+            : this(qualifier, name, new IProjectionItem[0])
         {
         }
 
@@ -45,29 +45,26 @@ namespace SQLGeneration
         /// <summary>
         /// Initializes a new instance of a Function.
         /// </summary>
-        /// <param name="schema">The schema the function exists in.</param>
+        /// <param name="qualifier">The schema the function exists in.</param>
         /// <param name="name">The name of the function.</param>
         /// <param name="arguments">The arguments being passed to the function.</param>
-        public Function(Schema schema, string name, params IProjectionItem[] arguments)
+        public Function(Namespace qualifier, string name, params IProjectionItem[] arguments)
         {
             if (String.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentException(Resources.BlankFunctionName, "name");
             }
-            _schema = schema;
-            _name = name;
-            _arguments = new ValueList(arguments);
+            this.qualifier = qualifier;
+            Name = name;
+            this.arguments = new ValueList(arguments);
         }
 
         /// <summary>
         /// Gets or sets the schema the functions belongs to.
         /// </summary>
-        public Schema Schema
+        public Namespace Qualifier
         {
-            get
-            {
-                return _schema;
-            }
+            get { return qualifier; }
         }
 
         /// <summary>
@@ -75,19 +72,8 @@ namespace SQLGeneration
         /// </summary>
         public string Name
         {
-            get
-            {
-                return _name;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the alias of the function.
-        /// </summary>
-        public string Alias
-        {
             get;
-            set;
+            private set;
         }
 
         /// <summary>
@@ -95,10 +81,7 @@ namespace SQLGeneration
         /// </summary>
         public IEnumerable<IProjectionItem> Arguments
         {
-            get
-            {
-                return _arguments.Values;
-            }
+            get { return arguments.Values; }
         }
 
         /// <summary>
@@ -107,7 +90,7 @@ namespace SQLGeneration
         /// <param name="item">The value to add.</param>
         public void AddArgument(IProjectionItem item)
         {
-            _arguments.AddValue(item);
+            arguments.AddValue(item);
         }
 
         /// <summary>
@@ -117,37 +100,41 @@ namespace SQLGeneration
         /// <returns>True if the item was removed; otherwise, false.</returns>
         public bool RemoveArgument(IProjectionItem item)
         {
-            return _arguments.RemoveValue(item);
+            return arguments.RemoveValue(item);
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionExpression(CommandOptions options)
+        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
-            return getFunctionExpression(options);
+            return getFunctionTokens(options);
         }
 
-        IEnumerable<string> IFilterItem.GetFilterExpression(CommandOptions options)
+        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
         {
-            return getFunctionExpression(options);
+            return getFunctionTokens(options);
         }
 
-        IEnumerable<string> IGroupByItem.GetGroupByExpression(CommandOptions options)
+        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
         {
-            return getFunctionExpression(options);
+            return getFunctionTokens(options);
         }
 
-        private IEnumerable<string> getFunctionExpression(CommandOptions options)
+        private IEnumerable<string> getFunctionTokens(CommandOptions options)
         {
             // <Function> => [ <Schema> "." ] <Name> "(" [ <ValueList> ] ")"
-            if (_schema != null)
+            TokenStream stream = new TokenStream();
+            if (qualifier != null)
             {
-                yield return _schema.Name;
-                yield return ".";
+                stream.AddRange(qualifier.GetNamespaceTokens());
+                stream.Add(".");
             }
-            yield return _name;
-            foreach (string token in ((IFilterItem)_arguments).GetFilterExpression(options))
-            {
-                yield return token;
-            }
+            stream.Add(Name);
+            stream.AddRange(((IFilterItem)arguments).GetFilterTokens(options));
+            return stream;
+        }
+
+        string IProjectionItem.GetProjectionName()
+        {
+            return null;
         }
     }
 }

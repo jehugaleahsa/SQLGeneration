@@ -4,101 +4,135 @@ using System.Collections.Generic;
 namespace SQLGeneration
 {
     /// <summary>
-    /// Represents a join between two tables, joins or sub-queries.
+    /// Represents a portion of a series of joins.
     /// </summary>
     public abstract class Join : IJoinItem
     {
-        private readonly IJoinItem _leftHand;
-        private readonly IRightJoinItem _rightHand;
+        private readonly SourceCollection sources;
 
         /// <summary>
-        /// Initializes a new instance of a InnerJoin.
+        /// Initializes a new instance of a Join.
         /// </summary>
-        /// <param name="leftHand">The left hand item or join.</param>
-        /// <param name="rightHand">The right hand item in the join.</param>
-        protected Join(IJoinItem leftHand, IRightJoinItem rightHand)
+        /// <param name="source">The source for the current </param>
+        protected Join(AliasedSource source)
+            : this(new SourceCollection(), source)
         {
-            if (leftHand == null)
-            {
-                throw new ArgumentNullException("leftHand");
-            }
-            if (rightHand == null)
-            {
-                throw new ArgumentNullException("rightHand");
-            }
-            _leftHand = leftHand;
-            _rightHand = rightHand;
         }
 
         /// <summary>
-        /// Gets or sets whether the join should be wrapped in parentheses.
+        /// Initializes a new instance of a Join.
         /// </summary>
-        public bool? WrapInParentheses
+        /// <param name="other">The previous join in the sequence.</param>
+        /// <param name="source">The source for the current </param>
+        protected Join(Join other, AliasedSource source)
+            : this(new SourceCollection(other.sources), source)
         {
-            get;
-            set;
         }
 
-        /// <summary>
-        /// Gets the item on the left hand side of the join.
-        /// </summary>
-        public IJoinItem LeftHand
+        private Join(SourceCollection sourceCollection, AliasedSource source)
         {
-            get
+            this.sources = sourceCollection;
+            string newSourceName = source.GetSourceName();
+            if (newSourceName != null)
             {
-                return _leftHand;
+                this.sources.AddSource(newSourceName, source);
             }
         }
 
         /// <summary>
-        /// Gets the table on the right hand side of the join.
+        /// Starts creating a BinaryJoin.
         /// </summary>
-        public IRightJoinItem RightHand
+        /// <param name="source">The table or select statement to start the join series with.</param>
+        /// <param name="alias">The alias to give the item.</param>
+        /// <returns>The first join item.</returns>
+        public static Join From(IRightJoinItem source, string alias = null)
         {
-            get
+            if (source == null)
             {
-                return _rightHand;
+                throw new ArgumentNullException("source");
             }
-        }
-
-        IEnumerable<string> IJoinItem.GetDeclarationExpression(CommandOptions options)
-        {
-            // <Join> => [ "(" ] <Left> <Combiner> <Right> [ "ON" <Filter> ] [ ")" ]
-            if (WrapInParentheses ?? options.WrapJoinsInParentheses)
-            {
-                yield return "(";
-            }
-            foreach (string token in _leftHand.GetDeclarationExpression(options))
-            {
-                yield return token;
-            }
-            yield return GetJoinNameExpression(options);
-            foreach (string token in _rightHand.GetDeclarationExpression(options))
-            {
-                yield return token;
-            }
-            foreach (string token in GetOnExpression(options))
-            {
-                yield return token;
-            }
-            if (WrapInParentheses ?? options.WrapJoinsInParentheses)
-            {
-                yield return ")";
-            }
+            AliasedSource start = new AliasedSource(source, alias);
+            return new JoinStart(start);
         }
 
         /// <summary>
-        /// Gets the ON expression for the join.
+        /// Gets a collection of the table and SELECT statements within the join.
         /// </summary>
-        /// <param name="options">The configuration settings to use.</param>
-        /// <returns>The generated text.</returns>
-        protected abstract IEnumerable<string> GetOnExpression(CommandOptions options);
+        public SourceCollection Sources
+        {
+            get { return sources; }
+        }
 
         /// <summary>
-        /// Gets the name of the join type.
+        /// Gets a string that declares the item.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The name of the join type.</returns>
-        protected abstract string GetJoinNameExpression(CommandOptions options);
+        /// <returns>A string declaring the item.</returns>
+        internal abstract IEnumerable<string> GetDeclarationTokens(CommandOptions options);
+
+        IEnumerable<string> IJoinItem.GetDeclarationTokens(CommandOptions options)
+        {
+            return GetDeclarationTokens(options);
+        }
+
+        /// <summary>
+        /// Creates a new join where the given item is inner joined with the existing join items.
+        /// </summary>
+        /// <param name="item">The item to join with.</param>
+        /// <param name="alias">The alias to give the item.</param>
+        /// <returns>The new join.</returns>
+        public FilteredJoin InnerJoin(IRightJoinItem item, string alias = null)
+        {
+            AliasedSource source = new AliasedSource(item, alias);
+            return new InnerJoin(this, source);
+        }
+
+        /// <summary>
+        /// Creates a new join where the given item is left outer joined with the existing join items.
+        /// </summary>
+        /// <param name="item">The item to join with.</param>
+        /// <param name="alias">The alias to give the item.</param>
+        /// <returns>The new join.</returns>
+        public FilteredJoin LeftOuterJoin(IRightJoinItem item, string alias = null)
+        {
+            AliasedSource source = new AliasedSource(item, alias);
+            return new LeftOuterJoin(this, source);
+        }
+
+        /// <summary>
+        /// Creates a new join where the given item is right outer joined with the existing join items.
+        /// </summary>
+        /// <param name="item">The item to join with.</param>
+        /// <param name="alias">The alias to give the item.</param>
+        /// <returns>The new join.</returns>
+        public FilteredJoin RightOuterJoin(IRightJoinItem item, string alias = null)
+        {
+            AliasedSource source = new AliasedSource(item, alias);
+            return new RightOuterJoin(this, source);
+        }
+
+        /// <summary>
+        /// Creates a new join where the given item is full outer joined with the existing join items.
+        /// </summary>
+        /// <param name="item">The item to join with.</param>
+        /// <param name="alias">The alias to give the item.</param>
+        /// <returns>The new join.</returns>
+        public FilteredJoin FullOuterJoin(IRightJoinItem item, string alias = null)
+        {
+            AliasedSource source = new AliasedSource(item, alias);
+            return new FullOuterJoin(this, source);
+        }
+
+        /// <summary>
+        /// Creates a new join where the given item is cross joined with the existing join items.
+        /// </summary>
+        /// <param name="item">The item to join with.</param>
+        /// <param name="alias">The alias to give the item.</param>
+        /// <returns>The new join.</returns>
+        public Join CrossJoin(IRightJoinItem item, string alias = null)
+        {
+            AliasedSource source = new AliasedSource(item, alias);
+            return new CrossJoin(this, source);
+        }
     }
 }

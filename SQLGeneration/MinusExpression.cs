@@ -22,7 +22,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The token representing the arithmetic operator.</returns>
-        protected override string GetOperatorName(CommandOptions options)
+        protected override string GetOperator(CommandOptions options)
         {
             // <Left> "-" <Right>
             return "-";

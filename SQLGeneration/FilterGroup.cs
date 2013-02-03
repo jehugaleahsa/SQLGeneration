@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
+using SQLGeneration.Parsing;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration
@@ -11,14 +11,14 @@ namespace SQLGeneration
     /// </summary>
     public class FilterGroup : Filter
     {
-        private readonly List<IFilter> _filters;
+        private readonly List<Tuple<IFilter, Conjunction>> _filters;
 
         /// <summary>
         /// Initializes a new instance of a FilterGroup.
         /// </summary>
         public FilterGroup()
         {
-            _filters = new List<IFilter>();
+            _filters = new List<Tuple<IFilter, Conjunction>>();
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace SQLGeneration
         {
             get
             {
-                return new ReadOnlyCollection<IFilter>(_filters);
+                return _filters.Select(pair => pair.Item1).ToArray();
             }
         }
 
@@ -36,13 +36,14 @@ namespace SQLGeneration
         /// Adds the filter to the group.
         /// </summary>
         /// <param name="filter">The filter to add.</param>
-        public void AddFilter(IFilter filter)
+        /// <param name="conjunction">Specifies whether to AND or OR the filter with the other filters in the group.</param>
+        public void AddFilter(IFilter filter, Conjunction conjunction)
         {
             if (filter == null)
             {
                 throw new ArgumentNullException("filter");
             }
-            _filters.Add(filter);
+            _filters.Add(Tuple.Create(filter, conjunction));
         }
 
         /// <summary>
@@ -56,7 +57,7 @@ namespace SQLGeneration
             {
                 throw new ArgumentNullException("filter");
             }
-            return _filters.Remove(filter);
+            return _filters.RemoveAll(pair => pair.Item1 == filter) != 0;
         }
 
         /// <summary>
@@ -64,10 +65,7 @@ namespace SQLGeneration
         /// </summary>
         public bool HasFilters
         {
-            get
-            {
-                return _filters.Count > 0;
-            }
+            get { return _filters.Count > 0; }
         }
 
         /// <summary>
@@ -75,41 +73,24 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IEnumerable<string> GetInnerFilterExpression(CommandOptions options)
+        protected override IEnumerable<string> GetInnerFilterTokens(CommandOptions options)
         {
             // <FilterList> => <Filter> [ {"AND"|"OR"} <FilterList> ]
-            if (_filters.Count == 0)
+            using (IEnumerator<Tuple<IFilter, Conjunction>> enumerator = _filters.GetEnumerator())
             {
-                throw new SQLGenerationException(Resources.EmptyFilterGroup);
-            }
-            return buildFilterList(options, 0);
-        }
-
-        private IEnumerable<string> buildFilterList(CommandOptions options, int filterIndex)
-        {
-            if (filterIndex == _filters.Count - 1)
-            {
-                IFilter current = _filters[filterIndex];
-                foreach (string token in current.GetFilterExpression(options))
+                if (!enumerator.MoveNext())
                 {
-                    yield return token;
+                    throw new SQLGenerationException(Resources.EmptyFilterGroup);
                 }
-            }
-            else
-            {
-                IFilter current = _filters[filterIndex];
-                IFilter next = _filters[filterIndex + 1];
-
-                foreach (string token in current.GetFilterExpression(options))
+                TokenStream stream = new TokenStream();
+                stream.AddRange(enumerator.Current.Item1.GetFilterTokens(options));
+                while (enumerator.MoveNext())
                 {
-                    yield return token;
+                    ConjunctionConverter converter = new ConjunctionConverter();
+                    stream.Add(converter.ToToken(enumerator.Current.Item2));
+                    stream.AddRange(enumerator.Current.Item1.GetFilterTokens(options));
                 }
-                ConjunctionConverter converter = new ConjunctionConverter();
-                yield return converter.ToToken(next.Conjunction);
-                foreach (string token in buildFilterList(options, filterIndex + 1))
-                {
-                    yield return token;
-                }
+                return stream;
             }
         }
 
@@ -120,7 +101,7 @@ namespace SQLGeneration
         /// <returns>True if the filter should be surround by parentheses; otherwise, false.</returns>
         protected override bool ShouldWrapInParentheses(CommandOptions options)
         {
-            return (WrapInParentheses ?? false) || (options.WrapFiltersInParentheses && _filters.Any(filter => filter.Conjunction == Conjunction.Or));
+            return (WrapInParentheses ?? false) || (options.WrapFiltersInParentheses && _filters.Any(pair => pair.Item2 == Conjunction.Or));
         }
     }
 }
