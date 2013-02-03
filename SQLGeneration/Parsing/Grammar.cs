@@ -7,7 +7,7 @@ namespace SQLGeneration.Parsing
     /// <summary>
     /// Specifies the expressions making up a syntax.
     /// </summary>
-    public sealed class Grammar
+    public class Grammar
     {
         private readonly ITokenRegistry tokenRegistry;
         private readonly Dictionary<string, ExpressionDefinition> expressionLookup;

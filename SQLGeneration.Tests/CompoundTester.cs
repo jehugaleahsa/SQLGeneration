@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Tests
 {
@@ -26,6 +27,11 @@ namespace SQLGeneration.Tests
             builder.AddProjection(builder.Sources["t2"].Column("c1"), "t2c1");
 
             string output = String.Join(" ", builder.GetCommandTokens(new CommandOptions()));
+
+            SqlTokenizer tokenizer = new SqlTokenizer(builder.GetCommandTokens(new CommandOptions()));
+            SqlGrammar grammar = new SqlGrammar(tokenizer);
+            Parser parser = new Parser(tokenizer, grammar);
+            parser.Parse(grammar.StartExpression);
         }
     }
 }

@@ -1,21 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace SQLGeneration.Parsing
 {
     /// <summary>
-    /// Generates a sequence of tokens using a command builder
-    /// as the token source.
+    /// Identifies tokens as SQL tokens.
     /// </summary>
-    public sealed class BuilderTokenizer : Tokenizer
+    public class SqlTokenizer : Tokenizer
     {
         /// <summary>
-        /// Initializes a new instance of a BuilderTokenizer.
+        /// Initializes a new instance of a SqlTokenizer.
         /// </summary>
-        /// <param name="command">The command to retrieve the tokens from.</param>
-        /// <param name="options">The options to use when generating the command.</param>
-        public BuilderTokenizer(ICommand command, CommandOptions options = null)
-            : base(command.GetCommandTokens(options ?? new CommandOptions()))
+        /// <param name="tokenStream">The token stream to inspect.</param>
+        public SqlTokenizer(IEnumerable<string> tokenStream)
+            : base(tokenStream)
         {
             Define("AliasIndicator", @"AS", RegexOptions.IgnoreCase);
             Define("ArithmeticOperator", @"\+");

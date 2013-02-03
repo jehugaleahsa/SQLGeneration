@@ -58,7 +58,6 @@
     <Compile Include="Join.cs" />
     <Compile Include="JoinStart.cs" />
     <Compile Include="NotFilter.cs" />
-    <Compile Include="Parsing\BuilderTokenizer.cs" />
     <Compile Include="Parsing\ExpressionDefinition.cs" />
     <Compile Include="Parsing\Expression.cs" />
     <Compile Include="Parsing\ExpressionItem.cs" />
@@ -70,6 +69,8 @@
     <Compile Include="Parsing\MatchResultCollection.cs" />
     <Compile Include="Parsing\Options.cs" />
     <Compile Include="Parsing\Parser.cs" />
+    <Compile Include="Parsing\SqlGrammar.cs" />
+    <Compile Include="Parsing\SqlTokenizer.cs" />
     <Compile Include="Parsing\Token.cs" />
     <Compile Include="Parsing\Tokenizer.cs" />
     <Compile Include="Parsing\TokenResult.cs" />
