@@ -53,12 +53,12 @@ As you can see from the example, creating a join is almost identical to actual S
     ...
     builder.AddWhere(t1 => t1.Column("c2").IsNotNull());
     
-Even more crazy would be to mix expression trees and the dynamic feature to make the syntax nearly identical:
+Even more crazy would be to mix *Expression Trees* and the dynamic feature to make the syntax nearly identical:
 
     Join.From(table1, "t1")
         .InnerJoin(table2, "t2").On((t1, t2) => t1.c1.EqualTo(t2.c1));
         
-I make `t1` and `t2` dynamic parameters. I pass an object that will record interactions with it. Properties accessed on the dynamic object are assumed to column names, which will be associated with the table. I'd have to see whether extension methods play well in this case. Otherwise, Expression Trees might come in handy again to allow for actual comparisons `==`. This stuff may be a release or two in the future.
+I make `t1` and `t2` dynamic parameters. I pass an object that will record interactions with it. Properties accessed on the dynamic object are assumed to column names, which will be associated with the table. I'd have to see whether extension methods play well in this case. Otherwise, *Expression Trees* might come in handy again to allow for actual comparisons `==`. This stuff may be a release or two in the future.
 
 ## Overview
 Even though there are plenty of decent ORMs out there on the market (most for free), perhaps the day has come where you need to write your own SQL at runtime. Or, perhaps you're just a hacker trying to get fancy, writing your own custom data layer for your system. Whatever your reason for writing SQL at runtime, doing it well can be a tiresome affair. Half the battle is the SQL generation itself. Anything beyond a simple, flat SELECT statement can get pretty tricky.
