@@ -5,7 +5,7 @@ namespace SQLGeneration
     /// <summary>
     /// Represents a comparison between two items for inequality.
     /// </summary>
-    public class NotEqualToFilter : BinaryFilter
+    public class NotEqualToFilter : OrderFilter
     {
         /// <summary>
         /// Initializes a new instance of a NotEqualToFilter.

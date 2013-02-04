@@ -12,7 +12,7 @@ namespace SQLGeneration
     /// </summary>
     public class UpdateBuilder : IFilteredCommand
     {
-        private readonly Table _table;
+        private readonly AliasedSource _table;
         private readonly IList<Setter> _setters;
         private readonly FilterGroup _where;
 
@@ -20,13 +20,14 @@ namespace SQLGeneration
         /// Initializes a new instance of a UpdateBuilder.
         /// </summary>
         /// <param name="table">The table being updated.</param>
-        public UpdateBuilder(Table table)
+        /// <param name="alias">The alias to use to refer to the table.</param>
+        public UpdateBuilder(Table table, string alias = null)
         {
             if (table == null)
             {
                 throw new ArgumentNullException("table");
             }
-            _table = table;
+            _table = new AliasedSource(table, alias);
             _setters = new List<Setter>();
             _where = new FilterGroup();
         }
@@ -34,7 +35,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the table that is being updated.
         /// </summary>
-        public Table Table
+        public AliasedSource Table
         {
             get { return _table; }
         }
@@ -122,10 +123,9 @@ namespace SQLGeneration
 
         private IEnumerable<string> getCommandTokens(CommandOptions options)
         {
-            // <UpdateCommand> => "UPDATE" <Table> "SET" <SetterList> [ "WHERE" <Filter> ]
             TokenStream stream = new TokenStream();
             stream.Add("UPDATE");
-            stream.AddRange(((IRightJoinItem)_table).GetDeclarationTokens(options));
+            stream.AddRange(_table.GetDeclarationTokens(options));
             stream.Add("SET");
             stream.AddRange(buildSetterList(options));
             if (_where.HasFilters)

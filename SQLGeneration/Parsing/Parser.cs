@@ -9,27 +9,21 @@ namespace SQLGeneration.Parsing
     /// </summary>
     public sealed class Parser
     {
-        private readonly ITokenSource tokenSource;
         private readonly Grammar grammar;
         private readonly Dictionary<string, Func<MatchResult, object>> handlerLookup;
         private readonly Stack<List<string>> tokenStack;
+        private ITokenSource tokenSource;
 
         /// <summary>
         /// Initializes a new instance of a Parser.
         /// </summary>
-        /// <param name="tokenSource">The source of tokens.</param>
         /// <param name="grammar">The grammar to use.</param>
-        public Parser(ITokenSource tokenSource, Grammar grammar)
+        public Parser(Grammar grammar)
         {
-            if (tokenSource == null)
-            {
-                throw new ArgumentNullException("tokenSource");
-            }
             if (grammar == null)
             {
                 throw new ArgumentNullException("grammar");
             }
-            this.tokenSource = tokenSource;
             this.grammar = grammar;
             this.handlerLookup = new Dictionary<string, Func<MatchResult, object>>();
             this.tokenStack = new Stack<List<string>>();
@@ -113,17 +107,32 @@ namespace SQLGeneration.Parsing
         /// expression with the given name.
         /// </summary>
         /// <param name="expressionType">The type of the expression to start parsing.</param>
+        /// <param name="tokenSource">The source of tokens.</param>
         /// <returns>The result of the handler registered for the starting item.</returns>
-        public object Parse(string expressionType)
+        public object Parse(string expressionType, ITokenSource tokenSource)
         {
-            Expression expression = grammar.Expression(expressionType);
-            MatchResult result = expression.Match(this, 0);
-            Func<MatchResult, object> handler;
-            if (handlerLookup.TryGetValue(expressionType, out handler))
+            if (tokenSource == null)
             {
-                return handler(result);
+                throw new ArgumentNullException("tokenSource");
             }
-            return null;
+            this.tokenSource = tokenSource;
+            Expression expression = grammar.Expression(expressionType);
+            MatchResult result = expression.Match(this, String.Empty);
+            return result.Context;
+        }
+
+        /// <summary>
+        /// Attempts to run the handle for the given expression type.
+        /// </summary>
+        /// <param name="expressionType">The type of the expression to run the handler for.</param>
+        /// <param name="result">The result that the handler should be run for.</param>
+        internal void RunHandler(string expressionType, MatchResult result)
+        {
+            Func<MatchResult, object> handler;
+            if (result.IsMatch && expressionType != null && handlerLookup.TryGetValue(expressionType, out handler))
+            {
+                result.Context = handler(result);
+            }
         }
     }
 }

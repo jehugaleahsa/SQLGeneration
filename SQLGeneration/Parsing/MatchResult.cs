@@ -20,6 +20,15 @@ namespace SQLGeneration.Parsing
         }
 
         /// <summary>
+        /// Gets the name of the item as it will be referred to in the outer expression.
+        /// </summary>
+        public string ItemName
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
         /// Gets whether the expression item was matched against the parser.
         /// </summary>
         public bool IsMatch

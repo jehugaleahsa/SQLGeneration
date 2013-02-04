@@ -32,7 +32,7 @@ namespace SQLGeneration.Parsing
             defineFilter();
             defineValueList();
             defineGroupByList();
-            defineExpression();
+            defineItem();
             defineInsertStatement();
             defineColumnList();
             defineUpdateStatement();
@@ -43,370 +43,1516 @@ namespace SQLGeneration.Parsing
         }
 
         /// <summary>
-        /// Gets the top-level expression that defines the SQL grammar.
+        /// Describes the structure of the top-level SQL grammar.
         /// </summary>
-        public string StartExpression 
+        public static class Start
         {
-            get { return "start"; }
+            /// <summary>
+            /// Gets the identifier representing the start expression.
+            /// </summary>
+            public const string Name = "Start";
+
+            /// <summary>
+                /// Gets the name for the SELECT statement option.
+                /// </summary>
+            public const string SelectStatement = "select_statement";
+
+            /// <summary>
+            /// Gets the name for the INSERT statement option.
+            /// </summary>
+            public const string InsertStatement = "insert_statement";
+
+            /// <summary>
+            /// Gets the name for the UPDATE statement option.
+            /// </summary>
+            public const string UpdateStatement = "update_statement";
+
+            /// <summary>
+            /// Gets the name for the DELETE statement option.
+            /// </summary>
+            public const string DeleteStatement = "delete_statement";
         }
 
         private void defineStart()
         {
-            Define("start")
-                .Add("statement", true, Options()
-                    .Add("SelectStatement", Expression("SelectStatement"))
-                    .Add("InsertStatement", Expression("InsertStatement"))
-                    .Add("UpdateStatement", Expression("UpdateStatement"))
-                    .Add("DeleteStatement", Expression("DeleteStatement")));
+            Define(Start.Name)
+                .Add(true, Options()
+                    .Add(Start.SelectStatement, Expression(SelectStatement.Name))
+                    .Add(Start.InsertStatement, Expression(InsertStatement.Name))
+                    .Add(Start.UpdateStatement, Expression(UpdateStatement.Name))
+                    .Add(Start.DeleteStatement, Expression(DeleteStatement.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the SELECT statement.
+        /// </summary>
+        public static class SelectStatement
+        {
+            /// <summary>
+            /// Gets the identifier representing the SELECT statement.
+            /// </summary>
+            public const string Name = "SelectStatement";
+
+            /// <summary>
+            /// Gets the name of the SELECT expression.
+            /// </summary>
+            public const string SelectExpression = "select_expression";
+
+            /// <summary>
+            /// Describes the structure of the optional ORDER BY clause.
+            /// </summary>
+            public static class OrderBy
+            {
+                /// <summary>
+                /// Gets the identifier representing the ORDER BY clause.
+                /// </summary>
+                public const string Name = "OrderBy";
+
+                /// <summary>
+                /// Gets the name representing the ORDER BY keyword.
+                /// </summary>
+                public const string OrderByKeyword = "order_by";
+
+                /// <summary>
+                /// Gets the name representing the ORDER BY list.
+                /// </summary>
+                public const string OrderByList = "order_by_list";
+            }
         }
 
         private void defineSelectStatement()
         {
-            Define("SelectStatement")
-                .Add("SelectExpression", true, Expression("SelectExpression"))
-                .Add("OrderBy", false, Define()
-                    .Add("OrderBy", true, Token("OrderBy"))
-                    .Add("OrderByList", true, Expression("OrderByList")));
+            Define(SelectStatement.Name)
+                .Add(SelectStatement.SelectExpression, true, Expression(SelectExpression.Name))
+                .Add(SelectStatement.OrderBy.Name, false, Define()
+                    .Add(SelectStatement.OrderBy.OrderByKeyword, true, Token(SqlTokenizer.OrderBy))
+                    .Add(SelectStatement.OrderBy.OrderByList, true, Expression(OrderByList.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the SELECT expression.
+        /// </summary>
+        public static class SelectExpression
+        {
+            /// <summary>
+            /// Gets the name identifying the SELECT expression.
+            /// </summary>
+            public const string Name = "SelectExpression";
+
+            /// <summary>
+                /// Describes the structure of the leading SELECT expression when it is surrounded by parenthesis.
+                /// </summary>
+            public static class Wrapped
+            {
+                /// <summary>
+                /// Gets the name identifying the leading SELECT expression when it is surrounded by parenthesis.
+                /// </summary>
+                public const string Name = "Wrapped";
+
+                /// <summary>
+                /// Gets the left parenthesis identifier.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the SELECT expression identifier.
+                /// </summary>
+                public const string SelectExpression = "select_expression";
+
+                /// <summary>
+                /// Gets the right parenthesis identifier.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
+
+            /// <summary>
+            /// Gets the SELECT specification identifier.
+            /// </summary>
+            public const string SelectSpecification = "select_specification";
+
+            /// <summary>
+            /// Describes the structure of a compound SELECT statement.
+            /// </summary>
+            public static class Remaining
+            {
+                /// <summary>
+                /// Gets the identifier for a compound SELECT statement.
+                /// </summary>
+                public const string Name = "Remaining";
+
+                /// <summary>
+                /// Gets the SELECT statement combiner identifier.
+                /// </summary>
+                public const string Combiner = "combiner";
+
+                /// <summary>
+                /// Gets the SELECT expression identifier.
+                /// </summary>
+                public const string SelectExpression = "select_expression";
+            }
         }
 
         private void defineSelectExpression()
         {
-            Define("SelectExpression")
-                .Add("First", true, Options()
-                    .Add("Wrapped", Define()
-                        .Add("LeftParenthesis", true, Token("LeftParenthesis"))
-                        .Add("SelectExpression", true, Expression("SelectExpression"))
-                        .Add("RightParenthesis", true, Expression("RightParenthesis")))
-                    .Add("SelectSpecification", Expression("SelectSpecification")))
-                .Add("Remaining", false, Define()
-                    .Add("Combiner", true, Token("SelectCombiner"))
-                    .Add("SelectExpression", true, Expression("SelectExpression")));
+            Define(SelectExpression.Name)
+                .Add(true, Options()
+                    .Add(SelectExpression.Wrapped.Name, Define()
+                        .Add(SelectExpression.Wrapped.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(SelectExpression.Wrapped.SelectExpression, true, Expression(SelectExpression.Name))
+                        .Add(SelectExpression.Wrapped.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                    .Add(SelectExpression.SelectSpecification, Expression(SelectSpecification.Name)))
+                .Add(SelectExpression.Remaining.Name, false, Define()
+                    .Add(SelectExpression.Remaining.Combiner, true, Token(SqlTokenizer.SelectCombiner))
+                    .Add(SelectExpression.Remaining.SelectExpression, true, Expression(SelectExpression.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the SELECT specification.
+        /// </summary>
+        public static class SelectSpecification
+        {
+            /// <summary>
+            /// Gets the name identifying the SELECT specification.
+            /// </summary>
+            public const string Name = "SelectSpecification";
+
+            /// <summary>
+            /// Gets the SELECT keyword identifier.
+            /// </summary>
+            public const string SelectKeyword = "select";
+
+            /// <summary>
+            /// Gets the distinct qualifier identifier.
+            /// </summary>
+            public const string DistinctQualifier = "distinct_qualifier";
+
+            /// <summary>
+            /// Describes the structure of the TOP clause.
+            /// </summary>
+            public static class Top
+            {
+                /// <summary>
+                /// Gets the identifier for the TOP expression.
+                /// </summary>
+                public const string Name = "Top";
+
+                /// <summary>
+                /// Gets the TOP keyword identifier.
+                /// </summary>
+                public const string TopKeyword = "top";
+
+                /// <summary>
+                /// Gets the expression identifier.
+                /// </summary>
+                public const string Expression = "expression";
+
+                /// <summary>
+                /// Gets the PERCENT keyword identifier.
+                /// </summary>
+                public const string PercentKeyword = "percent";
+
+                /// <summary>
+                /// Gets the WITH TIES keyword identifier.
+                /// </summary>
+                public const string WithTiesKeyword = "with_ties";
+            }
+
+            /// <summary>
+            /// Get the projection list identifier.
+            /// </summary>
+            public const string ProjectionList = "projection_list";
+
+            /// <summary>
+            /// Describes the structure of the FROM clause.
+            /// </summary>
+            public static class From
+            {
+                /// <summary>
+                /// Gets the identifier for the FROM expression.
+                /// </summary>
+                public const string Name = "From";
+
+                /// <summary>
+                /// Gets the FROM keyword identifier.
+                /// </summary>
+                public const string FromKeyword = "from";
+
+                /// <summary>
+                /// Gets the from list identifier.
+                /// </summary>
+                public const string FromList = "from_list";
+            }
+
+            /// <summary>
+            /// Describes the structure of the WHERE clause.
+            /// </summary>
+            public static class Where
+            {
+                /// <summary>
+                /// Get the identifier for the WHERE clause.
+                /// </summary>
+                public const string Name = "Where";
+
+                /// <summary>
+                /// Gets the WHERE keyword identifier.
+                /// </summary>
+                public const string WhereKeyword = "where";
+
+                /// <summary>
+                /// Gets the filter list identifier.
+                /// </summary>
+                public const string FilterList = "filter_list";
+            }
+
+            /// <summary>
+            /// Describes the structure of the GROUP BY clause.
+            /// </summary>
+            public static class GroupBy
+            {
+                /// <summary>
+                /// Gets the identifier for the GROUP BY clause.
+                /// </summary>
+                public const string Name = "GroupBy";
+
+                /// <summary>
+                /// Gets the GROUP BY keyword identifier.
+                /// </summary>
+                public const string GroupByKeyword = "group_by";
+
+                /// <summary>
+                /// Gets the group by list identifier.
+                /// </summary>
+                public const string GroupByList = "group_by_list";
+            }
+
+            /// <summary>
+            /// Describes the structure of the HAVING clause.
+            /// </summary>
+            public static class Having
+            {
+                /// <summary>
+                /// Gets the identifier for the HAVING clause.
+                /// </summary>
+                public const string Name = "Having";
+
+                /// <summary>
+                /// Gets the HAVING keyword identifier.
+                /// </summary>
+                public const string HavingKeyword = "having";
+
+                /// <summary>
+                /// Gets the filter list identifier.
+                /// </summary>
+                public const string FilterList = "filter_list";
+            }
         }
 
         private void defineSelectSpecification()
         {
-            Define("SelectSpecification")
-                .Add("Select", true, Token("Select"))
-                .Add("DistinctQualifier", false, Token("DistinctQualifier"))
-                .Add("Top", false, Define()
-                    .Add("Top", true, Token("Top"))
-                    .Add("Expression", true, Expression("ArithmeticExpression"))
-                    .Add("Percent", false, Token("Percent"))
-                    .Add("WithTies", false, Token("WithTies")))
-                .Add("ProjectionList", true, Expression("ProjectionList"))
-                .Add("From", false, Define()
-                    .Add("From", true, Token("From"))
-                    .Add("FromList", true, Expression("FromList")))
-                .Add("Where", false, Define()
-                    .Add("Where", true, Token("Where"))
-                    .Add("FilterList", true, Expression("FilterList")))
-                .Add("GroupBy", false, Define()
-                    .Add("GroupBy", true, Token("GroupBy"))
-                    .Add("GroupByList", true, Expression("GroupByList")))
-                .Add("Having", false, Define()
-                    .Add("Having", true, Token("Having"))
-                    .Add("FilterList", true, Expression("FilterList")));
+            Define(SelectSpecification.Name)
+                .Add(SelectSpecification.SelectKeyword, true, Token(SqlTokenizer.Select))
+                .Add(SelectSpecification.DistinctQualifier, false, Token(SqlTokenizer.DistinctQualifier))
+                .Add(SelectSpecification.Top.Name, false, Define()
+                    .Add(SelectSpecification.Top.TopKeyword, true, Token(SqlTokenizer.Top))
+                    .Add(SelectSpecification.Top.Expression, true, Expression(ArithmeticExpression.Name))
+                    .Add(SelectSpecification.Top.PercentKeyword, false, Token(SqlTokenizer.Percent))
+                    .Add(SelectSpecification.Top.WithTiesKeyword, false, Token(SqlTokenizer.WithTies)))
+                .Add(SelectSpecification.ProjectionList, true, Expression(ProjectionList.Name))
+                .Add(SelectSpecification.From.Name, false, Define()
+                    .Add(SelectSpecification.From.FromKeyword, true, Token(SqlTokenizer.From))
+                    .Add(SelectSpecification.From.FromList, true, Expression(FromList.Name)))
+                .Add(SelectSpecification.Where.Name, false, Define()
+                    .Add(SelectSpecification.Where.WhereKeyword, true, Token(SqlTokenizer.Where))
+                    .Add(SelectSpecification.Where.FilterList, true, Expression(FilterList.Name)))
+                .Add(SelectSpecification.GroupBy.Name, false, Define()
+                    .Add(SelectSpecification.GroupBy.GroupByKeyword, true, Token(SqlTokenizer.GroupBy))
+                    .Add(SelectSpecification.GroupBy.GroupByList, true, Expression(GroupByList.Name)))
+                .Add(SelectSpecification.Having.Name, false, Define()
+                    .Add(SelectSpecification.Having.HavingKeyword, true, Token(SqlTokenizer.Having))
+                    .Add(SelectSpecification.Having.FilterList, true, Expression(FilterList.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the ORDER BY list.
+        /// </summary>
+        public static class OrderByList
+        {
+            /// <summary>
+            /// Gets the name identifying the ORDER BY list.
+            /// </summary>
+            public const string Name = "OrderByList";
+
+            /// <summary>
+            /// Describes the structure of an order by list containing multiple items.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier for the multiple option.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the first order by item identifier.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the comma separator.
+                /// </summary>
+                public const string Comma = "comma";
+
+                /// <summary>
+                /// Gets the identifier for the rest of the order by list.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier for a single order by item.
+            /// </summary>
+            public const string Single = "single";
         }
 
         private void defineOrderByList()
         {
-            Define("OrderByList")
-                .Add("Options", true, Options()
-                    .Add("Multiple", Define()
-                        .Add("Left", true, Expression("OrderByItem"))
-                        .Add("Comma", true, Token("Comma"))
-                        .Add("Right", true, Expression("OrderByItem")))
-                    .Add("Single", Expression("OrderByItem")));
+            Define(OrderByList.Name)
+                .Add(true, Options()
+                    .Add(OrderByList.Multiple.Name, Define()
+                        .Add(OrderByList.Multiple.First, true, Expression(OrderByItem.Name))
+                        .Add(OrderByList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(OrderByList.Multiple.Remaining, true, Expression(OrderByList.Name)))
+                    .Add(OrderByList.Single, Expression(OrderByItem.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the ORDER BY item.
+        /// </summary>
+        public static class OrderByItem
+        {
+            /// <summary>
+            /// Gets the name identifying the ORDER BY item.
+            /// </summary>
+            public const string Name = "OrderByItem";
+
+            /// <summary>
+            /// Gets the identifier for the item being ordered.
+            /// </summary>
+            public const string Expression = "expression";
+
+            /// <summary>
+            /// Gets the identifier for the direction specifier.
+            /// </summary>
+            public const string OrderDirection = "order_direction";
+
+            /// <summary>
+            /// Gets the identifier for the null placement specifier.
+            /// </summary>
+            public const string NullPlacement = "null_placement";
         }
 
         private void defineOrderByItem()
         {
-            Define("OrderByItem")
-                .Add("Item", true, Options()
-                    .Add("Expression", Expression("Expression"))
-                    .Add("Alias", Token("Identifier")))
-                .Add("OrderDirection", false, Token("OrderDirection"))
-                .Add("NullPlacement", false, Token("NullPlacement"));
+            Define(OrderByItem.Name)
+                .Add(OrderByItem.Expression, true, Expression(Item.Name))
+                .Add(OrderByItem.OrderDirection, false, Token(SqlTokenizer.OrderDirection))
+                .Add(OrderByItem.NullPlacement, false, Token(SqlTokenizer.NullPlacement));
+        }
+
+        /// <summary>
+        /// Describes the structure of the arithmetic expression.
+        /// </summary>
+        public static class ArithmeticExpression
+        {
+            /// <summary>
+            /// Gets the name identifying the arithmetic expression.
+            /// </summary>
+            public const string Name = "ArithmeticExpression";
+
+            /// <summary>
+            /// Describes the structure of an arithmetic expression with two operands.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier for the multiple option.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the identifier for the first expression.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the arithmetic operator.
+                /// </summary>
+                public const string ArithemeticOperator = "arithmetic_operator";
+
+                /// <summary>
+                /// Gets the identifier for the rest of the arithmetic expression.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier for a single expression.
+            /// </summary>
+            public const string Single = "single";
         }
 
         private void defineArithmeticExpression()
         {
-            Define("ArithmeticExpression")
-                .Add("Options", true, Options()
-                    .Add("Multiple", Define()
-                        .Add("Left", true, Expression("Expression"))
-                        .Add("ArithmeticOperator", true, Token("ArithmeticOperator"))
-                        .Add("Right", true, Expression("ArithmeticExpression")))
-                    .Add("Single", Expression("Expression")));
+            Define(ArithmeticExpression.Name)
+                .Add(true, Options()
+                    .Add(ArithmeticExpression.Multiple.Name, Define()
+                        .Add(ArithmeticExpression.Multiple.First, true, Expression(Item.Name))
+                        .Add(ArithmeticExpression.Multiple.ArithemeticOperator, true, Token(SqlTokenizer.ArithmeticOperator))
+                        .Add(ArithmeticExpression.Multiple.Remaining, true, Expression(ArithmeticExpression.Name)))
+                    .Add(ArithmeticExpression.Single, Expression(Item.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the projection list.
+        /// </summary>
+        public static class ProjectionList
+        {
+            /// <summary>
+            /// Gets the name identifying the projection list.
+            /// </summary>
+            public const string Name = "ProjectionList";
         }
 
         private void defineProjectionList()
         {
-            Define("ProjectionList")
-                .Add("Options", true, Options()
+            Define(ProjectionList.Name)
+                .Add(true, Options()
                     .Add("Multiple", Define()
-                        .Add("Left", true, Expression("ProjectionItem"))
-                        .Add("Comma", true, Token("Comma"))
-                        .Add("Right", true, Expression("ProjectionList")))
-                    .Add("Single", Expression("ProjectionItem")));
+                        .Add("First", true, Expression(ProjectionItem.Name))
+                        .Add("Comma", true, Token(SqlTokenizer.Comma))
+                        .Add("Remaining", true, Expression(ProjectionList.Name)))
+                    .Add("Single", Expression(ProjectionItem.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the projection item.
+        /// </summary>
+        public static class ProjectionItem
+        {
+            /// <summary>
+            /// Gets the name identifying the projection item.
+            /// </summary>
+            public const string Name = "ProjectionItem";
         }
 
         private void defineProjectionItem()
         {
-            Define("ProjectionItem")
-                .Add("Options", true, Options()
+            Define(ProjectionItem.Name)
+                .Add(true, Options()
                     .Add("Star", Define()
                         .Add("Qualifier", false, Define()
-                            .Add("ColumnSource", true, Options()
-                                .Add("Table", Expression("MultipartIdentifier"))
-                                .Add("Alias", Token("Identifier")))
-                            .Add("Dot", true, Token("Dot")))
-                        .Add("Star", true, Token("Star")))
+                            .Add("ColumnSource", true, Expression(MultipartIdentifier.Name))
+                            .Add("Dot", true, Token(SqlTokenizer.Dot)))
+                        .Add("Star", true, Token(SqlTokenizer.Star)))
                     .Add("Expression", Define()
-                        .Add("Expression", true, Expression("Expression"))
+                        .Add("Expression", true, Expression(Item.Name))
                         .Add("Alias", false, Define()
-                            .Add("AliasIndicator", false, Token("AliasIndicator"))
-                            .Add("Alias", true, Token("Identifier")))));
+                            .Add("AliasIndicator", false, Token(SqlTokenizer.AliasIndicator))
+                            .Add("Alias", true, Token(SqlTokenizer.Identifier)))));
+        }
+
+        /// <summary>
+        /// Describes the structure of the FROM list.
+        /// </summary>
+        public static class FromList
+        {
+            /// <summary>
+            /// Gets the name identifying the FROM list.
+            /// </summary>
+            public const string Name = "FromList";
+
+            /// <summary>
+            /// Describes the structure of multiple sources in a FROM clause.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the list contains multiple sources.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the identifier for the first source.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the comma separator.
+                /// </summary>
+                public const string Comma = "comma";
+
+                /// <summary>
+                /// Gets the identifier for the rest of the sources.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier indicating that the list only has one source.
+            /// </summary>
+            public const string Single = "single";
         }
 
         private void defineFromList()
         {
-            Define("FromList")
-                .Add("Options", true, Options()
-                    .Add("Multiple", Define()
-                        .Add("Left", true, Expression("Join"))
-                        .Add("Comma", true, Token("Comma"))
-                        .Add("Right", true, Expression("FromList")))
-                    .Add("Single", Expression("Join")));
+            Define(FromList.Name)
+                .Add(true, Options()
+                    .Add(FromList.Multiple.Name, Define()
+                        .Add(FromList.Multiple.First, true, Expression(Join.Name))
+                        .Add(FromList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(FromList.Multiple.Remaining, true, Expression(FromList.Name)))
+                    .Add(FromList.Single, Expression(Join.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the join item.
+        /// </summary>
+        public static class JoinItem
+        {
+            /// <summary>
+            /// Gets the name identifying the join item.
+            /// </summary>
+            public const string Name = "JoinItem";
         }
 
         private void defineJoinItem()
         {
-            Define("JoinItem")
-                .Add("Source", true, Options()
-                    .Add("Table", Expression("MultipartIdentifier"))
-                    .Add("FunctionCall", Expression("FunctionCall"))
-                    .Add("SelectExpression", Expression("SelectExpression")))
+            Define(JoinItem.Name)
+                .Add(true, Options()
+                    .Add("Table", Expression(MultipartIdentifier.Name))
+                    .Add("FunctionCall", Expression(FunctionCall.Name))
+                    .Add("SelectExpression", Expression(SelectExpression.Name)))
                 .Add("Alias", false, Define()
-                    .Add("AliasIndicator", false, Expression("AS"))
-                    .Add("Alias", true, Expression("Identifier")));
+                    .Add("AliasIndicator", false, Token(SqlTokenizer.AliasIndicator))
+                    .Add("Alias", true, Token(SqlTokenizer.Identifier)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the function call.
+        /// </summary>
+        public static class FunctionCall
+        {
+            /// <summary>
+            /// Gets the name identifying the function call.
+            /// </summary>
+            public const string Name = "FunctionCall";
+
+            /// <summary>
+            /// Gets the identifier for the function name.
+            /// </summary>
+            public const string FunctionName = "function_name";
+
+            /// <summary>
+            /// Gets the identifier for the left parenthesis.
+            /// </summary>
+            public const string LeftParethesis = "left_parenthesis";
+
+            /// <summary>
+            /// Gets the identifier for the function arguments.
+            /// </summary>
+            public const string Arguments = "arguments";
+
+            /// <summary>
+            /// Gets the identifier for the right parenthesis.
+            /// </summary>
+            public const string RightParenthesis = "right_parenthesis";
         }
 
         private void defineFunctionCall()
         {
-            Define("FunctionCall")
-                .Add("Name", true, Expression("MultipartIdentifier"))
-                .Add("LeftParenthesis", true, Token("LeftParenthesis"))
-                .Add("Arguments", false, Expression("ValueList"))
-                .Add("RightParenthesis", true, Token("RightParenthesis"));
+            Define(FunctionCall.Name)
+                .Add(FunctionCall.FunctionName, true, Expression(MultipartIdentifier.Name))
+                .Add(FunctionCall.LeftParethesis, true, Token(SqlTokenizer.LeftParenthesis))
+                .Add(FunctionCall.Arguments, false, Expression(ValueList.Name))
+                .Add(FunctionCall.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis));
+        }
+
+        /// <summary>
+        /// Describes the structure of the join.
+        /// </summary>
+        public static class Join
+        {
+            /// <summary>
+            /// Gets the name identifying the join.
+            /// </summary>
+            public const string Name = "Join";
         }
 
         private void defineJoin()
         {
-            Define("Join")
-                .Add("Options", true, Options()
+            Define(Join.Name)
+                .Add(true, Options()
                     .Add("Wrapped", Define()
-                        .Add("LeftParenthesis", true, Token("LeftParenthesis"))
-                        .Add("Join", true, Expression("Join"))
-                        .Add("RightParenthesis", true, Token("RightParenthesis")))
+                        .Add("LeftParenthesis", true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add("Join", true, Expression(Join.Name))
+                        .Add("RightParenthesis", true, Token(SqlTokenizer.RightParenthesis)))
                     .Add("Joined", Define()
-                        .Add("JoinItem", true, Expression("JoinItem"))
-                        .Add("JoinPrime", true, Expression("JoinPrime"))));
+                        .Add("JoinItem", true, Expression(JoinItem.Name))
+                        .Add("JoinPrime", true, Expression(JoinPrime.Name))));
+        }
+
+        /// <summary>
+        /// Describes the structure of the join prime expression.
+        /// </summary>
+        public static class JoinPrime
+        {
+            /// <summary>
+            /// Gets the name identifying the join prime expression.
+            /// </summary>
+            public const string Name = "JoinPrime";
         }
 
         private void defineJoinPrime()
         {
-            Define("JoinPrime")
-                .Add("Options", true, Options()
+            Define(JoinPrime.Name)
+                .Add(true, Options()
                     .Add("Joined", Define()
-                        .Add("JoinType", true, Token("JoinType"))
-                        .Add("JoinItem", true, Expression("JoinItem"))
+                        .Add("JoinType", true, Token(SqlTokenizer.JoinType))
+                        .Add("JoinItem", true, Expression(JoinItem.Name))
                         .Add("On", false, Define()
-                            .Add("On", true, Token("On"))
-                            .Add("FilterList", true, Expression("FilterList")))
-                        .Add("JoinPrime", true, Expression("JoinPrime")))
+                            .Add("On", true, Token(SqlTokenizer.On))
+                            .Add("FilterList", true, Expression(FilterList.Name)))
+                        .Add("JoinPrime", true, Expression(JoinPrime.Name)))
                     .Add("Empty", Define()));
+        }
+
+        /// <summary>
+        /// Describes the structure of the filter list.
+        /// </summary>
+        public static class FilterList
+        {
+            /// <summary>
+            /// Gets the name identifying the filter list.
+            /// </summary>
+            public const string Name = "FilterList";
+
+            /// <summary>
+            /// Describes the structure of a filter list wrapped in parentheses.
+            /// </summary>
+            public static class Wrapped
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the filter list is wrapped in parentheses.
+                /// </summary>
+                public const string Name = "Wrapped";
+
+                /// <summary>
+                /// Gets the identifier for the NOT keyword.
+                /// </summary>
+                public const string Not = "not";
+
+                /// <summary>
+                /// Gets the identifier for a left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the filter list.
+                /// </summary>
+                public const string FilterList = "filter_list";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
+
+            /// <summary>
+            /// Describes the structure of a filter made up of multiple filters.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier indicating that there are multiple filters in the list.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the identifier for the first filter.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the conjunction.
+                /// </summary>
+                public const string Conjunction = "conjunction";
+
+                /// <summary>
+                /// Gets the identifier or the rest of the filters.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier indicating that the list on has one filter in it.
+            /// </summary>
+            public const string Single = "single";
         }
 
         private void defineFilterList()
         {
-            Define("FilterList")
-                .Add("Options", true, Options()
-                    .Add("Wrapped", Define()
-                        .Add("Not", false, Token("Not"))
-                        .Add("LeftParenthesis", true, Token("LeftParenthesis"))
-                        .Add("FilterList", true, Expression("FilterList"))
-                        .Add("RightParenthesis", true, Token("RightParenthesis")))
-                    .Add("Multiple", Define()
-                        .Add("Left", true, Expression("Filter"))
-                        .Add("Conjunction", true, Token("Conjunction"))
-                        .Add("Right", true, Expression("FilterList")))
-                    .Add("Single", Expression("Filter")));
+            Define(FilterList.Name)
+                .Add(true, Options()
+                    .Add(FilterList.Wrapped.Name, Define()
+                        .Add(FilterList.Wrapped.Not, false, Token(SqlTokenizer.Not))
+                        .Add(FilterList.Wrapped.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(FilterList.Wrapped.FilterList, true, Expression(FilterList.Name))
+                        .Add(FilterList.Wrapped.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                    .Add(FilterList.Multiple.Name, Define()
+                        .Add(FilterList.Multiple.First, true, Expression(Filter.Name))
+                        .Add(FilterList.Multiple.Conjunction, true, Token(SqlTokenizer.Conjunction))
+                        .Add(FilterList.Multiple.Remaining, true, Expression(FilterList.Name)))
+                    .Add(FilterList.Single, Expression(Filter.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the filter.
+        /// </summary>
+        public static class Filter
+        {
+            /// <summary>
+            /// Gets the name identifying the filter.
+            /// </summary>
+            public const string Name = "Filter";
+
+            /// <summary>
+            /// Describes the structure of a filter wrapped in parenthesis.
+            /// </summary>
+            public static class Wrapped
+            {
+                /// <summary>
+                /// Gets the indentifier indicating that the filter is wrapped in parenthesis.
+                /// </summary>
+                public const string Name = "Wrapped";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis token.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the wrapped filter.
+                /// </summary>
+                public const string Filter = "filter";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis token.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
+
+            /// <summary>
+            /// Describes the structure of a filter that is negated.
+            /// </summary>
+            public static class Not
+            {
+                /// <summary>
+                /// Gets the identifier indicating that a filter is negated.
+                /// </summary>
+                public const string Name = "Not";
+
+                /// <summary>
+                /// Gets the identifier for the NOT keyword.
+                /// </summary>
+                public const string NotKeyword = "not";
+
+                /// <summary>
+                /// Gets the identifier for the negated filter.
+                /// </summary>
+                public const string Filter = "filter";
+            }
+
+            /// <summary>
+            /// Describes the structure of filter that compares the order of two items.
+            /// </summary>
+            public static class Order
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the filter is an order filter.
+                /// </summary>
+                public const string Name = "Order";
+
+                /// <summary>
+                /// Gets the identifier for the value on the left.
+                /// </summary>
+                public const string Left = "left";
+
+                /// <summary>
+                /// Gets the identifier for the comparison operator.
+                /// </summary>
+                public const string ComparisonOperator = "comparison_operator";
+
+                /// <summary>
+                /// Gets the identifier for the value on the right.
+                /// </summary>
+                public const string Right = "right";
+            }
+
+            /// <summary>
+            /// Describes the structure of a filter checking that a value falls within a range.
+            /// </summary>
+            public static class Between
+            {
+                /// <summary>
+                /// The identifier indicating that the filter is a BETWEEN filter.
+                /// </summary>
+                public const string Name = "Between";
+
+                /// <summary>
+                /// Gets the identifier for the value being checked.
+                /// </summary>
+                public const string Expression = "expression";
+
+                /// <summary>
+                /// Gets the identifier for whether or not to negate the filter.
+                /// </summary>
+                public const string Not = "not";
+
+                /// <summary>
+                /// Gets the identifier for the BETWEEN keyword.
+                /// </summary>
+                public const string BetweenKeyword = "between";
+
+                /// <summary>
+                /// Gets the identifier for the lower bound value.
+                /// </summary>
+                public const string LowerBound = "lower_bound";
+
+                /// <summary>
+                /// Gets the identifier for the AND keyword.
+                /// </summary>
+                public const string And = "between_and";
+
+                /// <summary>
+                /// Gets the identifier for the upper bound value.
+                /// </summary>
+                public const string UpperBound = "upper_bound";
+            }
+
+            /// <summary>
+            /// Describes the structure of a filter doing a string comparison.
+            /// </summary>
+            public static class Like
+            {
+                /// <summary>
+                /// Gets the identifier indicating whether the filter is doing a string comparison.
+                /// </summary>
+                public const string Name = "Like";
+                
+                /// <summary>
+                /// Gets the identifier for the expression being compared.
+                /// </summary>
+                public const string Expression = "expression";
+
+                /// <summary>
+                /// Gets the identifier indicating whether to negate the results of the comparison.
+                /// </summary>
+                public const string Not = "not";
+
+                /// <summary>
+                /// Gets the identifier for the LIKE keyword.
+                /// </summary>
+                public const string LikeKeyword = "like";
+
+                /// <summary>
+                /// Gets the identifier for string literal being compared to.
+                /// </summary>
+                public const string Value = "value";
+            }
+
+            /// <summary>
+            /// Describes the structure of a filter checking whether a value is null.
+            /// </summary>
+            public static class Is
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the filter is checking whether a value is null or not.
+                /// </summary>
+                public const string Name = "Is";
+
+                /// <summary>
+                /// Gets the identifier for value being compared.
+                /// </summary>
+                public const string Expression = "expression";
+
+                /// <summary>
+                /// Gets the identifier for the IS keyword.
+                /// </summary>
+                public const string IsKeyword = "is";
+
+                /// <summary>
+                /// Gets the identifier for the NOT keyword.
+                /// </summary>
+                public const string Not = "not";
+
+                /// <summary>
+                /// Gets the identifier for the NULL keyword.
+                /// </summary>
+                public const string Null = "null";
+            }
+
+            /// <summary>
+            /// Describes the structure of a filter checking whether a value exists in a list of values.
+            /// </summary>
+            public static class In
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the filter is checking whether a value exists in a list of values.
+                /// </summary>
+                public const string Name = "In";
+
+                /// <summary>
+                /// Gets the identifier for the value being compared.
+                /// </summary>
+                public const string Expression = "expression";
+
+                /// <summary>
+                /// Gets the identifier for the NOT keyword.
+                /// </summary>
+                public const string Not = "not";
+
+                /// <summary>
+                /// Gets the identifier for the IN keyword.
+                /// </summary>
+                public const string InKeyword = "in";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis token.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier indicating that the values come from a SELECT expression.
+                /// </summary>
+                public const string SelectExpression = "select_expression";
+
+                /// <summary>
+                /// Gets the identifier indicating that the values come from a list of values.
+                /// </summary>
+                public const string ValueList = "value_list";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
         }
 
         private void defineFilter()
         {
-            Define("Filter")
-                .Add("Options", true, Options()
-                    .Add("Wrapped", Define()
-                        .Add("LeftParenthesis", true, Token("LeftParenthesis"))
-                        .Add("Filter", true, Expression("Filter"))
-                        .Add("RightParenthesis", true, Token("RightParenthesis")))
-                    .Add("Not", Define()
-                        .Add("Not", true, Token("Not"))
-                        .Add("Filter", true, Expression("Filter")))
-                    .Add("Binary", Define()
-                        .Add("Left", true, Expression("Expression"))
-                        .Add("ComparisonOperator", true, Token("ComparisonOperator"))
-                        .Add("Right", true, Expression("Expression")))
-                    .Add("Between", Define()
-                        .Add("Expression", true, Expression("Expression"))
-                        .Add("Not", false, Token("Not"))
-                        .Add("Between", true, Token("Between"))
-                        .Add("LowerBound", true, Expression("Expression"))
-                        .Add("And", true, Expression("And"))
-                        .Add("UpperBound", true, Expression("Expression")))
-                    .Add("Like", Define()
-                        .Add("Expression", true, Expression("Expression"))
-                        .Add("Not", false, Token("Not"))
-                        .Add("Like", true, Token("Like"))
-                        .Add("Value", true, Token("String")))
-                    .Add("Is", Define()
-                        .Add("Expression", true, Expression("Expression"))
-                        .Add("Is", true, Token("Is"))
-                        .Add("Not", false, Token("Not"))
-                        .Add("Null", true, Token("Null")))
-                    .Add("In", Define()
-                        .Add("Expression", true, Expression("Expression"))
-                        .Add("Not", false, Token("In"))
-                        .Add("In", true, Token("In"))
-                        .Add("LeftParenthesis", true, Token("LeftParenthesis"))
-                        .Add("ValueSource", true, Options()
-                            .Add("SelectExpression", Expression("SelectExpression"))
-                            .Add("ValueList", Expression("ValueList")))
-                        .Add("RightParenthesis", true, Token("RightParenthesis"))));
+            Define(Filter.Name)
+                .Add(true, Options()
+                    .Add(Filter.Wrapped.Name, Define()
+                        .Add(Filter.Wrapped.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(Filter.Wrapped.Filter, true, Expression(Filter.Name))
+                        .Add(Filter.Wrapped.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                    .Add(Filter.Not.Name, Define()
+                        .Add(Filter.Not.NotKeyword, true, Token(SqlTokenizer.Not))
+                        .Add(Filter.Not.Filter, true, Expression(Filter.Name)))
+                    .Add(Filter.Order.Name, Define()
+                        .Add(Filter.Order.Left, true, Expression(Item.Name))
+                        .Add(Filter.Order.ComparisonOperator, true, Token(SqlTokenizer.ComparisonOperator))
+                        .Add(Filter.Order.Right, true, Expression(Item.Name)))
+                    .Add(Filter.Between.Name, Define()
+                        .Add(Filter.Between.Expression, true, Expression(Item.Name))
+                        .Add(Filter.Between.Not, false, Token(SqlTokenizer.Not))
+                        .Add(Filter.Between.BetweenKeyword, true, Token(SqlTokenizer.Between))
+                        .Add(Filter.Between.LowerBound, true, Expression(Item.Name))
+                        .Add(Filter.Between.And, true, Token(SqlTokenizer.BetweenAnd))
+                        .Add(Filter.Between.UpperBound, true, Expression(Item.Name)))
+                    .Add(Filter.Like.Name, Define()
+                        .Add(Filter.Like.Expression, true, Expression(Item.Name))
+                        .Add(Filter.Like.Not, false, Token(SqlTokenizer.Not))
+                        .Add(Filter.Like.LikeKeyword, true, Token(SqlTokenizer.Like))
+                        .Add(Filter.Like.Value, true, Token(SqlTokenizer.String)))
+                    .Add(Filter.Is.Name, Define()
+                        .Add(Filter.Is.Expression, true, Expression(Item.Name))
+                        .Add(Filter.Is.IsKeyword, true, Token(SqlTokenizer.Is))
+                        .Add(Filter.Is.Not, false, Token(SqlTokenizer.Not))
+                        .Add(Filter.Is.Null, true, Token(SqlTokenizer.Null)))
+                    .Add(Filter.In.Name, Define()
+                        .Add(Filter.In.Expression, true, Expression(Item.Name))
+                        .Add(Filter.In.Not, false, Token(SqlTokenizer.Not))
+                        .Add(Filter.In.InKeyword, true, Token(SqlTokenizer.In))
+                        .Add(Filter.In.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(false, Options()
+                            .Add(Filter.In.SelectExpression, Expression(SelectExpression.Name))
+                            .Add(Filter.In.ValueList, Expression(ValueList.Name)))
+                        .Add(Filter.In.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis))));
+        }
+
+        /// <summary>
+        /// Describes the structure of the value list.
+        /// </summary>
+        public static class ValueList
+        {
+            /// <summary>
+            /// Gets the name identifying the value list.
+            /// </summary>
+            public const string Name = "ValueList";
         }
 
         private void defineValueList()
         {
-            Define("ValueList")
-                .Add("Options", true, Options()
+            Define(ValueList.Name)
+                .Add(true, Options()
                     .Add("Multiple", Define()
-                        .Add("Left", true, Expression("Expression"))
-                        .Add("Comma", true, Token("Comma"))
-                        .Add("Right", true, Expression("ValueList")))
-                    .Add("Single", Expression("Expression")));
+                        .Add("First", true, Expression(Item.Name))
+                        .Add("Comma", true, Token(SqlTokenizer.Comma))
+                        .Add("Remaining", true, Expression(ValueList.Name)))
+                    .Add("Single", Expression(Item.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the GROUP BY list.
+        /// </summary>
+        public static class GroupByList
+        {
+            /// <summary>
+            /// Gets the name identifying the GROUP BY list.
+            /// </summary>
+            public const string Name = "GroupByList";
+
+            /// <summary>
+            /// Describes the structure of multiple GROUP BY items.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier indicating that there are multiple GROUP BY items.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the identifier for the first GROUP BY item.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the comma separator.
+                /// </summary>
+                public const string Comma = "comma";
+
+                /// <summary>
+                /// Gets the identifier for the rest of the GROUP BY items.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier for a single GROUP BY item.
+            /// </summary>
+            public const string Single = "single";
         }
 
         private void defineGroupByList()
         {
-            Define("GroupByList")
-                .Add("Options", true, Options()
-                    .Add("Multiple", Define()
-                        .Add("Left", true, Expression("Expression"))
-                        .Add("Comma", true, Token("Comma"))
-                        .Add("Right", true, Expression("GroupByList")))
-                    .Add("Single", Expression("Expression")));
+            Define(GroupByList.Name)
+                .Add(true, Options()
+                    .Add(SqlGrammar.GroupByList.Multiple.Name, Define()
+                        .Add(SqlGrammar.GroupByList.Multiple.First, true, Expression(Item.Name))
+                        .Add(SqlGrammar.GroupByList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(SqlGrammar.GroupByList.Multiple.Remaining, true, Expression(GroupByList.Name)))
+                    .Add(SqlGrammar.GroupByList.Single, Expression(Item.Name)));
         }
 
-        private void defineExpression()
+        /// <summary>
+        /// Describes the structure of the item.
+        /// </summary>
+        public static class Item
         {
-            Define("Expression")
-                .Add("Options", true, Options()
-                    .Add("Column", Expression("MultipartIdentifier"))
-                    .Add("FunctionCall", Expression("FunctionCall"))
-                    .Add("ArithmeticExpression", Expression("ArithmeticExpression"))
-                    .Add("SelectExpression", Expression("SelectExpression"))
-                    .Add("Number", Token("Number"))
-                    .Add("String", Token("String"))
-                    .Add("Null", Token("Null")));
+            /// <summary>
+            /// Gets the name identifying the item.
+            /// </summary>
+            public const string Name = "Item";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a column.
+            /// </summary>
+            public const string Column = "column";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a function call.
+            /// </summary>
+            public const string FunctionCall = "function_call";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is an arithmetic expression.
+            /// </summary>
+            public const string ArithmeticExpression = "arithmetic_expression";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a select statement.
+            /// </summary>
+            public const string SelectStatement = "select_statement";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a number.
+            /// </summary>
+            public const string Number = "number";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a string.
+            /// </summary>
+            public const string String = "string";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a null.
+            /// </summary>
+            public const string Null = "null";
+        }
+
+        private void defineItem()
+        {
+            Define(Item.Name)
+                .Add(true, Options()
+                    .Add(Item.Column, Expression(MultipartIdentifier.Name))
+                    .Add(Item.FunctionCall, Expression(FunctionCall.Name))
+                    .Add(Item.ArithmeticExpression, Expression(ArithmeticExpression.Name))
+                    .Add(Item.SelectStatement, Expression(SelectStatement.Name))
+                    .Add(Item.Number, Token(SqlTokenizer.Number))
+                    .Add(Item.String, Token(SqlTokenizer.String))
+                    .Add(Item.Null, Token(SqlTokenizer.Null)));
+        }
+
+
+        /// <summary>
+        /// Describes the structure of the INSERT statement.
+        /// </summary>
+        public static class InsertStatement
+        {
+            /// <summary>
+            /// Gets the name identifying the INSERT statement.
+            /// </summary>
+            public const string Name = "InsertStatement";
+
+            /// <summary>
+            /// Gets the identifier for the INSERT keyword.
+            /// </summary>
+            public const string InsertKeyword = "insert";
+
+            /// <summary>
+            /// Gets the identifier for the INTO keyword.
+            /// </summary>
+            public const string IntoKeyword = "into";
+
+            /// <summary>
+            /// Gets the identifier for the table.
+            /// </summary>
+            public const string Table = "table";
+
+            /// <summary>
+            /// Describes the structure of the columns list.
+            /// </summary>
+            public static class Columns
+            {
+                /// <summary>
+                /// Gets the identifier indicating that there is a column list.
+                /// </summary>
+                public const string Name = "ColumnList";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the column list.
+                /// </summary>
+                public const string ColumnList = "column_list";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
+
+            /// <summary>
+            /// Describes the structure of the values list.
+            /// </summary>
+            public static class Values
+            {
+                /// <summary>
+                /// Gets the identifier indicating that a value list is used.
+                /// </summary>
+                public const string Name = "Values";
+
+                /// <summary>
+                /// Gets the identifier for the VALUES keyword.
+                /// </summary>
+                public const string ValuesKeyword = "values";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the value list.
+                /// </summary>
+                public const string ValueList = "value_list";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
+
+            /// <summary>
+            /// Describes the structure of the SELECT expression generating the values.
+            /// </summary>
+            public static class Select
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the values come from a SELECT statement.
+                /// </summary>
+                public const string Name = "SelectExpression";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the select expression.
+                /// </summary>
+                public const string SelectExpression = "select_expression";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
         }
 
         private void defineInsertStatement()
         {
-            Define("InsertStatement")
-                .Add("Insert", true, Token("Insert"))
-                .Add("Into", false, Token("Into"))
-                .Add("Table", true, Expression("MultipartIdentifier"))
-                .Add("ColumnList", false, Define()
-                    .Add("LeftParenthesis", true, Token("LeftParenthesis"))
-                    .Add("ColumnList", true, Expression("ColumnList"))
-                    .Add("RightParenthesis", true, Token("RightParenthesis")))
-                .Add("ValueSource", true, Options()
-                    .Add("ValueList", Define()
-                        .Add("Values", true, Token("Values"))
-                        .Add("LeftParenthesis", true, Token("LeftParenthesis"))
-                        .Add("ValueList", true, Expression("ValueList"))
-                        .Add("RightParenthesis", true, Token("RightParenthesis")))
-                    .Add("SelectExpression", Define()
-                        .Add("LeftParenthesis", true, Token("LeftParenthesis"))
-                        .Add("SelectExpression", true, Expression("SelectExpression"))
-                        .Add("RightParenthesis", true, Token("RightParenthesis"))));
+            Define(InsertStatement.Name)
+                .Add(SqlGrammar.InsertStatement.InsertKeyword, true, Token(SqlTokenizer.Insert))
+                .Add(SqlGrammar.InsertStatement.IntoKeyword, false, Token(SqlTokenizer.Into))
+                .Add(SqlGrammar.InsertStatement.Table, true, Expression(MultipartIdentifier.Name))
+                .Add(SqlGrammar.InsertStatement.Columns.Name, false, Define()
+                    .Add(SqlGrammar.InsertStatement.Columns.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                    .Add(SqlGrammar.InsertStatement.Columns.ColumnList, true, Expression(ColumnList.Name))
+                    .Add(SqlGrammar.InsertStatement.Columns.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                .Add(true, Options()
+                    .Add(SqlGrammar.InsertStatement.Values.Name, Define()
+                        .Add(SqlGrammar.InsertStatement.Values.ValuesKeyword, true, Token(SqlTokenizer.Values))
+                        .Add(SqlGrammar.InsertStatement.Values.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(SqlGrammar.InsertStatement.Values.ValueList, false, Expression(ValueList.Name))
+                        .Add(SqlGrammar.InsertStatement.Values.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                    .Add(SqlGrammar.InsertStatement.Select.Name, Define()
+                        .Add(SqlGrammar.InsertStatement.Select.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(SqlGrammar.InsertStatement.Select.SelectExpression, true, Expression(SelectExpression.Name))
+                        .Add(SqlGrammar.InsertStatement.Select.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis))));
 
+        }
+
+        /// <summary>
+        /// Describes the structure of the column list.
+        /// </summary>
+        public static class ColumnList
+        {
+            /// <summary>
+            /// Gets the name identifying the column list.
+            /// </summary>
+            public const string Name = "ColumnList";
+
+            /// <summary>
+            /// Describes the structure of a column list with multiple columns.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier used to indicate that multiple columns exist.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the identifier for the first column.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the comma separator.
+                /// </summary>
+                public const string Comma = "comma";
+
+                /// <summary>
+                /// Gets the identifier for the remaining columns.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier used to indicate that a single column exists.
+            /// </summary>
+            public const string Single = "single";
         }
 
         private void defineColumnList()
         {
-            Define("ColumnList")
-                .Add("Options", true, Options()
-                    .Add("Multiple", Define()
-                        .Add("Left", true, Expression("MultipartIdentifier"))
-                        .Add("Comma", true, Token("Comma"))
-                        .Add("Right", true, Expression("ColumnList")))
-                    .Add("Single", Expression("MultipartIdentifier")));
+            Define(ColumnList.Name)
+                .Add(true, Options()
+                    .Add(ColumnList.Multiple.Name, Define()
+                        .Add(ColumnList.Multiple.First, true, Expression(MultipartIdentifier.Name))
+                        .Add(ColumnList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(ColumnList.Multiple.Remaining, true, Expression(ColumnList.Name)))
+                    .Add(ColumnList.Single, Expression(MultipartIdentifier.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the UPDATE statement.
+        /// </summary>
+        public static class UpdateStatement
+        {
+            /// <summary>
+            /// Gets the name identifying the UPDATE statement.
+            /// </summary>
+            public const string Name = "UpdateStatement";
         }
 
         private void defineUpdateStatement()
         {
-            Define("UpdateStatement")
-                .Add("Update", true, Token("Update"))
-                .Add("Table", true, Expression("MultipartIdentifier"))
-                .Add("Set", true, Token("Set"))
-                .Add("SetterList", true, Expression("SetterList"))
+            Define(UpdateStatement.Name)
+                .Add("Update", true, Token(SqlTokenizer.Update))
+                .Add("Table", true, Expression(MultipartIdentifier.Name))
+                .Add("Set", true, Token(SqlTokenizer.Set))
+                .Add("SetterList", true, Expression(SetterList.Name))
                 .Add("Where", false, Define()
-                    .Add("Where", true, Token("Where"))
-                    .Add("FilterList", true, Expression("FilterList")));
+                    .Add("Where", true, Token(SqlTokenizer.Where))
+                    .Add("FilterList", true, Expression(FilterList.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of the setter list.
+        /// </summary>
+        public static class SetterList
+        {
+            /// <summary>
+            /// Gets the name identifying the setter list.
+            /// </summary>
+            public const string Name = "SetterList";
         }
 
         private void defineSetterList()
         {
-            Define("SetterList")
-                .Add("Options", true, Options()
+            Define(SetterList.Name)
+                .Add(true, Options()
                     .Add("Multiple", Define()
-                        .Add("Left", true, Expression("Setter"))
-                        .Add("Comma", true, Token("Comma"))
-                        .Add("Right", true, Expression("SetterList")))
-                    .Add("Single", Expression("Setter")));
+                        .Add("First", true, Expression(Setter.Name))
+                        .Add("Comma", true, Token(SqlTokenizer.Comma))
+                        .Add("Remaining", true, Expression(SetterList.Name)))
+                    .Add("Single", Expression(Setter.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of a setter.
+        /// </summary>
+        public static class Setter
+        {
+            /// <summary>
+            /// Gets the name identifying the setter.
+            /// </summary>
+            public const string Name = "Setter";
         }
 
         private void defineSetter()
         {
-            Define("Setter")
-                .Add("Column", true, Expression("MultipartIdentifier"))
-                .Add("Assignment", true, Token("Assignment"))
-                .Add("Expression", true, Expression("Expression"));
+            Define(Setter.Name)
+                .Add("Column", true, Expression(MultipartIdentifier.Name))
+                .Add("Assignment", true, Token(SqlTokenizer.Assignment))
+                .Add("Expression", true, Expression(Item.Name));
+        }
+
+        /// <summary>
+        /// Describes the structure of the DELETE statement.
+        /// </summary>
+        public static class DeleteStatement
+        {
+            /// <summary>
+            /// Gets the name identifying the DELETE statement.
+            /// </summary>
+            public const string Name = "DeleteStatement";
+
+            /// <summary>
+            /// Gets the identifier for the DELETE keyword.
+            /// </summary>
+            public const string DeleteKeyword = "delete";
+
+            /// <summary>
+            /// Gets the identifier for the FROM keyword.
+            /// </summary>
+            public const string FromKeyword = "from";
+
+            /// <summary>
+            /// Gets the identifier for the table.
+            /// </summary>
+            public const string Table = "table";
+
+            /// <summary>
+            /// Describes the structure of the WHERE clause.
+            /// </summary>
+            public static class Where
+            {
+                /// <summary>
+                /// Gets the indentifier that indicates whether the WHERE clause is present.
+                /// </summary>
+                public const string Name = "Where";
+
+                /// <summary>
+                /// Gets the indentifier for the WHERE keyword.
+                /// </summary>
+                public const string WhereKeyword = "where";
+
+                /// <summary>
+                /// Gets the identifier for the filter list.
+                /// </summary>
+                public const string FilterList = "filter_list";
+            }
         }
 
         private void defineDeleteStatement()
         {
-            Define("DeleteStatement")
-                .Add("Delete", true, Token("Delete"))
-                .Add("From", false, Token("From"))
-                .Add("Table", true, Expression("MultipartIdentifier"))
+            Define(DeleteStatement.Name)
+                .Add("Delete", true, Token(SqlTokenizer.Delete))
+                .Add("From", false, Token(SqlTokenizer.From))
+                .Add("Table", true, Expression(MultipartIdentifier.Name))
                 .Add("Where", false, Define()
-                    .Add("Where", true, Token("Where"))
-                    .Add("FilterList", true, Expression("FilterList")));
+                    .Add("Where", true, Token(SqlTokenizer.Where))
+                    .Add("FilterList", true, Expression(FilterList.Name)));
+        }
+
+        /// <summary>
+        /// Describes the structure of a multi-part identifier.
+        /// </summary>
+        public static class MultipartIdentifier
+        {
+            /// <summary>
+            /// Gets the name identifying the multi-part identifier.
+            /// </summary>
+            public const string Name = "MultipartIdentifier";
         }
 
         private void defineMultipartIdentifier()
         {
-            Define("MultipartIdentifier")
-                .Add("Options", true, Options()
+            Define(MultipartIdentifier.Name)
+                .Add(true, Options()
                     .Add("Multiple", Define()
-                        .Add("Left", true, Token("Identifier"))
-                        .Add("Dot", true, Token("Dot"))
-                        .Add("Right", true, Expression("MultipartIdentifier")))
-                    .Add("Single", Token("Identifier")));
+                        .Add("First", true, Token(SqlTokenizer.Identifier))
+                        .Add("Dot", true, Token(SqlTokenizer.Dot))
+                        .Add("Remaining", true, Expression(MultipartIdentifier.Name)))
+                    .Add("Single", Token(SqlTokenizer.Identifier)));
         }
     }
 }

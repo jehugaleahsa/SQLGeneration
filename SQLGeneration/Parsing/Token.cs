@@ -49,18 +49,16 @@ namespace SQLGeneration.Parsing
         /// Attempts to match the expression item with the values returned by the parser.
         /// </summary>
         /// <param name="parser">The parser currently iterating over the token source.</param>
-        /// <param name="depth"></param>
+        /// <param name="itemName">The name of the token in the outer expression.</param>
         /// <returns>The results of the match.</returns>
-        public MatchResult Match(Parser parser, int depth)
+        public MatchResult Match(Parser parser, string itemName)
         {
             TokenResult tokenResult = parser.GetToken(TokenType);
-            MatchResult matchResult = new MatchResult(tokenResult.IsMatch);
-            matchResult.Context = tokenResult;
             if (tokenResult.IsMatch)
             {
-                Console.Out.WriteLine(tokenResult.Value);
+                return new MatchResult(true) { ItemName = itemName, Context = tokenResult.Value };
             }
-            return matchResult;
+            return new MatchResult(false) { ItemName = itemName };
         }
     }
 }

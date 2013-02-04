@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SQLGeneration.Parsing
 {
@@ -11,8 +12,8 @@ namespace SQLGeneration.Parsing
         /// Attempts to match the expression item with the values returned by the parser.
         /// </summary>
         /// <param name="parser">The parser currently iterating over the token source.</param>
-        /// <param name="depth">The current depth of the parser.</param>
+        /// <param name="itemName">The name of the item in the outer expression.</param>
         /// <returns>The results of the match.</returns>
-        MatchResult Match(Parser parser, int depth);
+        MatchResult Match(Parser parser, string itemName);
     }
 }

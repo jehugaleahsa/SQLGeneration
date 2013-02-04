@@ -5,19 +5,19 @@ using SQLGeneration.Parsing;
 namespace SQLGeneration
 {
     /// <summary>
-    /// Represents a filter that compares two values together.
+    /// Represents a filter that checks that a value is less than, greater than or equal to.
     /// </summary>
-    public abstract class BinaryFilter : Filter, IComparisonFilter
+    public abstract class OrderFilter : Filter, IComparisonFilter
     {
         private readonly IFilterItem _leftHand;
         private readonly IFilterItem _rightHand;
 
         /// <summary>
-        /// Initializes a new instance of a BinaryFilter.
+        /// Initializes a new instance of a OrderFilter.
         /// </summary>
         /// <param name="leftHand">The left hand side of the comparison.</param>
         /// <param name="rightHand">The right hand side of the comparison.</param>
-        protected BinaryFilter(IFilterItem leftHand, IFilterItem rightHand)
+        protected OrderFilter(IFilterItem leftHand, IFilterItem rightHand)
         {
             if (leftHand == null)
             {

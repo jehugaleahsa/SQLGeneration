@@ -19,6 +19,14 @@ namespace SQLGeneration.Parsing
         }
 
         /// <summary>
+        /// Gets the option items.
+        /// </summary>
+        internal IEnumerable<ExpressionItem> Items
+        {
+            get { return options; }
+        }
+
+        /// <summary>
         /// Indicates that the given item is the next expected, giving it a
         /// name and specifying whether it is required.
         /// </summary>
@@ -57,24 +65,19 @@ namespace SQLGeneration.Parsing
         /// Attempts to match the expression item with the values returned by the parser.
         /// </summary>
         /// <param name="parser">The parser currently iterating over the token source.</param>
-        /// <param name="depth"></param>
+        /// <param name="itemName">This value will be empty for an options list.</param>
         /// <returns>The results of the match.</returns>
-        public MatchResult Match(Parser parser, int depth)
+        public MatchResult Match(Parser parser, string itemName)
         {
             foreach (ExpressionItem option in options)
             {
-                Console.Out.WriteLine("Attempting{0}{1}... ", new String(' ', depth + 1), option.ItemName);
                 parser.StartTransaction();
-                MatchResult innerResult = option.Item.Match(parser, depth + 1);
+                MatchResult innerResult = option.Item.Match(parser, option.ItemName);
                 if (innerResult.IsMatch)
                 {
                     parser.Commit();
-                    MatchResult result = new MatchResult(true);
-                    result.Matches.Add(option.ItemName, innerResult);
-                    Console.Out.WriteLine("Success{0}{1}... ", new String(' ', depth + 1), option.ItemName);
-                    return result;
+                    return innerResult;
                 }
-                Console.Out.WriteLine("Failure{0}{1}... ", new String(' ', depth + 1), option.ItemName);
                 parser.Rollback();
             }
             return new MatchResult(false);

@@ -13,26 +13,72 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Initializes a new instance of an ExpressionDefinition.
         /// </summary>
-        internal ExpressionDefinition()
+        /// <param name="expressionType">An optional identifier for the expression's type.</param>
+        internal ExpressionDefinition(string expressionType)
         {
+            ExpressionType = expressionType;
             items = new List<ExpressionItem>();
         }
 
         /// <summary>
-        /// Indicates that the given item is the next expected, giving it a
+        /// Gets the type of the expression.
+        /// </summary>
+        public string ExpressionType
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Indicates that the given expression is expected next, giving it a
+        /// name and specifying whether it is required.
+        /// </summary>
+        /// <param name="name">The name that the expression will be identified with in the outer expression.</param>
+        /// <param name="isRequired">Indicates whether the expression is required in order for the outer expression to be a match.</param>
+        /// <param name="expression">The expression to add to the outer expressions.</param>
+        /// <returns>The updated definition.</returns>
+        public ExpressionDefinition Add(string name, bool isRequired, Expression expression)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException("expression");
+            }
+            items.Add(new ExpressionItem(name, isRequired, expression));
+            return this;
+        }
+
+        /// <summary>
+        /// Indicates that the given options list is the next expected, giving it a
+        /// name and specifying whether it is required.
+        /// </summary>
+        /// <param name="isRequired">Indicates whether at least one of the options is required in order for the outer expression to be a match.</param>
+        /// <param name="options">The options to add to the outer expression.</param>
+        /// <returns>The updated definition.</returns>
+        public ExpressionDefinition Add(bool isRequired, Options options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException("options");
+            }
+            items.Add(new ExpressionItem(String.Empty, isRequired, options));
+            return this;
+        }
+
+        /// <summary>
+        /// Indicates that the given token is the next expected, giving it a
         /// name and specifying whether it is required.
         /// </summary>
         /// <param name="itemName">The name that the token will be identified with in the outer expression.</param>
-        /// <param name="isRequired">Indicates whether the token is required in the expression.</param>
-        /// <param name="item">The expression item to add to the sequence.</param>
-        /// <returns>The updated expression.</returns>
-        public ExpressionDefinition Add(string itemName, bool isRequired, IExpressionItem item)
+        /// <param name="isRequired">Indicates whether the token is required in order for the outer expression to be a match.</param>
+        /// <param name="token">The token to add to the outer expression.</param>
+        /// <returns>The updated definition.</returns>
+        public ExpressionDefinition Add(string itemName, bool isRequired, Token token)
         {
-            if (item == null)
+            if (token == null)
             {
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException("token");
             }
-            items.Add(new ExpressionItem(itemName, isRequired, item));
+            items.Add(new ExpressionItem(itemName, isRequired, token));
             return this;
         }
 
@@ -40,10 +86,10 @@ namespace SQLGeneration.Parsing
         /// Indicates that the given sub-expression is the next expected, giving it a
         /// name and specifying whether it is required.
         /// </summary>
-        /// <param name="itemName">The name that the token will be identified with in the outer expression.</param>
-        /// <param name="isRequired">Indicates whether the token is required in the expression.</param>
+        /// <param name="itemName">The name that the sub-expression will be identified with in the outer expression.</param>
+        /// <param name="isRequired">Indicates whether the sub-expression is required in order for the expression to match.</param>
         /// <param name="definition">The definition for the sub-expression.</param>
-        /// <returns>The updated expression.</returns>
+        /// <returns>The updated definition.</returns>
         public ExpressionDefinition Add(string itemName, bool isRequired, ExpressionDefinition definition)
         {
             if (definition == null)

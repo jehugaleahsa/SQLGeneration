@@ -21,11 +21,10 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Associates the given result to its name.
         /// </summary>
-        /// <param name="itemName">The name that the outer expression uses to identify the item.</param>
         /// <param name="result">The match result of an item.</param>
-        internal void Add(string itemName, MatchResult result)
+        internal void Add(MatchResult result)
         {
-            resultLookup.Add(itemName, result);
+            resultLookup.Add(result.ItemName, result);
         }
 
         /// <summary>

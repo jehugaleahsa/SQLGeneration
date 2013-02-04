@@ -9,27 +9,28 @@ namespace SQLGeneration
     /// </summary>
     public class DeleteBuilder : IFilteredCommand
     {
-        private readonly Table _table;
+        private readonly AliasedSource _table;
         private readonly FilterGroup _where;
 
         /// <summary>
         /// Initializes a new instance of a DeleteBuilder.
         /// </summary>
         /// <param name="table">The table being deleted from.</param>
-        public DeleteBuilder(Table table)
+        /// <param name="alias">The alias to use to refer to the table.</param>
+        public DeleteBuilder(Table table, string alias = null)
         {
             if (table == null)
             {
                 throw new ArgumentNullException("table");
             }
-            _table = table;
+            _table = new AliasedSource(table, alias);
             _where = new FilterGroup();
         }
 
         /// <summary>
         /// Gets the table being deleted from.
         /// </summary>
-        public Table Table
+        public AliasedSource Table
         {
             get { return _table; }
         }
@@ -87,7 +88,7 @@ namespace SQLGeneration
             TokenStream stream = new TokenStream();
             stream.Add("DELETE");
             stream.Add("FROM");
-            stream.AddRange(((IRightJoinItem)_table).GetDeclarationTokens(options));
+            stream.AddRange(_table.GetDeclarationTokens(options));
             if (_where.HasFilters)
             {
                 stream.Add("WHERE");

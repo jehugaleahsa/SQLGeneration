@@ -39,15 +39,6 @@ namespace SQLGeneration.Parsing
         }
 
         /// <summary>
-        /// Gets or sets the depth of the item.
-        /// </summary>
-        public bool Depth
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Gets the item.
         /// </summary>
         public IExpressionItem Item

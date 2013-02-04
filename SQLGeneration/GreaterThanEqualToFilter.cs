@@ -5,7 +5,7 @@ namespace SQLGeneration
     /// <summary>
     /// Represents a comparison where the left hand item is greater than or equal to the right hand item.
     /// </summary>
-    public class GreaterThanEqualToFilter : BinaryFilter
+    public class GreaterThanEqualToFilter : OrderFilter
     {
         /// <summary>
         /// Initializes a new instance of a GreaterThanEqualToFilter.

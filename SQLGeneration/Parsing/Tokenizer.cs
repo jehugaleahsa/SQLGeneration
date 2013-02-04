@@ -8,21 +8,16 @@ namespace SQLGeneration.Parsing
     /// <summary>
     /// Generates a series of tokens.
     /// </summary>
-    public abstract class Tokenizer : ITokenRegistry, ITokenSource
+    public abstract class Tokenizer : ITokenRegistry
     {
         private readonly Dictionary<string, List<Regex>> tokenLookup;
-        private readonly IEnumerator<string> tokenEnumerator;
-        private readonly LinkedList<string> undoBuffer;
 
         /// <summary>
         /// Initializes a new instance of a Tokenizer.
         /// </summary>
-        /// <param name="tokenStream">The stream of tokens.</param>
-        protected Tokenizer(IEnumerable<string> tokenStream)
+        protected Tokenizer()
         {
             tokenLookup = new Dictionary<string, List<Regex>>();
-            tokenEnumerator = tokenStream.GetEnumerator();
-            undoBuffer = new LinkedList<string>();
         }
 
         /// <summary>
@@ -59,52 +54,76 @@ namespace SQLGeneration.Parsing
         }
 
         /// <summary>
-        /// Attempts to retrieve a token matching the definition associated
-        /// with the given name.
+        /// Creates a stream of tokens that are verified against the token definitions.
         /// </summary>
-        /// <param name="tokenName">The name of the token to try to retrieve.</param>
-        /// <returns>
-        /// A result object describing whether the match was a success and what value 
-        /// was found.
-        /// </returns>
-        public TokenResult GetToken(string tokenName)
+        /// <param name="tokenStream">The stream of tokens.</param>
+        /// <returns>The new token source.</returns>
+        public ITokenSource CreateTokenSource(IEnumerable<string> tokenStream)
         {
-            List<Regex> checks;
-            if (!tokenLookup.TryGetValue(tokenName, out checks))
-            {
-                throw new ArgumentException(Resources.UnknownTokenType, "tokenName");
-            }
-            string token;
-            if (undoBuffer.Count == 0)
-            {
-                if (!tokenEnumerator.MoveNext())
-                {
-                    return new TokenResult(tokenName, false, null);
-                }
-                token = tokenEnumerator.Current;
-            }
-            else
-            {
-                token = undoBuffer.First.Value;
-                undoBuffer.RemoveFirst();
-            }
-            foreach (Regex check in checks)
-            {
-                if (check.IsMatch(token))
-                {
-                    return new TokenResult(tokenName, true, token);
-                }
-            }
-            return new TokenResult(tokenName, false, token);
+            return new TokenSource(this, tokenStream);
         }
 
-        /// <summary>
-        /// Restores the given token to the front of the token stream.
-        /// </summary>
-        /// <param name="token">The token result containing the token to restore.</param>
-        public void PutBack(string token)
+        private sealed class TokenSource : ITokenSource
         {
-            undoBuffer.AddFirst(token);
+            private readonly Tokenizer tokenizer;
+            private readonly IEnumerator<string> tokenEnumerator;
+            private readonly LinkedList<string> undoBuffer;
+
+            public TokenSource(Tokenizer tokenizer, IEnumerable<string> tokenStream)
+            {
+                this.tokenizer = tokenizer;
+                tokenEnumerator = tokenStream.GetEnumerator();
+                undoBuffer = new LinkedList<string>();
+            }
+
+            /// <summary>
+            /// Attempts to retrieve a token matching the definition associated
+            /// with the given name.
+            /// </summary>
+            /// <param name="tokenName">The name of the token to try to retrieve.</param>
+            /// <returns>
+            /// A result object describing whether the match was a success and what value 
+            /// was found.
+            /// </returns>
+            public TokenResult GetToken(string tokenName)
+            {
+                List<Regex> checks;
+                if (!tokenizer.tokenLookup.TryGetValue(tokenName, out checks))
+                {
+                    throw new ArgumentException(Resources.UnknownTokenType, "tokenName");
+                }
+                string token;
+                if (undoBuffer.Count == 0)
+                {
+                    if (!tokenEnumerator.MoveNext())
+                    {
+                        return new TokenResult(tokenName, false, null);
+                    }
+                    token = tokenEnumerator.Current;
+                }
+                else
+                {
+                    token = undoBuffer.First.Value;
+                    undoBuffer.RemoveFirst();
+                }
+                foreach (Regex check in checks)
+                {
+                    if (check.IsMatch(token))
+                    {
+                        return new TokenResult(tokenName, true, token);
+                    }
+                }
+                return new TokenResult(tokenName, false, token);
+            }
+
+            /// <summary>
+            /// Restores the given token to the front of the token stream.
+            /// </summary>
+            /// <param name="token">The token result containing the token to restore.</param>
+            public void PutBack(string token)
+            {
+                undoBuffer.AddFirst(token);
+            }
         }
     }
 }

@@ -11,7 +11,7 @@ namespace SQLGeneration
     /// </summary>
     public class InsertBuilder : ICommand
     {
-        private readonly Table _table;
+        private readonly AliasedSource _table;
         private readonly List<Column> _columns;
         private readonly IValueProvider _values;
 
@@ -20,7 +20,8 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="table">The table being inserted into.</param>
         /// <param name="values">The values to insert into the table.</param>
-        public InsertBuilder(Table table, IValueProvider values)
+        /// <param name="alias">The alias to use to refer to the table.</param>
+        public InsertBuilder(Table table, IValueProvider values, string alias = null)
         {
             if (table == null)
             {
@@ -30,7 +31,7 @@ namespace SQLGeneration
             {
                 throw new ArgumentNullException("values");
             }
-            _table = table;
+            _table = new AliasedSource(table, alias);
             _columns = new List<Column>();
             _values = values;
         }
@@ -38,7 +39,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets the table that is being inserted into.
         /// </summary>
-        public Table Table
+        public AliasedSource Table
         {
             get { return _table; }
         }
@@ -110,7 +111,7 @@ namespace SQLGeneration
             TokenStream stream = new TokenStream();
             stream.Add("INSERT");
             stream.Add("INTO");
-            stream.AddRange(((IRightJoinItem)_table).GetDeclarationTokens(options));
+            stream.AddRange(_table.GetDeclarationTokens(options));
             stream.AddRange(buildColumnList(options));
             if (!_values.IsQuery)
             {

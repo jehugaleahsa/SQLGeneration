@@ -28,7 +28,7 @@ namespace SQLGeneration.Parsing
         /// <returns>The expression definition to allow for configuration.</returns>
         public ExpressionDefinition Define()
         {
-            ExpressionDefinition definition = new ExpressionDefinition();
+            ExpressionDefinition definition = new ExpressionDefinition(null);
             return definition;
         }
 
@@ -46,7 +46,7 @@ namespace SQLGeneration.Parsing
             ExpressionDefinition definition;
             if (!expressionLookup.TryGetValue(type, out definition))
             {
-                definition = new ExpressionDefinition();
+                definition = new ExpressionDefinition(type);
                 expressionLookup.Add(type, definition);
             }
             return definition;

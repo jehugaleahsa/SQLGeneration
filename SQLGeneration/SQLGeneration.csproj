@@ -42,7 +42,8 @@
     <Compile Include="ArithmeticExpression.cs" />
     <Compile Include="BetweenFilter.cs" />
     <Compile Include="Column.cs" />
-    <Compile Include="BinaryFilter.cs" />
+    <Compile Include="Formatting\SimpleFormatter.cs" />
+    <Compile Include="OrderFilter.cs" />
     <Compile Include="CommandOptions.cs" />
     <Compile Include="ConjunctionConverter.cs" />
     <Compile Include="Except.cs" />
@@ -70,6 +71,7 @@
     <Compile Include="Parsing\Options.cs" />
     <Compile Include="Parsing\Parser.cs" />
     <Compile Include="Parsing\SqlGrammar.cs" />
+    <Compile Include="Parsing\SqlResponder.cs" />
     <Compile Include="Parsing\SqlTokenizer.cs" />
     <Compile Include="Parsing\Token.cs" />
     <Compile Include="Parsing\Tokenizer.cs" />
@@ -139,9 +141,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Expressions\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
