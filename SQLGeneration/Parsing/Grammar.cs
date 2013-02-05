@@ -31,6 +31,14 @@ namespace SQLGeneration.Parsing
         }
 
         /// <summary>
+        /// Gets the definitions comprising the grammar.
+        /// </summary>
+        public IEnumerable<ExpressionDefinition> Definitions
+        {
+            get { return expressionLookup.Values; }
+        }
+
+        /// <summary>
         /// Creates a sub-expression definition.
         /// </summary>
         /// <returns>The expression definition to allow for configuration.</returns>

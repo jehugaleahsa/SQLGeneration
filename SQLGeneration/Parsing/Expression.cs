@@ -47,7 +47,7 @@ namespace SQLGeneration.Parsing
                     }
                 }
             }
-            attempt.RunHandler(expression.ExpressionType, result);
+            attempt.SetHandler(expression.ExpressionType, result);
             return result;
         }
     }

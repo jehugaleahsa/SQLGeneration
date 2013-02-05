@@ -8,6 +8,12 @@ namespace SQLGeneration.Parsing
     public interface ITokenSource
     {
         /// <summary>
+        /// Attempts to retrieve the next token.
+        /// </summary>
+        /// <returns>The next token -or- null if there are no more tokens.</returns>
+        string GetToken();
+
+        /// <summary>
         /// Attempts to retrieve a token matching the definition associated
         /// with the given name.
         /// </summary>

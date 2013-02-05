@@ -15,14 +15,24 @@ namespace SQLGeneration.Parsing
         public const string AliasIndicator = "AliasIndicator";
 
         /// <summary>
-        /// Gets the identifier for arithmetic operators.
+        /// Gets the identifier for the addition operator.
         /// </summary>
-        public const string ArithmeticOperator = "ArithmeticOperator";
+        public const string PlusOperator = "PlusOperator";
 
         /// <summary>
-        /// Gets the identifier for the setter assignment operator.
+        /// Gets the identifier for the subtraction operator.
         /// </summary>
-        public const string Assignment = "Assignment";
+        public const string MinusOperator = "MinusOperator";
+
+        /// <summary>
+        /// Gets the identifier for the multiplication operator.
+        /// </summary>
+        public const string MultiplicationOperator = "MultiplyOperator";
+
+        /// <summary>
+        /// Gets the identifier for the division operator.
+        /// </summary>
+        public const string DivisionOperator = "DivideOperator";
 
         /// <summary>
         /// Gets the identifier for the BETWEEN keyword.
@@ -30,24 +40,19 @@ namespace SQLGeneration.Parsing
         public const string Between = "Between";
 
         /// <summary>
-        /// Gets the identifier for the AND keyword in a BETWEEN filter.
-        /// </summary>
-        public const string BetweenAnd = "BetweenAnd";
-
-        /// <summary>
         /// Gets the identifier for the comma separator.
         /// </summary>
         public const string Comma = "Comma";
 
         /// <summary>
-        /// Gets the identifier for a comparison operator.
+        /// Gets the identifier for the AND keyword.
         /// </summary>
-        public const string ComparisonOperator = "ComparisonOperator";
+        public const string And = "And";
 
         /// <summary>
-        /// Gets the identifier for a filter conjunction (AND or OR).
+        /// Gets the identifier for the OR keyword.
         /// </summary>
-        public const string Conjunction = "Conjunction";
+        public const string Or = "Or";
 
         /// <summary>
         /// Gets the identifier for the DELETE keyword.
@@ -55,9 +60,14 @@ namespace SQLGeneration.Parsing
         public const string Delete = "Delete";
 
         /// <summary>
-        /// Gets the identifier for the distinct qualifiers (DISTINCT or ALL).
+        /// Gets the identifier for the ALL keyword.
         /// </summary>
-        public const string DistinctQualifier = "DistinctQualifier";
+        public const string All = "All";
+
+        /// <summary>
+        /// Gets the identifier for the DISTINCT keyword.
+        /// </summary>
+        public const string Distinct = "Distinct";
 
         /// <summary>
         /// Gets the identifier for the dot separator.
@@ -105,9 +115,29 @@ namespace SQLGeneration.Parsing
         public const string Is = "Is";
 
         /// <summary>
-        /// Gets the identifier for join types.
+        /// Gets the identifier for the INNER JOIN keyword.
         /// </summary>
-        public const string JoinType = "JoinType";
+        public const string InnerJoin = "InnerJoin";
+
+        /// <summary>
+        /// Gets the identifier for the LEFT OUTER JOIN keyword.
+        /// </summary>
+        public const string LeftOuterJoin = "LeftOuterJoin";
+
+        /// <summary>
+        /// Gets the identifier for the RIGHT OUTER JOIN keyword.
+        /// </summary>
+        public const string RightOuterJoin = "RightOuterJoin";
+
+        /// <summary>
+        /// Gets the identifier for the FULL OUTER JOIN keyword.
+        /// </summary>
+        public const string FullOuterJoin = "FullOuterJoin";
+
+        /// <summary>
+        /// Gets the identifier for the CROSS JOIN keyword.
+        /// </summary>
+        public const string CrossJoin = "CrossJoin";
         
         /// <summary>
         /// Gets the identifier for a left parenthesis.
@@ -130,9 +160,14 @@ namespace SQLGeneration.Parsing
         public const string Null = "Null";
 
         /// <summary>
-        /// Gets the identifier for a null placement indicator (NULLS FIRST or NULLS LAST).
+        /// Gets the identifier for the NULLS FIRST keyword.
         /// </summary>
-        public const string NullPlacement = "NullPlacement";
+        public const string NullsFirst = "NullsFirst";
+
+        /// <summary>
+        /// Gets the identifier for the NULLS LAST keyword.
+        /// </summary>
+        public const string NullsLast = "NullsLast";
 
         /// <summary>
         /// Gets the idenifier for numeric literals.
@@ -150,9 +185,14 @@ namespace SQLGeneration.Parsing
         public const string OrderBy = "OrderBy";
 
         /// <summary>
-        /// Gets the identifier for ORDER BY directions (ASC or DESC).
+        /// Gets the identifier for the DESC keyword.
         /// </summary>
-        public const string OrderDirection = "OrderDirection";
+        public const string Descending = "Descending";
+
+        /// <summary>
+        /// Gets the identifier for the ASC keyword.
+        /// </summary>
+        public const string Ascending = "Ascending";
 
         /// <summary>
         /// Gets the identifier for the PERCENT keyword.
@@ -170,19 +210,34 @@ namespace SQLGeneration.Parsing
         public const string Select = "Select";
 
         /// <summary>
-        /// Gets the identifier for SELECT combiners (UNION, UNION ALL, etc.)
+        /// Gets the identifier for the UNION ALL keyword.
         /// </summary>
-        public const string SelectCombiner = "SelectCombiner";
+        public const string UnionAll = "UnionAll";
+
+        /// <summary>
+        /// Gets the identifier for the UNION keyword.
+        /// </summary>
+        public const string Union = "Union";
+
+        /// <summary>
+        /// Gets the identfiier for the INTERSECT keyword.
+        /// </summary>
+        public const string Intersect = "Intersect";
+
+        /// <summary>
+        /// Gets the identifier for the EXCEPT keyword.
+        /// </summary>
+        public const string Except = "Except";
+
+        /// <summary>
+        /// Gets the identifier for the MINUS keyword.
+        /// </summary>
+        public const string Minus = "Minus";
 
         /// <summary>
         /// Gets the identifier for the SET keyword.
         /// </summary>
         public const string Set = "Set";
-
-        /// <summary>
-        /// Gets the identifier for the star (*) symbol.
-        /// </summary>
-        public const string Star = "Star";
         
         /// <summary>
         /// Gets the identifier for a string literal.
@@ -215,77 +270,100 @@ namespace SQLGeneration.Parsing
         public const string WithTies = "WithTies";
 
         /// <summary>
+        /// Gets the identifier for the equality operator.
+        /// </summary>
+        public const string EqualTo = "equal_to";
+
+        /// <summary>
+        /// Gets the identifier for the inequality operator.
+        /// </summary>
+        public const string NotEqualTo = "not_equal_to";
+
+        /// <summary>
+        /// Gets the identifier for the less than or equal to operator.
+        /// </summary>
+        public const string LessThanEqualTo = "less_than_equal_to";
+
+        /// <summary>
+        /// Gets the identifier for the greater than or equal to operator.
+        /// </summary>
+        public const string GreaterThanEqualTo = "greater_than_equal_to";
+
+        /// <summary>
+        /// Gets the identifier for the less than operator.
+        /// </summary>
+        public const string LessThan = "less_than";
+
+        /// <summary>
+        /// Gets the identifier for the greater than operator.
+        /// </summary>
+        public const string GreaterThan = "greater_than";
+
+        /// <summary>
         /// Initializes a new instance of a SqlTokenizer.
         /// </summary>
         public SqlTokenizer()
         {
-            Define(AliasIndicator, @"AS", RegexOptions.IgnoreCase);
-            Define(ArithmeticOperator, @"\+");
-            Define(ArithmeticOperator, @"-");
-            Define(ArithmeticOperator, @"\*");
-            Define(ArithmeticOperator, @"/");
-            Define(Assignment, @"=");
-            Define(Between, @"BETWEEN", RegexOptions.IgnoreCase);
-            Define(BetweenAnd, @"AND", RegexOptions.IgnoreCase);
+            Define(Top, @"TOP", true);
+            Define(Update, @"UPDATE", true);
+            Define(Values, @"VALUES", true);
+            Define(Where, @"WHERE", true);
+            Define(WithTies, @"WITH\s+TIES", true);
+            Define(Between, @"BETWEEN", true);
+            Define(And, @"AND", true);
+            Define(Or, @"OR", true);
+            Define(Delete, @"DELETE", true);
+            Define(All, @"ALL", true);
+            Define(Distinct, @"DISTINCT", true);
+            Define(From, @"FROM", true);
+            Define(GroupBy, @"GROUP\s+BY", true);
+            Define(Having, @"HAVING", true);
+            Define(Insert, @"INSERT", true);
+            Define(Into, @"INTO", true);
+            Define(Is, @"IS", true);
+            Define(FullOuterJoin, @"FULL\s+(OUTER\s+)?JOIN", true);
+            Define(InnerJoin, @"(INNER\s+)?JOIN", true);
+            Define(LeftOuterJoin, @"LEFT\s+(OUTER\s+)?JOIN", true);
+            Define(RightOuterJoin, @"RIGHT\s+(OUTER\s+)?JOIN", true);
+            Define(CrossJoin, @"CROSS\s+JOIN", true);
+            Define(In, @"IN", true);
+            Define(Like, @"LIKE", true);
+            Define(Not, @"NOT", true);
+            Define(NullsFirst, @"NULLS\s+FIRST", true);
+            Define(NullsLast, @"NULLS\s+LAST", true);
+            Define(Null, @"NULL", true);
+            Define(OrderBy, @"ORDER\s+BY", true);
+            Define(Ascending, @"ASC", true);
+            Define(Descending, @"DESC", true);
+            Define(Percent, @"PERCENT", true);
+            Define(Select, @"SELECT", true);
+            Define(UnionAll, @"UNION ALL", true);
+            Define(Union, @"UNION", true);
+            Define(Intersect, @"INTERSECT", true);
+            Define(Except, @"EXCEPT", true);
+            Define(Minus, @"MINUS", true);
+            Define(Set, @"SET", true);
+            Define(On, @"ON", true);
+            Define(AliasIndicator, @"AS", true);
+
+            Define(Identifier, @"(\w(\w|\d)*)|(""(\.|"""")+"")");
+
+            Define(PlusOperator, @"\+");
+            Define(MinusOperator, @"-");
+            Define(MultiplicationOperator, @"\*");
+            Define(DivisionOperator, @"/");
             Define(Comma, @",");
-            Define(ComparisonOperator, @"<=");
-            Define(ComparisonOperator, @">=");
-            Define(ComparisonOperator, @"<>");
-            Define(ComparisonOperator, @"=");
-            Define(ComparisonOperator, @"<");
-            Define(ComparisonOperator, @">");
-            Define(Conjunction, @"AND", RegexOptions.IgnoreCase);
-            Define(Conjunction, @"OR", RegexOptions.IgnoreCase);
-            Define(Delete, @"DELETE", RegexOptions.IgnoreCase);
-            Define(DistinctQualifier, @"ALL", RegexOptions.IgnoreCase);
-            Define(DistinctQualifier, @"DISTINCT", RegexOptions.IgnoreCase);
+            Define(EqualTo, @"=");
+            Define(NotEqualTo, @"<>");
+            Define(LessThanEqualTo, @"<=");
+            Define(GreaterThanEqualTo, @">=");
+            Define(LessThan, @"<");
+            Define(GreaterThan, @">");
             Define(Dot, @"\.");
-            Define(From, @"FROM", RegexOptions.IgnoreCase);
-            Define(GroupBy, @"GROUP\s+BY", RegexOptions.IgnoreCase);
-            Define(Having, @"HAVING", RegexOptions.IgnoreCase);
-            Define(Identifier, @"\w(\w|\d)*");
-            Define(Identifier, @"""(\.|"""")+""");
-            Define(Identifier, @"\[[^\]]+\]");
-            Define(In, @"IN", RegexOptions.IgnoreCase);
-            Define(Insert, @"INSERT", RegexOptions.IgnoreCase);
-            Define(Into, @"INTO", RegexOptions.IgnoreCase);
-            Define(Is, @"IS", RegexOptions.IgnoreCase);
-            Define(JoinType, @"CROSS\s+JOIN", RegexOptions.IgnoreCase);
-            Define(JoinType, @"FULL\s+JOIN", RegexOptions.IgnoreCase);
-            Define(JoinType, @"FULL\s+OUTER\s+JOIN", RegexOptions.IgnoreCase);
-            Define(JoinType, @"INNER\s+JOIN", RegexOptions.IgnoreCase);
-            Define(JoinType, @"JOIN", RegexOptions.IgnoreCase);
-            Define(JoinType, @"LEFT\s+JOIN", RegexOptions.IgnoreCase);
-            Define(JoinType, @"LEFT\s+OUTER\s+JOIN", RegexOptions.IgnoreCase);
-            Define(JoinType, @"RIGHT\s+JOIN", RegexOptions.IgnoreCase);
-            Define(JoinType, @"RIGHT\s+OUTER\s+JOIN", RegexOptions.IgnoreCase);
             Define(LeftParenthesis, @"\(");
-            Define(Like, @"LIKE", RegexOptions.IgnoreCase);
-            Define(Not, @"NOT", RegexOptions.IgnoreCase);
-            Define(Null, @"NULL", RegexOptions.IgnoreCase);
-            Define(NullPlacement, @"NULLS\s+FIRST", RegexOptions.IgnoreCase);
-            Define(NullPlacement, @"NULLS\s+LAST", RegexOptions.IgnoreCase);
             Define(Number, @"[-+]?\d*\.?\d+([eE][-+]?\d+)?");
-            Define(On, @"ON", RegexOptions.IgnoreCase);
-            Define(OrderBy, @"ORDER\s+BY", RegexOptions.IgnoreCase);
-            Define(OrderDirection, @"ASC", RegexOptions.IgnoreCase);
-            Define(OrderDirection, @"DESC", RegexOptions.IgnoreCase);
-            Define(Percent, @"PERCENT", RegexOptions.IgnoreCase);
             Define(RightParenthesis, @"\)");
-            Define(Select, @"SELECT", RegexOptions.IgnoreCase);
-            Define(SelectCombiner, @"UNION", RegexOptions.IgnoreCase);
-            Define(SelectCombiner, @"UNION ALL", RegexOptions.IgnoreCase);
-            Define(SelectCombiner, @"INTERSECT", RegexOptions.IgnoreCase);
-            Define(SelectCombiner, @"EXCEPT", RegexOptions.IgnoreCase);
-            Define(SelectCombiner, @"MINUS", RegexOptions.IgnoreCase);
-            Define(Set, @"SET", RegexOptions.IgnoreCase);
-            Define(Star, @"\*");
             Define(String, @"'([^']|'')*'");
-            Define(Top, @"TOP", RegexOptions.IgnoreCase);
-            Define(Update, @"UPDATE", RegexOptions.IgnoreCase);
-            Define(Values, @"VALUES", RegexOptions.IgnoreCase);
-            Define(Where, @"WHERE", RegexOptions.IgnoreCase);
-            Define(WithTies, @"WITH\s+TIES", RegexOptions.IgnoreCase);
         }
     }
 }

@@ -10,7 +10,8 @@ namespace SQLGeneration.Parsing
     public sealed class Parser
     {
         private readonly Grammar grammar;
-        private readonly Dictionary<string, Func<MatchResult, object>> handlerLookup;
+        private readonly Dictionary<string, Action<MatchResult, object>> handlerLookup;
+        private Action<string, object> tokenHandler;
 
         /// <summary>
         /// Initializes a new instance of a Parser.
@@ -23,7 +24,16 @@ namespace SQLGeneration.Parsing
                 throw new ArgumentNullException("grammar");
             }
             this.grammar = grammar;
-            this.handlerLookup = new Dictionary<string, Func<MatchResult, object>>();
+            this.handlerLookup = new Dictionary<string, Action<MatchResult, object>>();
+        }
+
+        /// <summary>
+        /// Registers the given handler to run when a token is matched.
+        /// </summary>
+        /// <param name="handler">The function to call when a token is matched.</param>
+        public void RegisterTokenHandle(Action<string, object> handler)
+        {
+            tokenHandler = handler;
         }
 
         /// <summary>
@@ -32,7 +42,7 @@ namespace SQLGeneration.Parsing
         /// <param name="expressionType">The type of the expression item to handle.</param>
         /// <param name="handler">The function to call when the expression type is matched.</param>
         /// <remarks>If a handler is already registered, it will be replaced.</remarks>
-        public void RegisterHandler(string expressionType, Func<MatchResult, object> handler)
+        public void RegisterHandler(string expressionType, Action<MatchResult, object> handler)
         {
             if (String.IsNullOrWhiteSpace(expressionType))
             {
@@ -51,17 +61,56 @@ namespace SQLGeneration.Parsing
         /// </summary>
         /// <param name="expressionType">The type of the expression to start parsing.</param>
         /// <param name="tokenSource">The source of tokens.</param>
-        /// <returns>The result of the handler registered for the starting item.</returns>
-        public object Parse(string expressionType, ITokenSource tokenSource)
+        /// <param name="context">The initial context to pass to the expression handlers.</param>
+        public void Parse(string expressionType, ITokenSource tokenSource, object context)
         {
             if (tokenSource == null)
             {
                 throw new ArgumentNullException("tokenSource");
             }
+            if (!hasAllhandlers())
+            {
+                throw new SQLGenerationException("Not all expression types have a handler assigned.");
+            }
             Expression expression = grammar.Expression(expressionType);
             ParseAttempt attempt = new ParseAttempt(this, tokenSource);
             MatchResult result = expression.Match(attempt, String.Empty);
-            return result.Context;
+            string token = tokenSource.GetToken();
+            if (token != null)
+            {
+                if (result.IsMatch)
+                {
+                    result.GetContext(context);
+                }
+                string message = String.Format("Encountered unexpected token: {0}.", token);
+                throw new SQLGenerationException(message);
+            }
+            result.GetContext(context);
+        }
+
+        private bool hasAllhandlers()
+        {
+            foreach (ExpressionDefinition definition in grammar.Definitions)
+            {
+                if (!handlerLookup.ContainsKey(definition.ExpressionType))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to run the handle for a token.
+        /// </summary>
+        /// <param name="result">The result that the handler should be run for.</param>
+        /// <param name="token">The token that was found by the parser.</param>
+        private void SetTokenHandler(MatchResult result, string token)
+        {
+            if (result.IsMatch)
+            {
+                result.Handler = (r, c) => tokenHandler(token, c);
+            }
         }
 
         /// <summary>
@@ -69,12 +118,12 @@ namespace SQLGeneration.Parsing
         /// </summary>
         /// <param name="expressionType">The type of the expression to run the handler for.</param>
         /// <param name="result">The result that the handler should be run for.</param>
-        internal void RunHandler(string expressionType, MatchResult result)
+        private void SetHandler(string expressionType, MatchResult result)
         {
-            Func<MatchResult, object> handler;
+            Action<MatchResult, object> handler;
             if (result.IsMatch && expressionType != null && handlerLookup.TryGetValue(expressionType, out handler))
             {
-                result.Context = handler(result);
+                result.Handler = handler;
             }
         }
 
@@ -105,13 +154,23 @@ namespace SQLGeneration.Parsing
             }
 
             /// <summary>
-            /// Runs the handle for the given expression type, if it is specified.
+            /// Sets the handle for the token.
+            /// </summary>
+            /// <param name="result">The results of the parse for the token.</param>
+            /// <param name="token">The token found by the parser.</param>
+            public void SetTokenHandler(MatchResult result, string token)
+            {
+                parser.SetTokenHandler(result, token);
+            }
+
+            /// <summary>
+            /// Sets the handle for the given expression type, if it is specified.
             /// </summary>
             /// <param name="expressionType">The type of the expression to run the handler for.</param>
             /// <param name="result">The results of the parse for the expression.</param>
-            public void RunHandler(string expressionType, MatchResult result)
+            public void SetHandler(string expressionType, MatchResult result)
             {
-                parser.RunHandler(expressionType, result);
+                parser.SetHandler(expressionType, result);
             }
 
             /// <summary>

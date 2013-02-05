@@ -1,4 +1,5 @@
-﻿
+﻿using System;
+
 namespace SQLGeneration.Parsing
 {
     /// <summary>
@@ -16,10 +17,17 @@ namespace SQLGeneration.Parsing
             defineStart();
             defineSelectStatement();
             defineSelectExpression();
+            defineSelectCombiner();
             defineSelectSpecification();
+            defineDistinctQualifier();
             defineOrderByList();
             defineOrderByItem();
-            defineArithmeticExpression();
+            defineOrderDirection();
+            defineNullPlacement();
+            defineAdditiveExpression();
+            defineAdditiveOperator();
+            defineMultiplicitiveExpression();
+            defineMultiplicitiveOperator();
             defineProjectionList();
             defineProjectionItem();
             defineFromList();
@@ -27,10 +35,15 @@ namespace SQLGeneration.Parsing
             defineFunctionCall();
             defineJoin();
             defineJoinPrime();
+            defineFilteredJoinType();
             defineFilterList();
             defineFilter();
+            defineComparisonOperator();
+            defineOrConjunction();
+            defineAndConjunction();
             defineValueList();
             defineGroupByList();
+            defineNonArithmeticItem();
             defineItem();
             defineInsertStatement();
             defineColumnList();
@@ -211,8 +224,59 @@ namespace SQLGeneration.Parsing
                         .Add(SelectExpression.Wrapped.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
                     .Add(SelectExpression.SelectSpecification, Expression(SelectSpecification.Name)))
                 .Add(SelectExpression.Remaining.Name, false, Define()
-                    .Add(SelectExpression.Remaining.Combiner, true, Token(SqlTokenizer.SelectCombiner))
+                    .Add(SelectExpression.Remaining.Combiner, true, Expression(SelectCombiner.Name))
                     .Add(SelectExpression.Remaining.SelectExpression, true, Expression(SelectExpression.Name)));
+        }
+
+        #endregion
+
+        #region SelectCombiner
+
+        /// <summary>
+        /// Describes the options for a SELECT combiner.
+        /// </summary>
+        public static class SelectCombiner
+        {
+            /// <summary>
+            /// Gets the identifier indicating that the token is a SELECT combiner.
+            /// </summary>
+            public const string Name = "SelectCombiner";
+
+            /// <summary>
+            /// Gets the identifier for the UNION ALL keyword.
+            /// </summary>
+            public const string UnionAll = "UnionAll";
+
+            /// <summary>
+            /// Gets the identifier for the UNION keyword.
+            /// </summary>
+            public const string Union = "Union";
+
+            /// <summary>
+            /// Gets the identifier for the INTERSECT keyword.
+            /// </summary>
+            public const string Intersect = "Intersect";
+
+            /// <summary>
+            /// Gets the identifier for the EXCEPT keyword.
+            /// </summary>
+            public const string Except = "Except";
+
+            /// <summary>
+            /// Gets the identifier for the MINUS keyword.
+            /// </summary>
+            public const string Minus = "Minus";
+        }
+
+        private void defineSelectCombiner()
+        {
+            Define(SelectCombiner.Name)
+                .Add(true, Options()
+                    .Add(SelectCombiner.UnionAll, Token(SqlTokenizer.UnionAll))
+                    .Add(SelectCombiner.Union, Token(SqlTokenizer.Union))
+                    .Add(SelectCombiner.Intersect, Token(SqlTokenizer.Intersect))
+                    .Add(SelectCombiner.Except, Token(SqlTokenizer.Except))
+                    .Add(SelectCombiner.Minus, Token(SqlTokenizer.Minus)));
         }
 
         #endregion
@@ -364,10 +428,10 @@ namespace SQLGeneration.Parsing
         {
             Define(SelectSpecification.Name)
                 .Add(SelectSpecification.SelectKeyword, true, Token(SqlTokenizer.Select))
-                .Add(SelectSpecification.DistinctQualifier, false, Token(SqlTokenizer.DistinctQualifier))
+                .Add(SelectSpecification.DistinctQualifier, false, Expression(DistinctQualifier.Name))
                 .Add(SelectSpecification.Top.Name, false, Define()
                     .Add(SelectSpecification.Top.TopKeyword, true, Token(SqlTokenizer.Top))
-                    .Add(SelectSpecification.Top.Expression, true, Expression(ArithmeticExpression.Name))
+                    .Add(SelectSpecification.Top.Expression, true, Expression(AdditiveExpression.Name))
                     .Add(SelectSpecification.Top.PercentKeyword, false, Token(SqlTokenizer.Percent))
                     .Add(SelectSpecification.Top.WithTiesKeyword, false, Token(SqlTokenizer.WithTies)))
                 .Add(SelectSpecification.ProjectionList, true, Expression(ProjectionList.Name))
@@ -383,6 +447,39 @@ namespace SQLGeneration.Parsing
                 .Add(SelectSpecification.Having.Name, false, Define()
                     .Add(SelectSpecification.Having.HavingKeyword, true, Token(SqlTokenizer.Having))
                     .Add(SelectSpecification.Having.FilterList, true, Expression(FilterList.Name)));
+        }
+
+        #endregion
+
+        #region DistinctQualifier
+
+        /// <summary>
+        /// Describes the options for a distinct qualifier.
+        /// </summary>
+        public static class DistinctQualifier
+        {
+            /// <summary>
+            /// Gets the identifier indicating that the token is a distinct qualifier.
+            /// </summary>
+            public const string Name = "DistinctQualifier";
+
+            /// <summary>
+            /// Gets the identifier for the DISTINCT keyword.
+            /// </summary>
+            public const string Distinct = "distinct";
+
+            /// <summary>
+            /// Gets the identifier for the ALL keyword.
+            /// </summary>
+            public const string All = "all";
+        }
+
+        private void defineDistinctQualifier()
+        {
+            Define(DistinctQualifier.Name)
+                .Add(true, Options()
+                    .Add(DistinctQualifier.Distinct, Token(SqlTokenizer.Distinct))
+                    .Add(DistinctQualifier.All, Token(SqlTokenizer.All)));
         }
 
         #endregion
@@ -476,43 +573,135 @@ namespace SQLGeneration.Parsing
         {
             Define(OrderByItem.Name)
                 .Add(OrderByItem.Expression, true, Expression(Item.Name))
-                .Add(OrderByItem.OrderDirection, false, Token(SqlTokenizer.OrderDirection))
-                .Add(OrderByItem.NullPlacement, false, Token(SqlTokenizer.NullPlacement));
+                .Add(OrderByItem.OrderDirection, false, Expression(OrderDirection.Name))
+                .Add(OrderByItem.NullPlacement, false, Expression(NullPlacement.Name));
         }
 
         #endregion
 
-        #region ArithmeticExpression
+        #region OrderDirection
 
         /// <summary>
-        /// Describes the structure of the arithmetic expression.
+        /// Describes the options for an ORDER BY direction.
         /// </summary>
-        public static class ArithmeticExpression
+        public static class OrderDirection
         {
             /// <summary>
-            /// Gets the name identifying the arithmetic expression.
+            /// Gets the identifier indicating that the token is an ORDER direction.
             /// </summary>
-            public const string Name = "ArithmeticExpression";
+            public const string Name = "OrderDirection";
 
             /// <summary>
-            /// Describes the structure of an arithmetic expression with two operands.
+            /// Gets the identifier for the DESC keyword.
+            /// </summary>
+            public const string Descending = "Descending";
+
+            /// <summary>
+            /// Gets the identifier for the ASC keyword.
+            /// </summary>
+            public const string Ascending = "Ascending";
+        }
+
+        private void defineOrderDirection()
+        {
+            Define(OrderDirection.Name)
+                .Add(true, Options()
+                    .Add(OrderDirection.Descending, Token(SqlTokenizer.Descending))
+                    .Add(OrderDirection.Ascending, Token(SqlTokenizer.Ascending)));
+        }
+
+        #endregion
+
+        #region NullPlacement
+
+        /// <summary>
+        /// Describes the options for null placement.
+        /// </summary>
+        public static class NullPlacement
+        {
+            /// <summary>
+            /// Gets the identifier indicating that the token is a null placement keyword.
+            /// </summary>
+            public const string Name = "NullPlacement";
+
+            /// <summary>
+            /// Gets the identifier for the NULLS FIRST keyword.
+            /// </summary>
+            public const string NullsFirst = "NullsFirst";
+
+            /// <summary>
+            /// Gets the identifier for the NULLS LAST keyword.
+            /// </summary>
+            public const string NullsLast = "NullsLast";
+        }
+
+        private void defineNullPlacement()
+        {
+            Define(NullPlacement.Name)
+                .Add(true, Options()
+                    .Add(NullPlacement.NullsFirst, Token(SqlTokenizer.NullsFirst))
+                    .Add(NullPlacement.NullsLast, Token(SqlTokenizer.NullsLast)));
+        }
+
+        #endregion
+
+        #region AdditiveExpression
+
+        /// <summary>
+        /// Describes the structure of an arithmetic expression adding or substracting two values.
+        /// </summary>
+        public static class AdditiveExpression
+        {
+            /// <summary>
+            /// Gets the identifier indicating that the expression adds or substracts two values.
+            /// </summary>
+            public const string Name = "AdditiveExpression";
+
+            /// <summary>
+            /// Describes the structure of an arithmetic expression wrapped in parentheses.
+            /// </summary>
+            public static class Wrapped
+            {
+                /// <summary>
+                /// Gets the identifier indicating that an arithmetic expression is wrapped in parentheses.
+                /// </summary>
+                public const string Name = "Wrapped";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parethesis";
+
+                /// <summary>
+                /// Gets the identifier for the wrapped arithmetic expression.
+                /// </summary>
+                public const string Expression = "expression";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
+
+            /// <summary>
+            /// Describes the structure of a additive expression adding or substracting multiple values.
             /// </summary>
             public static class Multiple
             {
                 /// <summary>
-                /// Gets the identifier for the multiple option.
+                /// Gets the identifier indicating that the expression is adding or subtracting multiple values.
                 /// </summary>
                 public const string Name = "Multiple";
 
                 /// <summary>
-                /// Gets the identifier for the first expression.
+                /// Gets the identifier for the first operand.
                 /// </summary>
                 public const string First = "first";
 
                 /// <summary>
-                /// Gets the identifier for the arithmetic operator.
+                /// Gets the identfier for the operator.
                 /// </summary>
-                public const string ArithemeticOperator = "arithmetic_operator";
+                public const string Operator = "operator";
 
                 /// <summary>
                 /// Gets the identifier for the rest of the arithmetic expression.
@@ -521,20 +710,147 @@ namespace SQLGeneration.Parsing
             }
 
             /// <summary>
-            /// Gets the identifier for a single expression.
+            /// Gets the identifier indicating that the expression is a single value, a multiplication or division.
             /// </summary>
             public const string Single = "single";
         }
 
-        private void defineArithmeticExpression()
+        private void defineAdditiveExpression()
         {
-            Define(ArithmeticExpression.Name)
+            Define(AdditiveExpression.Name)
                 .Add(true, Options()
-                    .Add(ArithmeticExpression.Multiple.Name, Define()
-                        .Add(ArithmeticExpression.Multiple.First, true, Expression(Item.Name))
-                        .Add(ArithmeticExpression.Multiple.ArithemeticOperator, true, Token(SqlTokenizer.ArithmeticOperator))
-                        .Add(ArithmeticExpression.Multiple.Remaining, true, Expression(ArithmeticExpression.Name)))
-                    .Add(ArithmeticExpression.Single, Expression(Item.Name)));
+                    .Add(AdditiveExpression.Wrapped.Name, Define()
+                        .Add(AdditiveExpression.Wrapped.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(AdditiveExpression.Wrapped.Expression, true, Expression(SqlGrammar.AdditiveExpression.Name))
+                        .Add(AdditiveExpression.Wrapped.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                    .Add(AdditiveExpression.Multiple.Name, Define()
+                        .Add(AdditiveExpression.Multiple.First, true, Expression(MultiplicitiveExpression.Name))
+                        .Add(AdditiveExpression.Multiple.Operator, true, Expression(AdditiveOperator.Name))
+                        .Add(AdditiveExpression.Multiple.Remaining, true, Expression(AdditiveExpression.Name)))
+                    .Add(AdditiveExpression.Single, Expression(MultiplicitiveExpression.Name)));
+        }
+
+        #endregion
+
+        #region AdditiveOperator
+
+        /// <summary>
+        /// Describes the structure of an arithmetic operator doing addition or subtraction.
+        /// </summary>
+        public static class AdditiveOperator
+        {
+            /// <summary>
+            /// Gets the identifier indicating that the operator is addition or subtraction.
+            /// </summary>
+            public const string Name = "AdditiveOperator";
+
+            /// <summary>
+            /// Gets the identifier for the addition operator.
+            /// </summary>
+            public const string PlusOperator = "plus_operator";
+
+            /// <summary>
+            /// Gets the identifier for the subtraction operator.
+            /// </summary>
+            public const string MinusOperator = "minus_operator";
+        }
+
+        private void defineAdditiveOperator()
+        {
+            Define(AdditiveOperator.Name)
+                .Add(true, Options()
+                    .Add(AdditiveOperator.PlusOperator, Token(SqlTokenizer.PlusOperator))
+                    .Add(AdditiveOperator.MinusOperator, Token(SqlTokenizer.MinusOperator)));
+        }
+
+        #endregion
+
+        #region MultiplicitiveExpression
+
+        /// <summary>
+        /// Describes the structure of an arithmetic expression multiplying or dividing values.
+        /// </summary>
+        public static class MultiplicitiveExpression
+        {
+            /// <summary>
+            /// Gets the identifier indicating that there are values being multiplied or divided.
+            /// </summary>
+            public const string Name = "MultiplicitiveExpression";
+
+            /// <summary>
+            /// Describes the structure of an expression when multiple values are being multiplied and divided together.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier indicating that multiple values are being multiplied or divided together.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the identifier for the first operand.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the operator.
+                /// </summary>
+                public const string Operator = "operator";
+
+                /// <summary>
+                /// Gets the identifier for the rest of the arithmetic expression.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier for a single item.
+            /// </summary>
+            public const string Single = "single";
+        }
+
+        private void defineMultiplicitiveExpression()
+        {
+            Define(MultiplicitiveExpression.Name)
+                .Add(true, Options()
+                    .Add(MultiplicitiveExpression.Multiple.Name, Define()
+                        .Add(MultiplicitiveExpression.Multiple.First, true, Expression(NonArithmeticItem.Name))
+                        .Add(MultiplicitiveExpression.Multiple.Operator, true, Expression(MultiplicitiveOperator.Name))
+                        .Add(MultiplicitiveExpression.Multiple.Remaining, true, Expression(MultiplicitiveExpression.Name)))
+                    .Add(MultiplicitiveExpression.Single, Expression(NonArithmeticItem.Name)));
+        }
+
+        #endregion
+
+        #region MultiplicitiveOperator
+
+        /// <summary>
+        /// Describes the structure of a multiplicitive operator.
+        /// </summary>
+        public static class MultiplicitiveOperator
+        {
+            /// <summary>
+            /// Gets the identifier indicating that the operator is multiplication or division.
+            /// </summary>
+            public const string Name = "MultiplicitiveOperator";
+
+            /// <summary>
+            /// Gets the identifier indicating that the operation is multiplication.
+            /// </summary>
+            public const string Multiply = "multiply";
+
+            /// <summary>
+            /// Gets the identifier indicating that the operation is division.
+            /// </summary>
+            public const string Divide = "divide";
+        }
+
+        private void defineMultiplicitiveOperator()
+        {
+            Define(MultiplicitiveOperator.Name)
+                .Add(true, Options()
+                    .Add(MultiplicitiveOperator.Multiply, Token(SqlTokenizer.MultiplicationOperator))
+                    .Add(MultiplicitiveOperator.Divide, Token(SqlTokenizer.DivisionOperator)));
         }
 
         #endregion
@@ -691,7 +1007,7 @@ namespace SQLGeneration.Parsing
                         .Add(ProjectionItem.Star.Qualifier.Name, false, Define()
                             .Add(ProjectionItem.Star.Qualifier.ColumnSource, true, Expression(MultipartIdentifier.Name))
                             .Add(ProjectionItem.Star.Qualifier.Dot, true, Token(SqlTokenizer.Dot)))
-                        .Add(ProjectionItem.Star.StarToken, true, Token(SqlTokenizer.Star)))
+                        .Add(ProjectionItem.Star.StarToken, true, Token(SqlTokenizer.MultiplicationOperator)))
                     .Add(ProjectionItem.Expression.Name, Define()
                         .Add(ProjectionItem.Expression.Item, true, Expression(Item.Name))
                         .Add(ProjectionItem.Expression.AliasExpression.Name, false, Define()
@@ -953,9 +1269,9 @@ namespace SQLGeneration.Parsing
             public const string Name = "JoinPrime";
 
             /// <summary>
-            /// Describes the structure of a join to the next item.
+            /// Describes the structure of a join with a filter.
             /// </summary>
-            public static class Multiple
+            public static class Filtered
             {
                 /// <summary>
                 /// Gets the identifier indicating that there is another join item.
@@ -1000,6 +1316,27 @@ namespace SQLGeneration.Parsing
             }
 
             /// <summary>
+            /// Describes the structure of a cross join.
+            /// </summary>
+            public static class Cross
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the join is a cross join.
+                /// </summary>
+                public const string Name = "Cross";
+
+                /// <summary>
+                /// Gets the identifier for the next join type.
+                /// </summary>
+                public const string JoinType = "join_type";
+
+                /// <summary>
+                /// Gets the identifier for the next join item.
+                /// </summary>
+                public const string JoinItem = "join_item";
+            }
+
+            /// <summary>
             /// Gets the identifier indicating that there are no more joins.
             /// </summary>
             public const string Empty = "empty";
@@ -1009,14 +1346,62 @@ namespace SQLGeneration.Parsing
         {
             Define(JoinPrime.Name)
                 .Add(true, Options()
-                    .Add(JoinPrime.Multiple.Name, Define()
-                        .Add(JoinPrime.Multiple.JoinType, true, Token(SqlTokenizer.JoinType))
-                        .Add(JoinPrime.Multiple.JoinItem, true, Expression(JoinItem.Name))
-                        .Add(JoinPrime.Multiple.On.Name, false, Define()
-                            .Add(JoinPrime.Multiple.On.OnToken, true, Token(SqlTokenizer.On))
-                            .Add(JoinPrime.Multiple.On.FilterList, true, Expression(FilterList.Name)))
-                        .Add(JoinPrime.Multiple.JoinPrime, true, Expression(JoinPrime.Name)))
+                    .Add(JoinPrime.Filtered.Name, Define()
+                        .Add(JoinPrime.Filtered.JoinType, true, Expression(FilteredJoinType.Name))
+                        .Add(JoinPrime.Filtered.JoinItem, true, Expression(JoinItem.Name))
+                        .Add(JoinPrime.Filtered.On.Name, false, Define()
+                            .Add(JoinPrime.Filtered.On.OnToken, true, Token(SqlTokenizer.On))
+                            .Add(JoinPrime.Filtered.On.FilterList, true, Expression(FilterList.Name)))
+                        .Add(JoinPrime.Filtered.JoinPrime, true, Expression(JoinPrime.Name)))
+                    .Add(JoinPrime.Cross.Name, Define()
+                        .Add(JoinPrime.Cross.JoinType, true, Token(SqlTokenizer.CrossJoin))
+                        .Add(JoinPrime.Cross.JoinItem, true, Expression(JoinItem.Name)))
                     .Add(JoinPrime.Empty, Define()));
+        }
+
+        #endregion
+
+        #region FilteredJoinType
+
+        /// <summary>
+        /// Describes the options for a join type.
+        /// </summary>
+        public static class FilteredJoinType
+        {
+            /// <summary>
+            /// Gets the identifier indicating that the token is a join type.
+            /// </summary>
+            public const string Name = "FilteredJoinType";
+
+            /// <summary>
+            /// Gets the identifier for the INNER JOIN keyword.
+            /// </summary>
+            public const string InnerJoin = "InnerJoin";
+
+            /// <summary>
+            /// Gets the identifier for the LEFT OUTER JOIN keyword.
+            /// </summary>
+            public const string LeftOuterJoin = "LeftOuterJoin";
+
+            /// <summary>
+            /// Gets the identifier for the RIGHT OUTER JOIN keyword.
+            /// </summary>
+            public const string RightOuterJoin = "RightOuterJoin";
+
+            /// <summary>
+            /// Gets the identifier for the FULL OUTER JOIN keyword.
+            /// </summary>
+            public const string FullOuterJoin = "FullOuterJoin";
+        }
+
+        private void defineFilteredJoinType()
+        {
+            Define(FilteredJoinType.Name)
+                .Add(true, Options()
+                    .Add(FilteredJoinType.InnerJoin, Token(SqlTokenizer.InnerJoin))
+                    .Add(FilteredJoinType.LeftOuterJoin, Token(SqlTokenizer.LeftOuterJoin))
+                    .Add(FilteredJoinType.RightOuterJoin, Token(SqlTokenizer.RightOuterJoin))
+                    .Add(FilteredJoinType.FullOuterJoin, Token(SqlTokenizer.FullOuterJoin)));
         }
 
         #endregion
@@ -1105,11 +1490,7 @@ namespace SQLGeneration.Parsing
                         .Add(FilterList.Wrapped.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
                         .Add(FilterList.Wrapped.FilterList, true, Expression(FilterList.Name))
                         .Add(FilterList.Wrapped.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
-                    .Add(FilterList.Multiple.Name, Define()
-                        .Add(FilterList.Multiple.First, true, Expression(Filter.Name))
-                        .Add(FilterList.Multiple.Conjunction, true, Token(SqlTokenizer.Conjunction))
-                        .Add(FilterList.Multiple.Remaining, true, Expression(FilterList.Name)))
-                    .Add(FilterList.Single, Expression(Filter.Name)));
+                    .Add(FilterList.Multiple.Name, Expression(OrConjunction.Name)));
         }
 
         #endregion
@@ -1362,14 +1743,14 @@ namespace SQLGeneration.Parsing
                         .Add(Filter.Not.Filter, true, Expression(Filter.Name)))
                     .Add(Filter.Order.Name, Define()
                         .Add(Filter.Order.Left, true, Expression(Item.Name))
-                        .Add(Filter.Order.ComparisonOperator, true, Token(SqlTokenizer.ComparisonOperator))
+                        .Add(Filter.Order.ComparisonOperator, true, Expression(ComparisonOperator.Name))
                         .Add(Filter.Order.Right, true, Expression(Item.Name)))
                     .Add(Filter.Between.Name, Define()
                         .Add(Filter.Between.Expression, true, Expression(Item.Name))
                         .Add(Filter.Between.Not, false, Token(SqlTokenizer.Not))
                         .Add(Filter.Between.BetweenKeyword, true, Token(SqlTokenizer.Between))
                         .Add(Filter.Between.LowerBound, true, Expression(Item.Name))
-                        .Add(Filter.Between.And, true, Token(SqlTokenizer.BetweenAnd))
+                        .Add(Filter.Between.And, true, Token(SqlTokenizer.And))
                         .Add(Filter.Between.UpperBound, true, Expression(Item.Name)))
                     .Add(Filter.Like.Name, Define()
                         .Add(Filter.Like.Expression, true, Expression(Item.Name))
@@ -1390,6 +1771,177 @@ namespace SQLGeneration.Parsing
                             .Add(Filter.In.SelectExpression, Expression(SelectExpression.Name))
                             .Add(Filter.In.ValueList, Expression(ValueList.Name)))
                         .Add(Filter.In.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis))));
+        }
+
+        #endregion
+
+        #region ComparisonOperator
+
+        /// <summary>
+        /// Describes the structure of a comparison operator.
+        /// </summary>
+        public static class ComparisonOperator
+        {
+            /// <summary>
+            /// Gets the identifier indicating that the token is a comparison operator.
+            /// </summary>
+            public const string Name = "ComparisonOperator";
+
+            /// <summary>
+            /// Gets the identifier for the equality operator.
+            /// </summary>
+            public const string EqualTo = "equal_to";
+
+            /// <summary>
+            /// Gets the identifier for the inequality operator.
+            /// </summary>
+            public const string NotEqualTo = "not_equal_to";
+
+            /// <summary>
+            /// Gets the identifier for the less than or equal to operator.
+            /// </summary>
+            public const string LessThanEqualTo = "less_than_equal_to";
+
+            /// <summary>
+            /// Gets the identifier for the greater than or equal to operator.
+            /// </summary>
+            public const string GreaterThanEqualTo = "greater_than_equal_to";
+
+            /// <summary>
+            /// Gets the identifier for the less than operator.
+            /// </summary>
+            public const string LessThan = "less_than";
+
+            /// <summary>
+            /// Gets the identifier for the greater than operator.
+            /// </summary>
+            public const string GreaterThan = "greater_than";
+        }
+
+        private void defineComparisonOperator()
+        {
+            Define(ComparisonOperator.Name)
+                .Add(true, Options()
+                    .Add(ComparisonOperator.EqualTo, Token(SqlTokenizer.EqualTo))
+                    .Add(ComparisonOperator.NotEqualTo, Token(SqlTokenizer.NotEqualTo))
+                    .Add(ComparisonOperator.LessThanEqualTo, Token(SqlTokenizer.LessThanEqualTo))
+                    .Add(ComparisonOperator.GreaterThanEqualTo, Token(SqlTokenizer.GreaterThanEqualTo))
+                    .Add(ComparisonOperator.LessThan, Token(SqlTokenizer.LessThan))
+                    .Add(ComparisonOperator.GreaterThan, Token(SqlTokenizer.GreaterThan)));
+        }
+
+        #endregion
+
+        #region OrConjunction
+
+        /// <summary>
+        /// Describes the structure of two filters OR'd together.
+        /// </summary>
+        public static class OrConjunction
+        {
+            /// <summary>
+            /// Gets the identifier indicating that two filters are OR'd together.
+            /// </summary>
+            public const string Name = "OrConjunction";
+
+            /// <summary>
+            /// Gets the identifier indicating that two filter are OR'd together.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier indicating that filters are OR'd together.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the identifier for the first filter.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the OR keyword.
+                /// </summary>
+                public const string Or = "or";
+
+                /// <summary>
+                /// Gets the identifier for the rest of the filters.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier for a single filter.
+            /// </summary>
+            public const string Single = "single";
+        }
+
+        private void defineOrConjunction()
+        {
+            Define(OrConjunction.Name)
+                .Add(true, Options()
+                    .Add(OrConjunction.Multiple.Name, Define()
+                        .Add(OrConjunction.Multiple.First, true, Expression(AndConjunction.Name))
+                        .Add(OrConjunction.Multiple.Or, true, Token(SqlTokenizer.Or))
+                        .Add(OrConjunction.Multiple.Remaining, true, Expression(OrConjunction.Name)))
+                    .Add(OrConjunction.Single, Expression(AndConjunction.Name)));
+        }
+
+        #endregion
+
+        #region AndConjunction
+
+        /// <summary>
+        /// Describes the structure of two filters AND'd together.
+        /// </summary>
+        public static class AndConjunction
+        {
+            /// <summary>
+            /// Gets the identifier indicating that two filters are AND'd together.
+            /// </summary>
+            public const string Name = "AndConjunction";
+
+            /// <summary>
+            /// Gets the identifier indicating that two filter are AND'd together.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier indicating that filters are AND'd together.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the identifier for the first filter.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the AND keyword.
+                /// </summary>
+                public const string And = "and";
+
+                /// <summary>
+                /// Gets the identifier for the rest of the filters.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier for a single filter.
+            /// </summary>
+            public const string Single = "single";
+        }
+
+        private void defineAndConjunction()
+        {
+            Define(AndConjunction.Name)
+                .Add(true, Options()
+                    .Add(AndConjunction.Multiple.Name, Define()
+                        .Add(AndConjunction.Multiple.First, true, Expression(Filter.Name))
+                        .Add(AndConjunction.Multiple.And, true, Token(SqlTokenizer.And))
+                        .Add(AndConjunction.Multiple.Remaining, true, Expression(AndConjunction.Name)))
+                    .Add(AndConjunction.Single, Expression(Filter.Name)));
         }
 
         #endregion
@@ -1508,6 +2060,63 @@ namespace SQLGeneration.Parsing
 
         #endregion
 
+        #region NonArithmeticItem
+
+        /// <summary>
+        /// Describes the structure of an item that is non-arithmetic.
+        /// </summary>
+        public static class NonArithmeticItem
+        {
+            /// <summary>
+            /// Gets the name identifying the item.
+            /// </summary>
+            public const string Name = "NonArithmeticItem";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a column.
+            /// </summary>
+            public const string Column = "column";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a function call.
+            /// </summary>
+            public const string FunctionCall = "function_call";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a select statement.
+            /// </summary>
+            public const string SelectStatement = "select_statement";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a number.
+            /// </summary>
+            public const string Number = "number";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a string.
+            /// </summary>
+            public const string String = "string";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a null.
+            /// </summary>
+            public const string Null = "null";
+        }
+
+        private void defineNonArithmeticItem()
+        {
+            Define(NonArithmeticItem.Name)
+                .Add(true, Options()
+                    .Add(NonArithmeticItem.FunctionCall, Expression(FunctionCall.Name))
+                    .Add(NonArithmeticItem.Column, Expression(MultipartIdentifier.Name))
+                    .Add(NonArithmeticItem.SelectStatement, Expression(SelectStatement.Name))
+                    .Add(NonArithmeticItem.Number, Token(SqlTokenizer.Number))
+                    .Add(NonArithmeticItem.String, Token(SqlTokenizer.String))
+                    .Add(NonArithmeticItem.Null, Token(SqlTokenizer.Null)));
+        }
+
+        #endregion
+
         #region Item
 
         /// <summary>
@@ -1538,7 +2147,28 @@ namespace SQLGeneration.Parsing
             /// <summary>
             /// Gets the identifier indicating that the item is a select statement.
             /// </summary>
-            public const string SelectStatement = "select_statement";
+            public static class Select
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the item is a SELECT statement.
+                /// </summary>
+                public const string Name = "SelectStatement";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the SELECT statement.
+                /// </summary>
+                public const string SelectStatement = "select_statement";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
 
             /// <summary>
             /// Gets the identifier indicating that the item is a number.
@@ -1560,11 +2190,13 @@ namespace SQLGeneration.Parsing
         {
             Define(Item.Name)
                 .Add(true, Options()
-                    .Add(Item.Column, Expression(MultipartIdentifier.Name))
                     .Add(Item.FunctionCall, Expression(FunctionCall.Name))
-                    .Add(Item.ArithmeticExpression, Expression(ArithmeticExpression.Name))
-                    .Add(Item.SelectStatement, Expression(SelectStatement.Name))
-                    .Add(Item.Number, Token(SqlTokenizer.Number))
+                    .Add(Item.Column, Expression(MultipartIdentifier.Name))
+                    .Add(Item.Select.Name, Define()
+                        .Add(Item.Select.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(Item.Select.SelectStatement, true, Expression(SelectStatement.Name))
+                        .Add(Item.Select.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                    .Add(Item.ArithmeticExpression, Expression(AdditiveExpression.Name))
                     .Add(Item.String, Token(SqlTokenizer.String))
                     .Add(Item.Null, Token(SqlTokenizer.Null)));
         }
@@ -1921,7 +2553,7 @@ namespace SQLGeneration.Parsing
         {
             Define(Setter.Name)
                 .Add(Setter.Column, true, Expression(MultipartIdentifier.Name))
-                .Add(Setter.Assignment, true, Token(SqlTokenizer.Assignment))
+                .Add(Setter.Assignment, true, Token(SqlTokenizer.EqualTo))
                 .Add(Setter.Item, true, Expression(Item.Name));
         }
 

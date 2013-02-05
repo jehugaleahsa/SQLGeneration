@@ -45,12 +45,24 @@ namespace SQLGeneration.Parsing
         }
 
         /// <summary>
-        /// Gets the data that is meant to be available to the outer expression.
+        /// Gets the handler used to process the result.
         /// </summary>
-        public object Context
+        public Action<MatchResult, object> Handler
         {
             get;
             internal set;
+        }
+
+        /// <summary>
+        /// Gets the data that is meant to be available to the outer expression.
+        /// </summary>
+        /// <param name="context">Additional information to pass from an outer expression to an inner expression.</param>
+        public void GetContext(object context)
+        {
+            if (Handler != null)
+            {
+                Handler(this, context);
+            }
         }
     }
 }

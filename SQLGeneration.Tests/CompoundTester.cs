@@ -1,7 +1,5 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SQLGeneration.Parsing;
-using System.Text;
 using SQLGeneration.Generators;
 
 namespace SQLGeneration.Tests
@@ -28,6 +26,20 @@ namespace SQLGeneration.Tests
 
             builder.AddProjection(builder.Sources["t1"].Column("c1"));
             builder.AddProjection(builder.Sources["t2"].Column("c1"), "t2c1");
+            builder.AddProjection(new PlusExpression(new NumericLiteral(1), new NumericLiteral(1)));
+            builder.AddProjection(new NumericLiteral(1.1m));
+            builder.AddProjection(builder.Sources["t2"].Column("c2"));
+
+            SelectBuilder inner = new SelectBuilder();
+            inner.AddProjection(new StringLiteral("hello"));
+            builder.AddProjection(inner, "inner");
+
+            builder.AddProjection(new Function("MAX", new NumericLiteral(1), new NumericLiteral(2)), "Max");
+            builder.AddProjection(new NullLiteral());
+
+            IFilter filter = new NumericLiteral(1).EqualTo(new NumericLiteral(1));
+            filter.WrapInParentheses = true;
+            builder.AddWhere(filter, Conjunction.And);
 
             string output = String.Join(" ", builder.GetCommandTokens(new CommandOptions()));
 

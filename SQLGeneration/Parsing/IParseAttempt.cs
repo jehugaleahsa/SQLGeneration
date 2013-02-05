@@ -14,11 +14,18 @@ namespace SQLGeneration.Parsing
         List<string> Tokens { get; }
 
         /// <summary>
-        /// Runs the handle for the given expression type, if it is specified.
+        /// Sets the handle for the given token.
+        /// </summary>
+        /// <param name="result">The results of the parse for the token.</param>
+        /// <param name="token">The token found by the parser.</param>
+        void SetTokenHandler(MatchResult result, string token);
+
+        /// <summary>
+        /// Sets the handle for the given expression type, if it is specified.
         /// </summary>
         /// <param name="expressionType">The type of the expression to run the handler for.</param>
         /// <param name="result">The results of the parse for the expression.</param>
-        void RunHandler(string expressionType, MatchResult result);
+        void SetHandler(string expressionType, MatchResult result);
 
         /// <summary>
         /// Attempts to get a token of the given type.
