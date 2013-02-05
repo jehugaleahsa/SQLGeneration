@@ -9,17 +9,25 @@ namespace SQLGeneration.Parsing
     /// </summary>
     public class Grammar
     {
-        private readonly ITokenRegistry tokenRegistry;
+        private readonly Tokenizer tokenRegistry;
         private readonly Dictionary<string, ExpressionDefinition> expressionLookup;
 
         /// <summary>
         /// Initializes a new instance of a Grammar, initially empty.
         /// </summary>
         /// <param name="tokenRegistry">The token registry to use to verify referenced tokens types are defined.</param>
-        public Grammar(ITokenRegistry tokenRegistry)
+        public Grammar(Tokenizer tokenRegistry)
         {
             this.tokenRegistry = tokenRegistry;
             this.expressionLookup = new Dictionary<string, ExpressionDefinition>();
+        }
+
+        /// <summary>
+        /// Gets the token registery being used.
+        /// </summary>
+        public Tokenizer Tokenizer
+        {
+            get { return tokenRegistry; }
         }
 
         /// <summary>

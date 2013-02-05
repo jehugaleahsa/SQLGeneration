@@ -12,10 +12,8 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Initializes a new instance of a MatchResult.
         /// </summary>
-        /// <param name="isMatch">Specifies whether the match was successful or not.</param>
-        internal MatchResult(bool isMatch)
+        internal MatchResult()
         {
-            IsMatch = isMatch;
             matches = new MatchResultCollection();
         }
 
@@ -34,7 +32,7 @@ namespace SQLGeneration.Parsing
         public bool IsMatch
         {
             get;
-            private set;
+            internal set;
         }
 
         /// <summary>

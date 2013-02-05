@@ -64,23 +64,23 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Attempts to match the expression item with the values returned by the parser.
         /// </summary>
-        /// <param name="parser">The parser currently iterating over the token source.</param>
+        /// <param name="attempt">The parser currently iterating over the token source.</param>
         /// <param name="itemName">This value will be empty for an options list.</param>
         /// <returns>The results of the match.</returns>
-        public MatchResult Match(Parser parser, string itemName)
+        public MatchResult Match(IParseAttempt attempt, string itemName)
         {
             foreach (ExpressionItem option in options)
             {
-                parser.StartTransaction();
-                MatchResult innerResult = option.Item.Match(parser, option.ItemName);
+                IParseAttempt nextAttempt = attempt.Attempt();
+                MatchResult innerResult = option.Item.Match(nextAttempt, option.ItemName);
                 if (innerResult.IsMatch)
                 {
-                    parser.Commit();
+                    attempt.Accept(nextAttempt);
                     return innerResult;
                 }
-                parser.Rollback();
+                nextAttempt.Reject();
             }
-            return new MatchResult(false);
+            return new MatchResult() { IsMatch = false };
         }
     }
 }

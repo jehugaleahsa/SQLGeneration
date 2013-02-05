@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SQLGeneration.Parsing
 {
@@ -7,23 +8,61 @@ namespace SQLGeneration.Parsing
     /// </summary>
     public abstract class SqlResponder
     {
+        private readonly SqlGrammar grammar;
+
         /// <summary>
         /// Initializes a new instance of a SqlResponder.
         /// </summary>
-        /// <param name="tokenizer">The SQL tokenizer.</param>
         /// <param name="grammar">The grammar to use.</param>
-        protected SqlResponder(SqlTokenizer tokenizer, SqlGrammar grammar)
+        protected SqlResponder(SqlGrammar grammar)
         {
-            throw new NotImplementedException();
+            if (grammar == null)
+            {
+                grammar = new SqlGrammar();
+            }
+            this.grammar = grammar;
         }
 
         /// <summary>
         /// Gets the result of the operations.
         /// </summary>
         /// <returns>The result.</returns>
-        protected object GetResult()
+        protected object GetResult(IEnumerable<string> tokenStream)
         {
-            throw new NotImplementedException();
+            Parser parser = new Parser(grammar);
+            registerHandlers(parser);
+            ITokenSource tokenSource = grammar.Tokenizer.CreateTokenSource(tokenStream);
+            return parser.Parse(SqlGrammar.Start.Name, tokenSource);
+        }
+
+        private void registerHandlers(Parser parser)
+        {
+            parser.RegisterHandler(SqlGrammar.Start.Name, OnStart);
+            parser.RegisterHandler(SqlGrammar.SelectStatement.Name, OnSelectStatement);
+            parser.RegisterHandler(SqlGrammar.SelectExpression.Name, OnSelectExpression);
+            parser.RegisterHandler(SqlGrammar.SelectSpecification.Name, OnSelectSpecification);
+            parser.RegisterHandler(SqlGrammar.OrderByList.Name, OnOrderByList);
+            parser.RegisterHandler(SqlGrammar.OrderByItem.Name, OnOrderByItem);
+            parser.RegisterHandler(SqlGrammar.ArithmeticExpression.Name, OnArithmeticExpression);
+            parser.RegisterHandler(SqlGrammar.ProjectionList.Name, OnProjectionList);
+            parser.RegisterHandler(SqlGrammar.ProjectionItem.Name, OnProjectionItem);
+            parser.RegisterHandler(SqlGrammar.FromList.Name, OnFromList);
+            parser.RegisterHandler(SqlGrammar.JoinItem.Name, OnJoinItem);
+            parser.RegisterHandler(SqlGrammar.FunctionCall.Name, OnFunctionCall);
+            parser.RegisterHandler(SqlGrammar.Join.Name, OnJoin);
+            parser.RegisterHandler(SqlGrammar.JoinPrime.Name, OnJoinPrime);
+            parser.RegisterHandler(SqlGrammar.FilterList.Name, OnFilterList);
+            parser.RegisterHandler(SqlGrammar.Filter.Name, OnFilter);
+            parser.RegisterHandler(SqlGrammar.ValueList.Name, OnValueList);
+            parser.RegisterHandler(SqlGrammar.GroupByList.Name, OnGroupByList);
+            parser.RegisterHandler(SqlGrammar.Item.Name, OnItem);
+            parser.RegisterHandler(SqlGrammar.InsertStatement.Name, OnInsertStatement);
+            parser.RegisterHandler(SqlGrammar.ColumnList.Name, OnColumnList);
+            parser.RegisterHandler(SqlGrammar.UpdateStatement.Name, OnUpdateStatement);
+            parser.RegisterHandler(SqlGrammar.SetterList.Name, OnSetterList);
+            parser.RegisterHandler(SqlGrammar.Setter.Name, OnSetter);
+            parser.RegisterHandler(SqlGrammar.DeleteStatement.Name, OnDeleteStatement);
+            parser.RegisterHandler(SqlGrammar.MultipartIdentifier.Name, OnMultipartIdentifier);
         }
 
         /// <summary>

@@ -53,6 +53,19 @@ namespace SQLGeneration.Parsing
             return tokenLookup.ContainsKey(tokenName);
         }
 
+        private bool Match(string tokenName, string token)
+        {
+            List<Regex> checks = tokenLookup[tokenName];
+            foreach (Regex check in checks)
+            {
+                if (check.IsMatch(token))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Creates a stream of tokens that are verified against the token definitions.
         /// </summary>
@@ -69,6 +82,11 @@ namespace SQLGeneration.Parsing
             private readonly IEnumerator<string> tokenEnumerator;
             private readonly LinkedList<string> undoBuffer;
 
+            /// <summary>
+            /// Initializes a new instance of a TokenSource.
+            /// </summary>
+            /// <param name="tokenizer">The tokenizer containing the token definitions.</param>
+            /// <param name="tokenStream">A stream of tokens.</param>
             public TokenSource(Tokenizer tokenizer, IEnumerable<string> tokenStream)
             {
                 this.tokenizer = tokenizer;
@@ -87,33 +105,31 @@ namespace SQLGeneration.Parsing
             /// </returns>
             public TokenResult GetToken(string tokenName)
             {
-                List<Regex> checks;
-                if (!tokenizer.tokenLookup.TryGetValue(tokenName, out checks))
+                if (!tokenizer.Exists(tokenName))
                 {
                     throw new ArgumentException(Resources.UnknownTokenType, "tokenName");
                 }
-                string token;
+                string token = getToken();
+                bool isMatch = token == null ? false : tokenizer.Match(tokenName, token);
+                return new TokenResult(tokenName, isMatch, token);
+            }
+
+            private string getToken()
+            {
                 if (undoBuffer.Count == 0)
                 {
                     if (!tokenEnumerator.MoveNext())
                     {
-                        return new TokenResult(tokenName, false, null);
+                        return null;
                     }
-                    token = tokenEnumerator.Current;
+                    return tokenEnumerator.Current;
                 }
                 else
                 {
-                    token = undoBuffer.First.Value;
+                    string token = undoBuffer.First.Value;
                     undoBuffer.RemoveFirst();
+                    return token;
                 }
-                foreach (Regex check in checks)
-                {
-                    if (check.IsMatch(token))
-                    {
-                        return new TokenResult(tokenName, true, token);
-                    }
-                }
-                return new TokenResult(tokenName, false, token);
             }
 
             /// <summary>

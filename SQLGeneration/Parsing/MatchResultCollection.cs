@@ -39,7 +39,7 @@ namespace SQLGeneration.Parsing
                 MatchResult result;
                 if (!resultLookup.TryGetValue(itemName, out result))
                 {
-                    result = new MatchResult(false);
+                    result = new MatchResult() { ItemName = itemName, IsMatch = false };
                 }
                 return result;
             }

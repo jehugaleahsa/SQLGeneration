@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace SQLGeneration.Parsing
 {
     /// <summary>
@@ -11,8 +10,8 @@ namespace SQLGeneration.Parsing
         /// Initializes a new instance of a SqlGrammar.
         /// </summary>
         /// <param name="tokenizer">The tokenizer to retrieve SQL tokens from.</param>
-        public SqlGrammar(SqlTokenizer tokenizer)
-            : base(tokenizer)
+        public SqlGrammar(SqlTokenizer tokenizer = null)
+            : base(tokenizer == null ? new SqlTokenizer() : tokenizer)
         {
             defineStart();
             defineSelectStatement();
@@ -41,6 +40,8 @@ namespace SQLGeneration.Parsing
             defineDeleteStatement();
             defineMultipartIdentifier();
         }
+
+        #region Start
 
         /// <summary>
         /// Describes the structure of the top-level SQL grammar.
@@ -82,6 +83,10 @@ namespace SQLGeneration.Parsing
                     .Add(Start.UpdateStatement, Expression(UpdateStatement.Name))
                     .Add(Start.DeleteStatement, Expression(DeleteStatement.Name)));
         }
+
+        #endregion
+
+        #region SelectStatement
 
         /// <summary>
         /// Describes the structure of the SELECT statement.
@@ -128,6 +133,10 @@ namespace SQLGeneration.Parsing
                     .Add(SelectStatement.OrderBy.OrderByKeyword, true, Token(SqlTokenizer.OrderBy))
                     .Add(SelectStatement.OrderBy.OrderByList, true, Expression(OrderByList.Name)));
         }
+
+        #endregion
+
+        #region SelectExpression
 
         /// <summary>
         /// Describes the structure of the SELECT expression.
@@ -205,6 +214,10 @@ namespace SQLGeneration.Parsing
                     .Add(SelectExpression.Remaining.Combiner, true, Token(SqlTokenizer.SelectCombiner))
                     .Add(SelectExpression.Remaining.SelectExpression, true, Expression(SelectExpression.Name)));
         }
+
+        #endregion
+
+        #region SelectSpecification
 
         /// <summary>
         /// Describes the structure of the SELECT specification.
@@ -372,6 +385,10 @@ namespace SQLGeneration.Parsing
                     .Add(SelectSpecification.Having.FilterList, true, Expression(FilterList.Name)));
         }
 
+        #endregion
+
+        #region OrderByList
+
         /// <summary>
         /// Describes the structure of the ORDER BY list.
         /// </summary>
@@ -425,6 +442,10 @@ namespace SQLGeneration.Parsing
                     .Add(OrderByList.Single, Expression(OrderByItem.Name)));
         }
 
+        #endregion
+
+        #region OrderByItem
+
         /// <summary>
         /// Describes the structure of the ORDER BY item.
         /// </summary>
@@ -458,6 +479,10 @@ namespace SQLGeneration.Parsing
                 .Add(OrderByItem.OrderDirection, false, Token(SqlTokenizer.OrderDirection))
                 .Add(OrderByItem.NullPlacement, false, Token(SqlTokenizer.NullPlacement));
         }
+
+        #endregion
+
+        #region ArithmeticExpression
 
         /// <summary>
         /// Describes the structure of the arithmetic expression.
@@ -512,6 +537,10 @@ namespace SQLGeneration.Parsing
                     .Add(ArithmeticExpression.Single, Expression(Item.Name)));
         }
 
+        #endregion
+
+        #region ProjectionList
+
         /// <summary>
         /// Describes the structure of the projection list.
         /// </summary>
@@ -521,18 +550,53 @@ namespace SQLGeneration.Parsing
             /// Gets the name identifying the projection list.
             /// </summary>
             public const string Name = "ProjectionList";
+
+            /// <summary>
+            /// Describes the structure of a projection list containing multiple items.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the projection list contains multiple items.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the identifier for the first projection item.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the comma separator.
+                /// </summary>
+                public const string Comma = "comma";
+                
+                /// <summary>
+                /// Gets the identifier for the rest of the projection list.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier indicating that there is one item in the projection list.
+            /// </summary>
+            public const string Single = "single";
         }
 
         private void defineProjectionList()
         {
             Define(ProjectionList.Name)
                 .Add(true, Options()
-                    .Add("Multiple", Define()
-                        .Add("First", true, Expression(ProjectionItem.Name))
-                        .Add("Comma", true, Token(SqlTokenizer.Comma))
-                        .Add("Remaining", true, Expression(ProjectionList.Name)))
-                    .Add("Single", Expression(ProjectionItem.Name)));
+                    .Add(ProjectionList.Multiple.Name, Define()
+                        .Add(ProjectionList.Multiple.First, true, Expression(ProjectionItem.Name))
+                        .Add(ProjectionList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(ProjectionList.Multiple.Remaining, true, Expression(ProjectionList.Name)))
+                    .Add(ProjectionList.Single, Expression(ProjectionItem.Name)));
         }
+
+        #endregion
+
+        #region ProjectionItem
 
         /// <summary>
         /// Describes the structure of the projection item.
@@ -543,23 +607,101 @@ namespace SQLGeneration.Parsing
             /// Gets the name identifying the projection item.
             /// </summary>
             public const string Name = "ProjectionItem";
+
+            /// <summary>
+            /// Describes the structure of the projection item when it is a star (*).
+            /// </summary>
+            public static class Star
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the projection item is a star (*).
+                /// </summary>
+                public const string Name = "Star";
+
+                /// <summary>
+                /// Describes the structure of a star projection item (*) that is qualified.
+                /// </summary>
+                public static class Qualifier
+                {
+                    /// <summary>
+                    /// Gets the identifier indicating that the star projection item (*) is qualified.
+                    /// </summary>
+                    public const string Name = "Qualifier";
+
+                    /// <summary>
+                    /// Gets the identifier for the qualifier.
+                    /// </summary>
+                    public const string ColumnSource = "column_source";
+
+                    /// <summary>
+                    /// Gets the identifier for the dot separator.
+                    /// </summary>
+                    public const string Dot = "dot";
+                }
+
+                /// <summary>
+                /// Gets the identifier for the star (*) token.
+                /// </summary>
+                public const string StarToken = "star";
+            }
+
+            /// <summary>
+            /// Describes the structure of a projection item when it is a column, function call, SELECT statement or arithmetic expression.
+            /// </summary>
+            public static class Expression
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the expression is a column, function call, SELECT statement of arithmetic expression.
+                /// </summary>
+                public const string Name = "Expression";
+
+                /// <summary>
+                /// Gets the identifier for the item.
+                /// </summary>
+                public const string Item = "item";
+
+                /// <summary>
+                /// Describes the structure of an alias of a projection item.
+                /// </summary>
+                public static class AliasExpression
+                {
+                    /// <summary>
+                    /// Gets the identifier indicating that the projection item has an alias.
+                    /// </summary>
+                    public const string Name = "Alias";
+
+                    /// <summary>
+                    /// Gets the identifier for the AS token.
+                    /// </summary>
+                    public const string AliasIndicator = "alias_indicator";
+
+                    /// <summary>
+                    /// Gets the identifier for the alias.
+                    /// </summary>
+                    public const string Alias = "alias";
+                }
+            }
         }
 
         private void defineProjectionItem()
         {
             Define(ProjectionItem.Name)
                 .Add(true, Options()
-                    .Add("Star", Define()
-                        .Add("Qualifier", false, Define()
-                            .Add("ColumnSource", true, Expression(MultipartIdentifier.Name))
-                            .Add("Dot", true, Token(SqlTokenizer.Dot)))
-                        .Add("Star", true, Token(SqlTokenizer.Star)))
-                    .Add("Expression", Define()
-                        .Add("Expression", true, Expression(Item.Name))
-                        .Add("Alias", false, Define()
-                            .Add("AliasIndicator", false, Token(SqlTokenizer.AliasIndicator))
-                            .Add("Alias", true, Token(SqlTokenizer.Identifier)))));
+                    .Add(ProjectionItem.Star.Name, Define()
+                        .Add(ProjectionItem.Star.Qualifier.Name, false, Define()
+                            .Add(ProjectionItem.Star.Qualifier.ColumnSource, true, Expression(MultipartIdentifier.Name))
+                            .Add(ProjectionItem.Star.Qualifier.Dot, true, Token(SqlTokenizer.Dot)))
+                        .Add(ProjectionItem.Star.StarToken, true, Token(SqlTokenizer.Star)))
+                    .Add(ProjectionItem.Expression.Name, Define()
+                        .Add(ProjectionItem.Expression.Item, true, Expression(Item.Name))
+                        .Add(ProjectionItem.Expression.AliasExpression.Name, false, Define()
+                            .Add(ProjectionItem.Expression.AliasExpression.AliasIndicator, false, Token(SqlTokenizer.AliasIndicator))
+                            .Add(ProjectionItem.Expression.AliasExpression.Alias, true, Token(SqlTokenizer.Identifier)))));
         }
+
+        #endregion
+
+        #region FromList
 
         /// <summary>
         /// Describes the structure of the FROM list.
@@ -614,6 +756,10 @@ namespace SQLGeneration.Parsing
                     .Add(FromList.Single, Expression(Join.Name)));
         }
 
+        #endregion
+
+        #region JoinItem
+
         /// <summary>
         /// Describes the structure of the join item.
         /// </summary>
@@ -623,19 +769,59 @@ namespace SQLGeneration.Parsing
             /// Gets the name identifying the join item.
             /// </summary>
             public const string Name = "JoinItem";
+
+            /// <summary>
+            /// Gets the identifier indicating that the join item is a table.
+            /// </summary>
+            public const string Table = "table";
+
+            /// <summary>
+            /// Gets the identifier indicating that the join item is a function call.
+            /// </summary>
+            public const string FunctionCall = "function_call";
+
+            /// <summary>
+            /// Gets the identifier indicating that the join item is a SELECT expression.
+            /// </summary>
+            public const string SelectExpression = "select_expression";
+
+            /// <summary>
+            /// Describes the structure of the join item alias.
+            /// </summary>
+            public static class AliasExpression
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the join item is aliased.
+                /// </summary>
+                public const string Name = "Alias";
+
+                /// <summary>
+                /// Gets the identifier for the alias indicator (AS).
+                /// </summary>
+                public const string AliasIndicator = "alias_indicator";
+
+                /// <summary>
+                /// Gets the identifier for the alias.
+                /// </summary>
+                public const string Alias = "alias";
+            }
         }
 
         private void defineJoinItem()
         {
             Define(JoinItem.Name)
                 .Add(true, Options()
-                    .Add("Table", Expression(MultipartIdentifier.Name))
-                    .Add("FunctionCall", Expression(FunctionCall.Name))
-                    .Add("SelectExpression", Expression(SelectExpression.Name)))
-                .Add("Alias", false, Define()
-                    .Add("AliasIndicator", false, Token(SqlTokenizer.AliasIndicator))
-                    .Add("Alias", true, Token(SqlTokenizer.Identifier)));
+                    .Add(JoinItem.Table, Expression(MultipartIdentifier.Name))
+                    .Add(JoinItem.FunctionCall, Expression(FunctionCall.Name))
+                    .Add(JoinItem.SelectExpression, Expression(SelectExpression.Name)))
+                .Add(JoinItem.AliasExpression.Alias, false, Define()
+                    .Add(JoinItem.AliasExpression.AliasIndicator, false, Token(SqlTokenizer.AliasIndicator))
+                    .Add(JoinItem.AliasExpression.Alias, true, Token(SqlTokenizer.Identifier)));
         }
+
+        #endregion
+
+        #region FunctionCall
 
         /// <summary>
         /// Describes the structure of the function call.
@@ -677,6 +863,10 @@ namespace SQLGeneration.Parsing
                 .Add(FunctionCall.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis));
         }
 
+        #endregion
+
+        #region Join
+
         /// <summary>
         /// Describes the structure of the join.
         /// </summary>
@@ -686,20 +876,71 @@ namespace SQLGeneration.Parsing
             /// Gets the name identifying the join.
             /// </summary>
             public const string Name = "Join";
+
+            /// <summary>
+            /// Describes the structure of a join surrounded in parenthesis.
+            /// </summary>
+            public static class Wrapped
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the join is wrapped in parenthesis.
+                /// </summary>
+                public const string Name = "Wrapped";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the wrapped join.
+                /// </summary>
+                public const string Join = "join";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
+
+            /// <summary>
+            /// Describes the structure of a join item potentially joined to another item.
+            /// </summary>
+            public static class Joined
+            {
+                /// <summary>
+                /// Gets the identifier indicating that we have a join item and potentially a join.
+                /// </summary>
+                public const string Name = "Joined";
+
+                /// <summary>
+                /// Gets the identifier for the item being joined.
+                /// </summary>
+                public const string JoinItem = "join_item";
+
+                /// <summary>
+                /// Gets the identifier for the rest of the join statement.
+                /// </summary>
+                public const string JoinPrime = "join_prime";
+            }
         }
 
         private void defineJoin()
         {
             Define(Join.Name)
                 .Add(true, Options()
-                    .Add("Wrapped", Define()
-                        .Add("LeftParenthesis", true, Token(SqlTokenizer.LeftParenthesis))
-                        .Add("Join", true, Expression(Join.Name))
-                        .Add("RightParenthesis", true, Token(SqlTokenizer.RightParenthesis)))
-                    .Add("Joined", Define()
-                        .Add("JoinItem", true, Expression(JoinItem.Name))
-                        .Add("JoinPrime", true, Expression(JoinPrime.Name))));
+                    .Add(Join.Wrapped.Name, Define()
+                        .Add(Join.Wrapped.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(Join.Wrapped.Join, true, Expression(Join.Name))
+                        .Add(Join.Wrapped.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                    .Add(Join.Joined.Name, Define()
+                        .Add(Join.Joined.JoinItem, true, Expression(JoinItem.Name))
+                        .Add(Join.Joined.JoinPrime, true, Expression(JoinPrime.Name))));
         }
+
+        #endregion
+
+        #region JoinPrime
 
         /// <summary>
         /// Describes the structure of the join prime expression.
@@ -710,21 +951,77 @@ namespace SQLGeneration.Parsing
             /// Gets the name identifying the join prime expression.
             /// </summary>
             public const string Name = "JoinPrime";
+
+            /// <summary>
+            /// Describes the structure of a join to the next item.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier indicating that there is another join item.
+                /// </summary>
+                public const string Name = "Joined";
+
+                /// <summary>
+                /// Gets the identifier for the next join type.
+                /// </summary>
+                public const string JoinType = "join_type";
+
+                /// <summary>
+                /// Gets the identifier for the next join item.
+                /// </summary>
+                public const string JoinItem = "join_item";
+
+                /// <summary>
+                /// Describes the structure of the join filter.
+                /// </summary>
+                public static class On
+                {
+                    /// <summary>
+                    /// Gets the identifier indicating that there is a ON clause.
+                    /// </summary>
+                    public const string Name = "On";
+
+                    /// <summary>
+                    /// Gets the identifier for the ON keyword.
+                    /// </summary>
+                    public const string OnToken = "on";
+
+                    /// <summary>
+                    /// Gets the identifier for the filter list.
+                    /// </summary>
+                    public const string FilterList = "filter_list";
+                }
+
+                /// <summary>
+                /// Gets the identifier for the next join in the series.
+                /// </summary>
+                public const string JoinPrime = "join_prime";
+            }
+
+            /// <summary>
+            /// Gets the identifier indicating that there are no more joins.
+            /// </summary>
+            public const string Empty = "empty";
         }
 
         private void defineJoinPrime()
         {
             Define(JoinPrime.Name)
                 .Add(true, Options()
-                    .Add("Joined", Define()
-                        .Add("JoinType", true, Token(SqlTokenizer.JoinType))
-                        .Add("JoinItem", true, Expression(JoinItem.Name))
-                        .Add("On", false, Define()
-                            .Add("On", true, Token(SqlTokenizer.On))
-                            .Add("FilterList", true, Expression(FilterList.Name)))
-                        .Add("JoinPrime", true, Expression(JoinPrime.Name)))
-                    .Add("Empty", Define()));
+                    .Add(JoinPrime.Multiple.Name, Define()
+                        .Add(JoinPrime.Multiple.JoinType, true, Token(SqlTokenizer.JoinType))
+                        .Add(JoinPrime.Multiple.JoinItem, true, Expression(JoinItem.Name))
+                        .Add(JoinPrime.Multiple.On.Name, false, Define()
+                            .Add(JoinPrime.Multiple.On.OnToken, true, Token(SqlTokenizer.On))
+                            .Add(JoinPrime.Multiple.On.FilterList, true, Expression(FilterList.Name)))
+                        .Add(JoinPrime.Multiple.JoinPrime, true, Expression(JoinPrime.Name)))
+                    .Add(JoinPrime.Empty, Define()));
         }
+
+        #endregion
+
+        #region FilterList
 
         /// <summary>
         /// Describes the structure of the filter list.
@@ -814,6 +1111,10 @@ namespace SQLGeneration.Parsing
                         .Add(FilterList.Multiple.Remaining, true, Expression(FilterList.Name)))
                     .Add(FilterList.Single, Expression(Filter.Name)));
         }
+
+        #endregion
+
+        #region Filter
 
         /// <summary>
         /// Describes the structure of the filter.
@@ -1091,6 +1392,10 @@ namespace SQLGeneration.Parsing
                         .Add(Filter.In.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis))));
         }
 
+        #endregion
+
+        #region ValueList
+
         /// <summary>
         /// Describes the structure of the value list.
         /// </summary>
@@ -1100,18 +1405,53 @@ namespace SQLGeneration.Parsing
             /// Gets the name identifying the value list.
             /// </summary>
             public const string Name = "ValueList";
+
+            /// <summary>
+            /// Describes the structure of a value list containing multiple items.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the value list has more than one item.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the identifier for the first value.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the comma separator.
+                /// </summary>
+                public const string Comma = "comma";
+
+                /// <summary>
+                /// Gets the identifier for the rest of the values.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier indicating that there is a single value.
+            /// </summary>
+            public const string Single = "single";
         }
 
         private void defineValueList()
         {
             Define(ValueList.Name)
                 .Add(true, Options()
-                    .Add("Multiple", Define()
-                        .Add("First", true, Expression(Item.Name))
-                        .Add("Comma", true, Token(SqlTokenizer.Comma))
-                        .Add("Remaining", true, Expression(ValueList.Name)))
-                    .Add("Single", Expression(Item.Name)));
+                    .Add(ValueList.Multiple.Name, Define()
+                        .Add(ValueList.Multiple.First, true, Expression(Item.Name))
+                        .Add(ValueList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(ValueList.Multiple.Remaining, true, Expression(ValueList.Name)))
+                    .Add(ValueList.Single, Expression(Item.Name)));
         }
+
+        #endregion
+
+        #region GroupByList
 
         /// <summary>
         /// Describes the structure of the GROUP BY list.
@@ -1165,6 +1505,10 @@ namespace SQLGeneration.Parsing
                         .Add(SqlGrammar.GroupByList.Multiple.Remaining, true, Expression(GroupByList.Name)))
                     .Add(SqlGrammar.GroupByList.Single, Expression(Item.Name)));
         }
+
+        #endregion
+
+        #region Item
 
         /// <summary>
         /// Describes the structure of the item.
@@ -1225,6 +1569,9 @@ namespace SQLGeneration.Parsing
                     .Add(Item.Null, Token(SqlTokenizer.Null)));
         }
 
+        #endregion
+
+        #region InsertStatement
 
         /// <summary>
         /// Describes the structure of the INSERT statement.
@@ -1358,6 +1705,10 @@ namespace SQLGeneration.Parsing
 
         }
 
+        #endregion
+
+        #region ColumnList
+
         /// <summary>
         /// Describes the structure of the column list.
         /// </summary>
@@ -1411,6 +1762,10 @@ namespace SQLGeneration.Parsing
                     .Add(ColumnList.Single, Expression(MultipartIdentifier.Name)));
         }
 
+        #endregion
+
+        #region UpdateStatement
+
         /// <summary>
         /// Describes the structure of the UPDATE statement.
         /// </summary>
@@ -1420,19 +1775,64 @@ namespace SQLGeneration.Parsing
             /// Gets the name identifying the UPDATE statement.
             /// </summary>
             public const string Name = "UpdateStatement";
+
+            /// <summary>
+            /// Gets the identifier for the UPDATE keyword.
+            /// </summary>
+            public const string UpdateKeyword = "update";
+
+            /// <summary>
+            /// Gets the identifier for the table.
+            /// </summary>
+            public const string Table = "table";
+
+            /// <summary>
+            /// Gets the identifier for the SET keyword.
+            /// </summary>
+            public const string SetKeyword = "set";
+
+            /// <summary>
+            /// Gets the identifier for the setter list.
+            /// </summary>
+            public const string SetterList = "setter_list";
+
+            /// <summary>
+            /// Describes the structure of the WHERE clause.
+            /// </summary>
+            public static class Where
+            {
+                /// <summary>
+                /// Gets the identifier indicating that there is a WHERE clause.
+                /// </summary>
+                public const string Name = "Where";
+
+                /// <summary>
+                /// Gets the identifier for the WHERE keyword.
+                /// </summary>
+                public const string WhereKeyword = "where";
+
+                /// <summary>
+                /// Gets the identifier for the filter list.
+                /// </summary>
+                public const string FilterList = "filter_list";
+            }
         }
 
         private void defineUpdateStatement()
         {
             Define(UpdateStatement.Name)
-                .Add("Update", true, Token(SqlTokenizer.Update))
-                .Add("Table", true, Expression(MultipartIdentifier.Name))
-                .Add("Set", true, Token(SqlTokenizer.Set))
-                .Add("SetterList", true, Expression(SetterList.Name))
-                .Add("Where", false, Define()
-                    .Add("Where", true, Token(SqlTokenizer.Where))
-                    .Add("FilterList", true, Expression(FilterList.Name)));
+                .Add(UpdateStatement.UpdateKeyword, true, Token(SqlTokenizer.Update))
+                .Add(UpdateStatement.Table, true, Expression(MultipartIdentifier.Name))
+                .Add(UpdateStatement.SetKeyword, true, Token(SqlTokenizer.Set))
+                .Add(UpdateStatement.SetterList, true, Expression(SetterList.Name))
+                .Add(UpdateStatement.Where.Name, false, Define()
+                    .Add(UpdateStatement.Where.WhereKeyword, true, Token(SqlTokenizer.Where))
+                    .Add(UpdateStatement.Where.FilterList, true, Expression(FilterList.Name)));
         }
+
+        #endregion
+
+        #region SetterList
 
         /// <summary>
         /// Describes the structure of the setter list.
@@ -1443,18 +1843,53 @@ namespace SQLGeneration.Parsing
             /// Gets the name identifying the setter list.
             /// </summary>
             public const string Name = "SetterList";
+
+            /// <summary>
+            /// Describes the structure of a setter list when there is more than one item.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier indicating that there are multiple setters in the list.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the identifier for the first setter.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the comma separator.
+                /// </summary>
+                public const string Comma = "comma";
+
+                /// <summary>
+                /// Gets the identifier for the rest of the setters in the list.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier indicating that the list only has one setter.
+            /// </summary>
+            public const string Single = "single";
         }
 
         private void defineSetterList()
         {
             Define(SetterList.Name)
                 .Add(true, Options()
-                    .Add("Multiple", Define()
-                        .Add("First", true, Expression(Setter.Name))
-                        .Add("Comma", true, Token(SqlTokenizer.Comma))
-                        .Add("Remaining", true, Expression(SetterList.Name)))
-                    .Add("Single", Expression(Setter.Name)));
+                    .Add(SetterList.Multiple.Name, Define()
+                        .Add(SetterList.Multiple.First, true, Expression(Setter.Name))
+                        .Add(SetterList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(SetterList.Multiple.Remaining, true, Expression(SetterList.Name)))
+                    .Add(SetterList.Single, Expression(Setter.Name)));
         }
+
+        #endregion
+
+        #region Setter
 
         /// <summary>
         /// Describes the structure of a setter.
@@ -1465,15 +1900,34 @@ namespace SQLGeneration.Parsing
             /// Gets the name identifying the setter.
             /// </summary>
             public const string Name = "Setter";
+
+            /// <summary>
+            /// Gets the identifier for the column being assigned.
+            /// </summary>
+            public const string Column = "column";
+
+            /// <summary>
+            /// Gets the identifier for the assignment operator.
+            /// </summary>
+            public const string Assignment = "assignment";
+
+            /// <summary>
+            /// Gets the identifier for the value the column is being assigned to.
+            /// </summary>
+            public const string Item = "item";
         }
 
         private void defineSetter()
         {
             Define(Setter.Name)
-                .Add("Column", true, Expression(MultipartIdentifier.Name))
-                .Add("Assignment", true, Token(SqlTokenizer.Assignment))
-                .Add("Expression", true, Expression(Item.Name));
+                .Add(Setter.Column, true, Expression(MultipartIdentifier.Name))
+                .Add(Setter.Assignment, true, Token(SqlTokenizer.Assignment))
+                .Add(Setter.Item, true, Expression(Item.Name));
         }
+
+        #endregion
+
+        #region DeleteStatement
 
         /// <summary>
         /// Describes the structure of the DELETE statement.
@@ -1525,13 +1979,17 @@ namespace SQLGeneration.Parsing
         private void defineDeleteStatement()
         {
             Define(DeleteStatement.Name)
-                .Add("Delete", true, Token(SqlTokenizer.Delete))
-                .Add("From", false, Token(SqlTokenizer.From))
-                .Add("Table", true, Expression(MultipartIdentifier.Name))
-                .Add("Where", false, Define()
-                    .Add("Where", true, Token(SqlTokenizer.Where))
-                    .Add("FilterList", true, Expression(FilterList.Name)));
+                .Add(DeleteStatement.DeleteKeyword, true, Token(SqlTokenizer.Delete))
+                .Add(DeleteStatement.FromKeyword, false, Token(SqlTokenizer.From))
+                .Add(DeleteStatement.Table, true, Expression(MultipartIdentifier.Name))
+                .Add(DeleteStatement.Where.Name, false, Define()
+                    .Add(DeleteStatement.Where.WhereKeyword, true, Token(SqlTokenizer.Where))
+                    .Add(DeleteStatement.Where.FilterList, true, Expression(FilterList.Name)));
         }
+
+        #endregion
+
+        #region MultipartIdentifier
 
         /// <summary>
         /// Describes the structure of a multi-part identifier.
@@ -1542,17 +2000,50 @@ namespace SQLGeneration.Parsing
             /// Gets the name identifying the multi-part identifier.
             /// </summary>
             public const string Name = "MultipartIdentifier";
+
+            /// <summary>
+            /// Describes the structure of an identifier with multiple parts.
+            /// </summary>
+            public static class Multiple
+            {
+                /// <summary>
+                /// Gets the identifier indicating that there are multiple parts.
+                /// </summary>
+                public const string Name = "Multiple";
+
+                /// <summary>
+                /// Gets the identifier for the first identifier.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the dot separator.
+                /// </summary>
+                public const string Dot = "dot";
+                
+                /// <summary>
+                /// Gets the identifier for the rest of the identifiers.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Gets the identifier indicating that there is a single identifier.
+            /// </summary>
+            public const string Single = "single";
         }
 
         private void defineMultipartIdentifier()
         {
             Define(MultipartIdentifier.Name)
                 .Add(true, Options()
-                    .Add("Multiple", Define()
-                        .Add("First", true, Token(SqlTokenizer.Identifier))
-                        .Add("Dot", true, Token(SqlTokenizer.Dot))
-                        .Add("Remaining", true, Expression(MultipartIdentifier.Name)))
-                    .Add("Single", Token(SqlTokenizer.Identifier)));
+                    .Add(MultipartIdentifier.Multiple.Name, Define()
+                        .Add(MultipartIdentifier.Multiple.First, true, Token(SqlTokenizer.Identifier))
+                        .Add(MultipartIdentifier.Multiple.Dot, true, Token(SqlTokenizer.Dot))
+                        .Add(MultipartIdentifier.Multiple.Remaining, true, Expression(MultipartIdentifier.Name)))
+                    .Add(MultipartIdentifier.Single, Token(SqlTokenizer.Identifier)));
         }
+
+        #endregion
     }
 }

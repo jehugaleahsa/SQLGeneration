@@ -14,6 +14,6 @@ namespace SQLGeneration.Parsing
         /// <param name="parser">The parser currently iterating over the token source.</param>
         /// <param name="itemName">The name of the item in the outer expression.</param>
         /// <returns>The results of the match.</returns>
-        MatchResult Match(Parser parser, string itemName);
+        MatchResult Match(IParseAttempt parser, string itemName);
     }
 }

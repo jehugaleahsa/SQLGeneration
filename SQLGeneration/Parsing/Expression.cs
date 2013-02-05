@@ -22,34 +22,32 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Attempts to match the expression item with the values returned by the parser.
         /// </summary>
-        /// <param name="parser">The parser currently iterating over the token source.</param>
+        /// <param name="attempt">The parser currently iterating over the token source.</param>
         /// <param name="itemName">The name of the item in the outer expression.</param>
         /// <returns>The results of the match.</returns>
-        public MatchResult Match(Parser parser, string itemName)
+        public MatchResult Match(IParseAttempt attempt, string itemName)
         {
-            bool isMatch = true;
-            MatchResult result = new MatchResult(isMatch);
-            result.ItemName = itemName;
+            MatchResult result = new MatchResult() { ItemName = itemName, IsMatch = true };
             foreach (ExpressionItem detail in expression.Items)
             {
-                parser.StartTransaction();
-                MatchResult innerResult = detail.Item.Match(parser, detail.ItemName);
-                result.Matches.Add(innerResult);
+                IParseAttempt nextAttempt = attempt.Attempt();
+                MatchResult innerResult = detail.Item.Match(nextAttempt, detail.ItemName);
                 if (innerResult.IsMatch)
                 {
-                    parser.Commit();
+                    attempt.Accept(nextAttempt);
+                    result.Matches.Add(innerResult);
                 }
                 else
                 {
-                    parser.Rollback();
+                    nextAttempt.Reject();
                     if (detail.IsRequired)
                     {
-                        isMatch = false;
-                        break;
+                        result.IsMatch = false;
+                        return result;
                     }
                 }
             }
-            parser.RunHandler(expression.ExpressionType, result);
+            attempt.RunHandler(expression.ExpressionType, result);
             return result;
         }
     }

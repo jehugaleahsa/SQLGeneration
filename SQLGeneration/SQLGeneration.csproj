@@ -42,7 +42,7 @@
     <Compile Include="ArithmeticExpression.cs" />
     <Compile Include="BetweenFilter.cs" />
     <Compile Include="Column.cs" />
-    <Compile Include="Formatting\SimpleFormatter.cs" />
+    <Compile Include="Generators\SimpleFormatter.cs" />
     <Compile Include="OrderFilter.cs" />
     <Compile Include="CommandOptions.cs" />
     <Compile Include="ConjunctionConverter.cs" />
@@ -64,6 +64,7 @@
     <Compile Include="Parsing\ExpressionItem.cs" />
     <Compile Include="Parsing\Grammar.cs" />
     <Compile Include="Parsing\IExpressionItem.cs" />
+    <Compile Include="Parsing\IParseAttempt.cs" />
     <Compile Include="Parsing\ITokenRegistry.cs" />
     <Compile Include="Parsing\ITokenSource.cs" />
     <Compile Include="Parsing\MatchResult.cs" />
