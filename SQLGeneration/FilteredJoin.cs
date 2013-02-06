@@ -53,7 +53,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="filter">The filter to add.</param>
         /// <param name="conjunction">Specifies whether to AND or OR the filter with the other filters in the group.</param>
-        public void AddOnFilter(IFilter filter, Conjunction conjunction)
+        public void AddOnFilter(IFilter filter, Conjunction conjunction = Conjunction.And)
         {
             on.AddFilter(filter, conjunction);
         }

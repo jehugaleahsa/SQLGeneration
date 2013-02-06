@@ -299,7 +299,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="filter">The filter to add.</param>
         /// <param name="conjunction">Specifies whether to AND or OR that </param>
-        public void AddWhere(IFilter filter, Conjunction conjunction)
+        public void AddWhere(IFilter filter, Conjunction conjunction = Conjunction.And)
         {
             _where.AddFilter(filter, conjunction);
         }
@@ -327,7 +327,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="filter">The filter to add.</param>
         /// <param name="conjunction">Specifies whether to use AND or OR when testing the filter.</param>
-        public void AddHaving(IFilter filter, Conjunction conjunction)
+        public void AddHaving(IFilter filter, Conjunction conjunction = Conjunction.And)
         {
             _having.AddFilter(filter, conjunction);
         }
@@ -346,7 +346,7 @@ namespace SQLGeneration
         /// Gets the SQL that represents the query.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        public IEnumerable<string> GetCommandTokens(CommandOptions options)
+        IEnumerable<string> ICommand.GetCommandTokens(CommandOptions options)
         {
             if (options == null)
             {

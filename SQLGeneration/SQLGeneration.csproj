@@ -51,7 +51,6 @@
     <Compile Include="DeleteBuilder.cs" />
     <Compile Include="DivideExpression.cs" />
     <Compile Include="FilteredJoin.cs" />
-    <Compile Include="FilterExtensions.cs" />
     <Compile Include="IArithmetic.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="IRightJoinItem.cs" />

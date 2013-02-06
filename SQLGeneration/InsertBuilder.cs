@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration
@@ -49,7 +47,7 @@ namespace SQLGeneration
         /// </summary>
         public IEnumerable<Column> Columns
         {
-            get { return new ReadOnlyCollection<Column>(_columns); }
+            get { return _columns; }
         }
 
         /// <summary>
@@ -91,7 +89,7 @@ namespace SQLGeneration
         /// Gets the SQL for the insert statement.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        public IEnumerable<string> GetCommandTokens(CommandOptions options)
+        IEnumerable<string> ICommand.GetCommandTokens(CommandOptions options)
         {
             if (options == null)
             {

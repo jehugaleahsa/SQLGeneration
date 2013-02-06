@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using SQLGeneration.Properties;
 using SQLGeneration.Parsing;
+using SQLGeneration.Properties;
 
 namespace SQLGeneration
 {
@@ -88,7 +87,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="filter">The filter to add.</param>
         /// <param name="conjunction">Specifies whether to use AND or OR when testing the filter.</param>
-        public void AddWhere(IFilter filter, Conjunction conjunction)
+        public void AddWhere(IFilter filter, Conjunction conjunction = Conjunction.And)
         {
             _where.AddFilter(filter, conjunction);
         }
@@ -107,7 +106,7 @@ namespace SQLGeneration
         /// Gets the command text.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        public IEnumerable<string> GetCommandTokens(CommandOptions options)
+        IEnumerable<string> ICommand.GetCommandTokens(CommandOptions options)
         {
             if (options == null)
             {

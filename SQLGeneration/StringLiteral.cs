@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Text;
 using System.Collections.Generic;
+using System.Text;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration

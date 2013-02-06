@@ -1,5 +1,4 @@
 ﻿using System;
-using SQLGeneration.Properties;
 using System.Collections.Generic;
 using SQLGeneration.Parsing;
 

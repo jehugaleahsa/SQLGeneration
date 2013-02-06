@@ -2443,6 +2443,27 @@ namespace SQLGeneration.Parsing
             public const string Table = "table";
 
             /// <summary>
+            /// Describes the structure of the table alias.
+            /// </summary>
+            public static class AliasExpression
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the table is aliased.
+                /// </summary>
+                public const string Name = "AliasExpression";
+
+                /// <summary>
+                /// Gets the identifier for the AS keyword.
+                /// </summary>
+                public const string AliasIndicator = "alias_indicator";
+
+                /// <summary>
+                /// Gets the identifier for the alias.
+                /// </summary>
+                public const string Alias = "alias";
+            }
+
+            /// <summary>
             /// Gets the identifier for the SET keyword.
             /// </summary>
             public const string SetKeyword = "set";
@@ -2479,6 +2500,9 @@ namespace SQLGeneration.Parsing
             Define(UpdateStatement.Name)
                 .Add(UpdateStatement.UpdateKeyword, true, Token(SqlTokenRegistry.Update))
                 .Add(UpdateStatement.Table, true, Expression(MultipartIdentifier.Name))
+                .Add(UpdateStatement.AliasExpression.Name, false, Define()
+                    .Add(UpdateStatement.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
+                    .Add(UpdateStatement.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)))
                 .Add(UpdateStatement.SetKeyword, true, Token(SqlTokenRegistry.Set))
                 .Add(UpdateStatement.SetterList, true, Expression(SetterList.Name))
                 .Add(UpdateStatement.Where.Name, false, Define()

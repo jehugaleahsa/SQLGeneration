@@ -10,6 +10,77 @@ namespace SQLGeneration.Tests
     [TestClass]
     public class SimpleFormatterTester
     {
+        #region AllColumns
+
+        /// <summary>
+        /// We can get all of the columns from a source by using the star symbol.
+        /// </summary>
+        [TestMethod]
+        public void TestAllColumns_Unqualified()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            builder.AddProjection(new AllColumns());
+            builder.AddTable(new Table("Table"));
+            SimpleFormatter formatter = new SimpleFormatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT * FROM Table";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// We can get all of the columns from a specific source by using the star symbol
+        /// and passing it the source.
+        /// </summary>
+        [TestMethod]
+        public void TestAllColumns_Qualified_NotAliased()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource source = builder.AddTable(new Table("Table"));
+            builder.AddProjection(new AllColumns(source));
+            SimpleFormatter formatter = new SimpleFormatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT Table.* FROM Table";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// We can get all of the columns from a specific source by using the star symbol
+        /// and passing it the source. If that source is aliased, the alias will be used to
+        /// qualify the star.
+        /// </summary>
+        [TestMethod]
+        public void TestAllColumns_Qualified_Aliased()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource source = builder.AddTable(new Table("Table"), "t");
+            builder.AddProjection(new AllColumns(source));
+            SimpleFormatter formatter = new SimpleFormatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT t.* FROM Table t";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// We can get all of the columns from a specific source by using the star symbol
+        /// and passing it the source. If that source has a namespace, it should appear as
+        /// well.
+        /// </summary>
+        [TestMethod]
+        public void TestAllColumns_Qualified_Namespaced()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            Namespace schema = new Namespace("LocalServer", "Owner", "Database");
+            Table table = new Table(schema, "Table");
+            AliasedSource source = builder.AddTable(table);
+            builder.AddProjection(new AllColumns(source));
+            SimpleFormatter formatter = new SimpleFormatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT LocalServer.Owner.Database.Table.* FROM LocalServer.Owner.Database.Table";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        #endregion
+
         #region Column
 
         #region SelectBuilder
@@ -134,7 +205,7 @@ namespace SQLGeneration.Tests
             AliasedSource source = builder.AddTable(table);
             Column column = source.Column("Column");
             builder.AddProjection(column);
-            builder.AddWhere(new EqualToFilter(column, new NumericLiteral(1)), Conjunction.And);
+            builder.AddWhere(new EqualToFilter(column, new NumericLiteral(1)));
             SimpleFormatter formatter = new SimpleFormatter();
             string actual = formatter.GetCommandText(builder);
             string expected = "SELECT Table.Column FROM Table WHERE Table.Column = 1";
@@ -154,7 +225,7 @@ namespace SQLGeneration.Tests
             Column column = source.Column("Column");
             builder.AddProjection(column);
             builder.AddGroupBy(column);
-            builder.AddHaving(new EqualToFilter(column, new NumericLiteral(1)), Conjunction.And);
+            builder.AddHaving(new EqualToFilter(column, new NumericLiteral(1)));
             SimpleFormatter formatter = new SimpleFormatter();
             string actual = formatter.GetCommandText(builder);
             string expected = "SELECT Table.Column FROM Table GROUP BY Table.Column HAVING Table.Column = 1";
@@ -273,7 +344,114 @@ namespace SQLGeneration.Tests
 
         #region UpdateBuilder
 
-        
+        /// <summary>
+        /// By default, columns are not qualified in update statements.
+        /// </summary>
+        [TestMethod]
+        public void TestColumn_InSetter_NotQualifiedByDefault()
+        {
+            Table table = new Table("Table");
+            UpdateBuilder builder = new UpdateBuilder(table);
+            Column column = builder.Table.Column("Column");
+            builder.AddSetter(new Setter(column, new StringLiteral("hello")));
+            builder.AddWhere(new EqualToFilter(column, new StringLiteral("goodbye")));
+            SimpleFormatter formatter = new SimpleFormatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "UPDATE Table SET Column = 'hello' WHERE Column = 'goodbye'";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// If we ask that columns be qualified, they should be preceded by their table names.
+        /// </summary>
+        [TestMethod]
+        public void TestColumn_InSetter_Qualified_IncludeTableName()
+        {
+            Table table = new Table("Table");
+            UpdateBuilder builder = new UpdateBuilder(table);
+            Column column = builder.Table.Column("Column");
+            column.Qualify = true;
+            builder.AddSetter(new Setter(column, new StringLiteral("hello")));
+            builder.AddWhere(new EqualToFilter(column, new StringLiteral("goodbye")));
+            SimpleFormatter formatter = new SimpleFormatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "UPDATE Table SET Table.Column = 'hello' WHERE Table.Column = 'goodbye'";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// If we ask that columns be qualified and the table is aliased, they should be preceded by the table alias.
+        /// </summary>
+        [TestMethod]
+        public void TestColumn_InSetter_Qualified_TableAliased_IncludeAlias()
+        {
+            Table table = new Table("Table");
+            UpdateBuilder builder = new UpdateBuilder(table, "t");
+            Column column = builder.Table.Column("Column");
+            column.Qualify = true;
+            builder.AddSetter(new Setter(column, new StringLiteral("hello")));
+            builder.AddWhere(new EqualToFilter(column, new StringLiteral("goodbye")));
+            SimpleFormatter formatter = new SimpleFormatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "UPDATE Table t SET t.Column = 'hello' WHERE t.Column = 'goodbye'";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        #endregion
+
+        #region DeleteBuilder
+
+        /// <summary>
+        /// By default, columns are not qualified in DELETE statements.
+        /// </summary>
+        [TestMethod]
+        public void TestColumn_InWhere_NotQualifiedByDefault()
+        {
+            Table table = new Table("Table");
+            DeleteBuilder builder = new DeleteBuilder(table);
+            Column column = builder.Table.Column("Column");
+            builder.AddWhere(new NullFilter(column));
+            SimpleFormatter formatter = new SimpleFormatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "DELETE FROM Table WHERE Column IS NULL";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// If we ask for the column to be qualified, it will be qualified
+        /// with the table name.
+        /// </summary>
+        [TestMethod]
+        public void TestColumn_InWhere_Qualified_QualifiedWithTableName()
+        {
+            Table table = new Table("Table");
+            DeleteBuilder builder = new DeleteBuilder(table);
+            Column column = builder.Table.Column("Column");
+            column.Qualify = true;
+            builder.AddWhere(new NullFilter(column));
+            SimpleFormatter formatter = new SimpleFormatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "DELETE FROM Table WHERE Table.Column IS NULL";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// If we ask for the column to be qualified and the table has an alias, 
+        /// it will be qualified with the table name.
+        /// </summary>
+        [TestMethod]
+        public void TestColumn_InWhere_Qualified_TableAliased_QualifiedWithAlias()
+        {
+            Table table = new Table("Table");
+            DeleteBuilder builder = new DeleteBuilder(table, "t");
+            Column column = builder.Table.Column("Column");
+            column.Qualify = true;
+            builder.AddWhere(new NullFilter(column));
+            SimpleFormatter formatter = new SimpleFormatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "DELETE FROM Table t WHERE t.Column IS NULL";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
 
         #endregion
 

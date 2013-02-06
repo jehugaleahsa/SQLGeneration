@@ -1,6 +1,5 @@
 ﻿using System;
 using SQLGeneration.Properties;
-using System.Collections.Generic;
 
 namespace SQLGeneration
 {

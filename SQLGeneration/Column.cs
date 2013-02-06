@@ -1,5 +1,4 @@
 ﻿using System;
-using SQLGeneration.Properties;
 using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
@@ -10,6 +9,16 @@ namespace SQLGeneration
     /// </summary>
     public class Column : IProjectionItem, IGroupByItem, IFilterItem
     {
+        /// <summary>
+        /// Initializes a new instance of a Column that is not associated
+        /// with a specific table.
+        /// </summary>
+        /// <param name="name">The name of the column.</param>
+        public Column(string name)
+        {
+            Name = name;
+        }
+
         /// <summary>
         /// Initializes a new instance of a Column.
         /// </summary>
@@ -66,10 +75,11 @@ namespace SQLGeneration
         private IEnumerable<string> getColumnTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            bool qualify = Qualify ?? (options.IsSelect
+            bool qualify = Source != null 
+                && (Qualify ?? (options.IsSelect
                 || (options.IsInsert && options.QualifyInsertColumns)
                 || (options.IsUpdate && options.QualifyUpdateColumns)
-                || (options.IsDelete && options.QualifyDeleteColumns));
+                || (options.IsDelete && options.QualifyDeleteColumns)));
             if (qualify)
             {
                 stream.AddRange(Source.GetReferenceTokens(options));

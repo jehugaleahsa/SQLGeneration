@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using SQLGeneration.Properties;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration
@@ -53,7 +50,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The expression making up the command.</returns>
-        public IEnumerable<string> GetCommandTokens(CommandOptions options)
+        IEnumerable<string> ICommand.GetCommandTokens(CommandOptions options)
         {
             // <SelectCombiner> => <Select> <Combiner> <Select>
             if (options == null)

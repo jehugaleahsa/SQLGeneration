@@ -1,7 +1,7 @@
 ﻿using System;
-using SQLGeneration.Properties;
 using System.Collections.Generic;
 using SQLGeneration.Parsing;
+using SQLGeneration.Properties;
 
 namespace SQLGeneration
 {

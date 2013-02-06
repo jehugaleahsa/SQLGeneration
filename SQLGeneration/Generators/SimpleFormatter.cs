@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using SQLGeneration.Parsing;
-using System.IO;
 
 namespace SQLGeneration.Generators
 {
@@ -1066,6 +1066,19 @@ namespace SQLGeneration.Generators
             MatchResult table = result.Matches[SqlGrammar.UpdateStatement.Table];
             table.GetContext(writer);
             writer.Write(' ');
+            MatchResult aliasExpression = result.Matches[SqlGrammar.UpdateStatement.AliasExpression.Name];
+            if (aliasExpression.IsMatch)
+            {
+                MatchResult aliasIndicator = aliasExpression.Matches[SqlGrammar.UpdateStatement.AliasExpression.AliasIndicator];
+                if (aliasIndicator.IsMatch)
+                {
+                    aliasIndicator.GetContext(writer);
+                    writer.Write(' ');
+                }
+                MatchResult alias = aliasExpression.Matches[SqlGrammar.UpdateStatement.AliasExpression.Alias];
+                alias.GetContext(writer);
+                writer.Write(' ');
+            }
             MatchResult setKeyword = result.Matches[SqlGrammar.UpdateStatement.SetKeyword];
             setKeyword.GetContext(writer);
             writer.Write(' ');
@@ -1165,11 +1178,10 @@ namespace SQLGeneration.Generators
             MatchResult where = result.Matches[SqlGrammar.DeleteStatement.Where.Name];
             if (where.IsMatch)
             {
-                writer.Write(' ');
-                MatchResult whereKeyword = result.Matches[SqlGrammar.DeleteStatement.Where.WhereKeyword];
+                MatchResult whereKeyword = where.Matches[SqlGrammar.DeleteStatement.Where.WhereKeyword];
                 whereKeyword.GetContext(writer);
                 writer.Write(' ');
-                MatchResult filterList = result.Matches[SqlGrammar.DeleteStatement.Where.FilterList];
+                MatchResult filterList = where.Matches[SqlGrammar.DeleteStatement.Where.FilterList];
                 filterList.GetContext(writer);
             }
         }

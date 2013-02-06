@@ -16,9 +16,17 @@ namespace SQLGeneration
         /// <summary>
         /// Initializes a new instance of a FilterGroup.
         /// </summary>
-        public FilterGroup()
+        public FilterGroup(Conjunction conjunction = Conjunction.And, params IFilter[] filters)
         {
+            if (filters == null)
+            {
+                throw new ArgumentNullException("filters");
+            }
             _filters = new List<Tuple<IFilter, Conjunction>>();
+            foreach (IFilter filter in filters)
+            {
+                _filters.Add(Tuple.Create(filter, conjunction));
+            }
         }
 
         /// <summary>
@@ -37,7 +45,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="filter">The filter to add.</param>
         /// <param name="conjunction">Specifies whether to AND or OR the filter with the other filters in the group.</param>
-        public void AddFilter(IFilter filter, Conjunction conjunction)
+        public void AddFilter(IFilter filter, Conjunction conjunction = Conjunction.And)
         {
             if (filter == null)
             {

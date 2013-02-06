@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace SQLGeneration.Parsing
 {
@@ -346,7 +344,7 @@ namespace SQLGeneration.Parsing
             Define(On, @"ON\b", true);
             Define(AliasIndicator, @"AS\b", true);
 
-            Define(Identifier, @"([\p{L}@#$_][\p{L}\p{N}@#$_]*)|(""(\.|"""")+"")|(\[[^\]]+\])");
+            Define(Identifier, @"([\p{L}:?@#_][\p{L}\p{N}@#$_]*)|(""(\.|"""")+"")|(\[[^\]]+\])");
 
             Define(PlusOperator, @"\+");
             Define(MinusOperator, @"-");
