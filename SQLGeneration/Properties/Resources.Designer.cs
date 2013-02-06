@@ -169,6 +169,15 @@ namespace SQLGeneration.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An attempt was made to define two tokens with the same name: {0}..
+        /// </summary>
+        internal static string DuplicateTokenDefinition {
+            get {
+                return ResourceManager.GetString("DuplicateTokenDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An attempt was made to build an empty filter clause..
         /// </summary>
         internal static string EmptyFilterGroup {
@@ -192,6 +201,15 @@ namespace SQLGeneration.Properties {
         internal static string EmptyOnExpression {
             get {
                 return ResourceManager.GetString("EmptyOnExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not all expression types have a handler assigned to them..
+        /// </summary>
+        internal static string MissingHandlers {
+            get {
+                return ResourceManager.GetString("MissingHandlers", resourceCulture);
             }
         }
         
@@ -246,6 +264,15 @@ namespace SQLGeneration.Properties {
         internal static string ReferencedQueryWithoutAlias {
             get {
                 return ResourceManager.GetString("ReferencedQueryWithoutAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encountered unexpected token: {0}..
+        /// </summary>
+        internal static string UnexpectedToken {
+            get {
+                return ResourceManager.GetString("UnexpectedToken", resourceCulture);
             }
         }
         

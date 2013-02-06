@@ -73,9 +73,9 @@
     <Compile Include="Parsing\Parser.cs" />
     <Compile Include="Parsing\SqlGrammar.cs" />
     <Compile Include="Parsing\SqlResponder.cs" />
-    <Compile Include="Parsing\SqlTokenizer.cs" />
+    <Compile Include="Parsing\SqlTokenRegistry.cs" />
     <Compile Include="Parsing\Token.cs" />
-    <Compile Include="Parsing\Tokenizer.cs" />
+    <Compile Include="Parsing\TokenRegistry.cs" />
     <Compile Include="Parsing\TokenResult.cs" />
     <Compile Include="Parsing\TokenStream.cs" />
     <Compile Include="Placeholder.cs" />

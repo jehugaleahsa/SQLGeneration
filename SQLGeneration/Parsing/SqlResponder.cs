@@ -24,16 +24,15 @@ namespace SQLGeneration.Parsing
         }
 
         /// <summary>
-        /// Gets the result of the operations.
+        /// Extracts expressions from the token stream and calls the corresponding handler.
         /// </summary>
         /// <param name="tokenStream">The sequence of SQL tokens.</param>
         /// <param name="context">The context to pass among the expressions.</param>
-        /// <returns>The result.</returns>
         protected void GetResult(IEnumerable<string> tokenStream, object context)
         {
+            ITokenSource tokenSource = grammar.Tokenizer.CreateTokenSource(tokenStream);
             Parser parser = new Parser(grammar);
             registerHandlers(parser);
-            ITokenSource tokenSource = grammar.Tokenizer.CreateTokenSource(tokenStream);
             parser.Parse(SqlGrammar.Start.Name, tokenSource, context);
         }
 

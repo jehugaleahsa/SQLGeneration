@@ -153,6 +153,9 @@
   <data name="DuplicateSourceName" xml:space="preserve">
     <value>Encountered a duplicate source name: {0}. Use an alias to distinguish between multiple references to the same table.</value>
   </data>
+  <data name="DuplicateTokenDefinition" xml:space="preserve">
+    <value>An attempt was made to define two tokens with the same name: {0}.</value>
+  </data>
   <data name="EmptyFilterGroup" xml:space="preserve">
     <value>An attempt was made to build an empty filter clause.</value>
   </data>
@@ -161,6 +164,9 @@
   </data>
   <data name="EmptyOnExpression" xml:space="preserve">
     <value>An attempt was made to build a join without any filters.</value>
+  </data>
+  <data name="MissingHandlers" xml:space="preserve">
+    <value>Not all expression types have a handler assigned to them.</value>
   </data>
   <data name="NoProjections" xml:space="preserve">
     <value>An attempt was made to build a select command without any projections.</value>
@@ -179,6 +185,9 @@
   </data>
   <data name="ReferencedQueryWithoutAlias" xml:space="preserve">
     <value>A reference to a sub-select was made without defining an alias for it.</value>
+  </data>
+  <data name="UnexpectedToken" xml:space="preserve">
+    <value>Encountered unexpected token: {0}.</value>
   </data>
   <data name="UnknownConjunction" xml:space="preserve">
     <value>Encountered an unknown conjunction type.</value>

@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SQLGeneration.Generators;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Tests
 {
@@ -43,7 +44,8 @@ namespace SQLGeneration.Tests
 
             string output = String.Join(" ", builder.GetCommandTokens(new CommandOptions()));
 
-            SimpleFormatter formatter = new SimpleFormatter();
+            SqlTokenRegistry registry = new SqlTokenRegistry();
+            SimpleFormatter formatter = new SimpleFormatter(registry);
             string result = formatter.GetCommandText(builder);
         }
     }

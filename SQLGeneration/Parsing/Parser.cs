@@ -70,7 +70,7 @@ namespace SQLGeneration.Parsing
             }
             if (!hasAllhandlers())
             {
-                throw new SQLGenerationException("Not all expression types have a handler assigned.");
+                throw new SQLGenerationException(Resources.MissingHandlers);
             }
             Expression expression = grammar.Expression(expressionType);
             ParseAttempt attempt = new ParseAttempt(this, tokenSource);
@@ -82,7 +82,7 @@ namespace SQLGeneration.Parsing
                 {
                     result.GetContext(context);
                 }
-                string message = String.Format("Encountered unexpected token: {0}.", token);
+                string message = String.Format(Resources.UnexpectedToken, token);
                 throw new SQLGenerationException(message);
             }
             result.GetContext(context);

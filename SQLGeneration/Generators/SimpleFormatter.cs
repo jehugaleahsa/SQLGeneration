@@ -14,9 +14,9 @@ namespace SQLGeneration.Generators
         /// <summary>
         /// Initializes a new instance of a SimpleFormatter.
         /// </summary>
-        /// <param name="tokenizer">The tokenizer to use.</param>
-        public SimpleFormatter(SqlTokenizer tokenizer)
-            : base(new SqlGrammar(tokenizer))
+        /// <param name="registry">The token registry to use.</param>
+        public SimpleFormatter(SqlTokenRegistry registry)
+            : base(new SqlGrammar(registry))
         {
         }
 

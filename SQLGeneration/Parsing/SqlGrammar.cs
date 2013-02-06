@@ -10,9 +10,9 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Initializes a new instance of a SqlGrammar.
         /// </summary>
-        /// <param name="tokenizer">The tokenizer to retrieve SQL tokens from.</param>
-        public SqlGrammar(SqlTokenizer tokenizer = null)
-            : base(tokenizer == null ? new SqlTokenizer() : tokenizer)
+        /// <param name="registry">The token registry to retrieve SQL tokens from.</param>
+        public SqlGrammar(SqlTokenRegistry registry = null)
+            : base(registry == null ? new SqlTokenRegistry() : registry)
         {
             defineStart();
             defineSelectStatement();
@@ -143,7 +143,7 @@ namespace SQLGeneration.Parsing
             Define(SelectStatement.Name)
                 .Add(SelectStatement.SelectExpression, true, Expression(SelectExpression.Name))
                 .Add(SelectStatement.OrderBy.Name, false, Define()
-                    .Add(SelectStatement.OrderBy.OrderByKeyword, true, Token(SqlTokenizer.OrderBy))
+                    .Add(SelectStatement.OrderBy.OrderByKeyword, true, Token(SqlTokenRegistry.OrderBy))
                     .Add(SelectStatement.OrderBy.OrderByList, true, Expression(OrderByList.Name)));
         }
 
@@ -219,9 +219,9 @@ namespace SQLGeneration.Parsing
             Define(SelectExpression.Name)
                 .Add(true, Options()
                     .Add(SelectExpression.Wrapped.Name, Define()
-                        .Add(SelectExpression.Wrapped.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(SelectExpression.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(SelectExpression.Wrapped.SelectExpression, true, Expression(SelectExpression.Name))
-                        .Add(SelectExpression.Wrapped.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                        .Add(SelectExpression.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(SelectExpression.SelectSpecification, Expression(SelectSpecification.Name)))
                 .Add(SelectExpression.Remaining.Name, false, Define()
                     .Add(SelectExpression.Remaining.Combiner, true, Expression(SelectCombiner.Name))
@@ -272,11 +272,11 @@ namespace SQLGeneration.Parsing
         {
             Define(SelectCombiner.Name)
                 .Add(true, Options()
-                    .Add(SelectCombiner.UnionAll, Token(SqlTokenizer.UnionAll))
-                    .Add(SelectCombiner.Union, Token(SqlTokenizer.Union))
-                    .Add(SelectCombiner.Intersect, Token(SqlTokenizer.Intersect))
-                    .Add(SelectCombiner.Except, Token(SqlTokenizer.Except))
-                    .Add(SelectCombiner.Minus, Token(SqlTokenizer.Minus)));
+                    .Add(SelectCombiner.UnionAll, Token(SqlTokenRegistry.UnionAll))
+                    .Add(SelectCombiner.Union, Token(SqlTokenRegistry.Union))
+                    .Add(SelectCombiner.Intersect, Token(SqlTokenRegistry.Intersect))
+                    .Add(SelectCombiner.Except, Token(SqlTokenRegistry.Except))
+                    .Add(SelectCombiner.Minus, Token(SqlTokenRegistry.Minus)));
         }
 
         #endregion
@@ -427,25 +427,25 @@ namespace SQLGeneration.Parsing
         private void defineSelectSpecification()
         {
             Define(SelectSpecification.Name)
-                .Add(SelectSpecification.SelectKeyword, true, Token(SqlTokenizer.Select))
+                .Add(SelectSpecification.SelectKeyword, true, Token(SqlTokenRegistry.Select))
                 .Add(SelectSpecification.DistinctQualifier, false, Expression(DistinctQualifier.Name))
                 .Add(SelectSpecification.Top.Name, false, Define()
-                    .Add(SelectSpecification.Top.TopKeyword, true, Token(SqlTokenizer.Top))
+                    .Add(SelectSpecification.Top.TopKeyword, true, Token(SqlTokenRegistry.Top))
                     .Add(SelectSpecification.Top.Expression, true, Expression(AdditiveExpression.Name))
-                    .Add(SelectSpecification.Top.PercentKeyword, false, Token(SqlTokenizer.Percent))
-                    .Add(SelectSpecification.Top.WithTiesKeyword, false, Token(SqlTokenizer.WithTies)))
+                    .Add(SelectSpecification.Top.PercentKeyword, false, Token(SqlTokenRegistry.Percent))
+                    .Add(SelectSpecification.Top.WithTiesKeyword, false, Token(SqlTokenRegistry.WithTies)))
                 .Add(SelectSpecification.ProjectionList, true, Expression(ProjectionList.Name))
                 .Add(SelectSpecification.From.Name, false, Define()
-                    .Add(SelectSpecification.From.FromKeyword, true, Token(SqlTokenizer.From))
+                    .Add(SelectSpecification.From.FromKeyword, true, Token(SqlTokenRegistry.From))
                     .Add(SelectSpecification.From.FromList, true, Expression(FromList.Name)))
                 .Add(SelectSpecification.Where.Name, false, Define()
-                    .Add(SelectSpecification.Where.WhereKeyword, true, Token(SqlTokenizer.Where))
+                    .Add(SelectSpecification.Where.WhereKeyword, true, Token(SqlTokenRegistry.Where))
                     .Add(SelectSpecification.Where.FilterList, true, Expression(FilterList.Name)))
                 .Add(SelectSpecification.GroupBy.Name, false, Define()
-                    .Add(SelectSpecification.GroupBy.GroupByKeyword, true, Token(SqlTokenizer.GroupBy))
+                    .Add(SelectSpecification.GroupBy.GroupByKeyword, true, Token(SqlTokenRegistry.GroupBy))
                     .Add(SelectSpecification.GroupBy.GroupByList, true, Expression(GroupByList.Name)))
                 .Add(SelectSpecification.Having.Name, false, Define()
-                    .Add(SelectSpecification.Having.HavingKeyword, true, Token(SqlTokenizer.Having))
+                    .Add(SelectSpecification.Having.HavingKeyword, true, Token(SqlTokenRegistry.Having))
                     .Add(SelectSpecification.Having.FilterList, true, Expression(FilterList.Name)));
         }
 
@@ -478,8 +478,8 @@ namespace SQLGeneration.Parsing
         {
             Define(DistinctQualifier.Name)
                 .Add(true, Options()
-                    .Add(DistinctQualifier.Distinct, Token(SqlTokenizer.Distinct))
-                    .Add(DistinctQualifier.All, Token(SqlTokenizer.All)));
+                    .Add(DistinctQualifier.Distinct, Token(SqlTokenRegistry.Distinct))
+                    .Add(DistinctQualifier.All, Token(SqlTokenRegistry.All)));
         }
 
         #endregion
@@ -534,7 +534,7 @@ namespace SQLGeneration.Parsing
                 .Add(true, Options()
                     .Add(OrderByList.Multiple.Name, Define()
                         .Add(OrderByList.Multiple.First, true, Expression(OrderByItem.Name))
-                        .Add(OrderByList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(OrderByList.Multiple.Comma, true, Token(SqlTokenRegistry.Comma))
                         .Add(OrderByList.Multiple.Remaining, true, Expression(OrderByList.Name)))
                     .Add(OrderByList.Single, Expression(OrderByItem.Name)));
         }
@@ -606,8 +606,8 @@ namespace SQLGeneration.Parsing
         {
             Define(OrderDirection.Name)
                 .Add(true, Options()
-                    .Add(OrderDirection.Descending, Token(SqlTokenizer.Descending))
-                    .Add(OrderDirection.Ascending, Token(SqlTokenizer.Ascending)));
+                    .Add(OrderDirection.Descending, Token(SqlTokenRegistry.Descending))
+                    .Add(OrderDirection.Ascending, Token(SqlTokenRegistry.Ascending)));
         }
 
         #endregion
@@ -639,8 +639,8 @@ namespace SQLGeneration.Parsing
         {
             Define(NullPlacement.Name)
                 .Add(true, Options()
-                    .Add(NullPlacement.NullsFirst, Token(SqlTokenizer.NullsFirst))
-                    .Add(NullPlacement.NullsLast, Token(SqlTokenizer.NullsLast)));
+                    .Add(NullPlacement.NullsFirst, Token(SqlTokenRegistry.NullsFirst))
+                    .Add(NullPlacement.NullsLast, Token(SqlTokenRegistry.NullsLast)));
         }
 
         #endregion
@@ -720,9 +720,9 @@ namespace SQLGeneration.Parsing
             Define(AdditiveExpression.Name)
                 .Add(true, Options()
                     .Add(AdditiveExpression.Wrapped.Name, Define()
-                        .Add(AdditiveExpression.Wrapped.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(AdditiveExpression.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(AdditiveExpression.Wrapped.Expression, true, Expression(SqlGrammar.AdditiveExpression.Name))
-                        .Add(AdditiveExpression.Wrapped.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                        .Add(AdditiveExpression.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(AdditiveExpression.Multiple.Name, Define()
                         .Add(AdditiveExpression.Multiple.First, true, Expression(MultiplicitiveExpression.Name))
                         .Add(AdditiveExpression.Multiple.Operator, true, Expression(AdditiveOperator.Name))
@@ -759,8 +759,8 @@ namespace SQLGeneration.Parsing
         {
             Define(AdditiveOperator.Name)
                 .Add(true, Options()
-                    .Add(AdditiveOperator.PlusOperator, Token(SqlTokenizer.PlusOperator))
-                    .Add(AdditiveOperator.MinusOperator, Token(SqlTokenizer.MinusOperator)));
+                    .Add(AdditiveOperator.PlusOperator, Token(SqlTokenRegistry.PlusOperator))
+                    .Add(AdditiveOperator.MinusOperator, Token(SqlTokenRegistry.MinusOperator)));
         }
 
         #endregion
@@ -849,8 +849,8 @@ namespace SQLGeneration.Parsing
         {
             Define(MultiplicitiveOperator.Name)
                 .Add(true, Options()
-                    .Add(MultiplicitiveOperator.Multiply, Token(SqlTokenizer.MultiplicationOperator))
-                    .Add(MultiplicitiveOperator.Divide, Token(SqlTokenizer.DivisionOperator)));
+                    .Add(MultiplicitiveOperator.Multiply, Token(SqlTokenRegistry.MultiplicationOperator))
+                    .Add(MultiplicitiveOperator.Divide, Token(SqlTokenRegistry.DivisionOperator)));
         }
 
         #endregion
@@ -905,7 +905,7 @@ namespace SQLGeneration.Parsing
                 .Add(true, Options()
                     .Add(ProjectionList.Multiple.Name, Define()
                         .Add(ProjectionList.Multiple.First, true, Expression(ProjectionItem.Name))
-                        .Add(ProjectionList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(ProjectionList.Multiple.Comma, true, Token(SqlTokenRegistry.Comma))
                         .Add(ProjectionList.Multiple.Remaining, true, Expression(ProjectionList.Name)))
                     .Add(ProjectionList.Single, Expression(ProjectionItem.Name)));
         }
@@ -1006,13 +1006,13 @@ namespace SQLGeneration.Parsing
                     .Add(ProjectionItem.Star.Name, Define()
                         .Add(ProjectionItem.Star.Qualifier.Name, false, Define()
                             .Add(ProjectionItem.Star.Qualifier.ColumnSource, true, Expression(MultipartIdentifier.Name))
-                            .Add(ProjectionItem.Star.Qualifier.Dot, true, Token(SqlTokenizer.Dot)))
-                        .Add(ProjectionItem.Star.StarToken, true, Token(SqlTokenizer.MultiplicationOperator)))
+                            .Add(ProjectionItem.Star.Qualifier.Dot, true, Token(SqlTokenRegistry.Dot)))
+                        .Add(ProjectionItem.Star.StarToken, true, Token(SqlTokenRegistry.MultiplicationOperator)))
                     .Add(ProjectionItem.Expression.Name, Define()
                         .Add(ProjectionItem.Expression.Item, true, Expression(Item.Name))
                         .Add(ProjectionItem.Expression.AliasExpression.Name, false, Define()
-                            .Add(ProjectionItem.Expression.AliasExpression.AliasIndicator, false, Token(SqlTokenizer.AliasIndicator))
-                            .Add(ProjectionItem.Expression.AliasExpression.Alias, true, Token(SqlTokenizer.Identifier)))));
+                            .Add(ProjectionItem.Expression.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
+                            .Add(ProjectionItem.Expression.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)))));
         }
 
         #endregion
@@ -1067,7 +1067,7 @@ namespace SQLGeneration.Parsing
                 .Add(true, Options()
                     .Add(FromList.Multiple.Name, Define()
                         .Add(FromList.Multiple.First, true, Expression(Join.Name))
-                        .Add(FromList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(FromList.Multiple.Comma, true, Token(SqlTokenRegistry.Comma))
                         .Add(FromList.Multiple.Remaining, true, Expression(FromList.Name)))
                     .Add(FromList.Single, Expression(Join.Name)));
         }
@@ -1131,8 +1131,8 @@ namespace SQLGeneration.Parsing
                     .Add(JoinItem.FunctionCall, Expression(FunctionCall.Name))
                     .Add(JoinItem.SelectExpression, Expression(SelectExpression.Name)))
                 .Add(JoinItem.AliasExpression.Alias, false, Define()
-                    .Add(JoinItem.AliasExpression.AliasIndicator, false, Token(SqlTokenizer.AliasIndicator))
-                    .Add(JoinItem.AliasExpression.Alias, true, Token(SqlTokenizer.Identifier)));
+                    .Add(JoinItem.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
+                    .Add(JoinItem.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)));
         }
 
         #endregion
@@ -1174,9 +1174,9 @@ namespace SQLGeneration.Parsing
         {
             Define(FunctionCall.Name)
                 .Add(FunctionCall.FunctionName, true, Expression(MultipartIdentifier.Name))
-                .Add(FunctionCall.LeftParethesis, true, Token(SqlTokenizer.LeftParenthesis))
+                .Add(FunctionCall.LeftParethesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                 .Add(FunctionCall.Arguments, false, Expression(ValueList.Name))
-                .Add(FunctionCall.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis));
+                .Add(FunctionCall.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis));
         }
 
         #endregion
@@ -1246,9 +1246,9 @@ namespace SQLGeneration.Parsing
             Define(Join.Name)
                 .Add(true, Options()
                     .Add(Join.Wrapped.Name, Define()
-                        .Add(Join.Wrapped.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(Join.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(Join.Wrapped.Join, true, Expression(Join.Name))
-                        .Add(Join.Wrapped.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                        .Add(Join.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(Join.Joined.Name, Define()
                         .Add(Join.Joined.JoinItem, true, Expression(JoinItem.Name))
                         .Add(Join.Joined.JoinPrime, true, Expression(JoinPrime.Name))));
@@ -1350,11 +1350,11 @@ namespace SQLGeneration.Parsing
                         .Add(JoinPrime.Filtered.JoinType, true, Expression(FilteredJoinType.Name))
                         .Add(JoinPrime.Filtered.JoinItem, true, Expression(JoinItem.Name))
                         .Add(JoinPrime.Filtered.On.Name, false, Define()
-                            .Add(JoinPrime.Filtered.On.OnToken, true, Token(SqlTokenizer.On))
+                            .Add(JoinPrime.Filtered.On.OnToken, true, Token(SqlTokenRegistry.On))
                             .Add(JoinPrime.Filtered.On.FilterList, true, Expression(FilterList.Name)))
                         .Add(JoinPrime.Filtered.JoinPrime, true, Expression(JoinPrime.Name)))
                     .Add(JoinPrime.Cross.Name, Define()
-                        .Add(JoinPrime.Cross.JoinType, true, Token(SqlTokenizer.CrossJoin))
+                        .Add(JoinPrime.Cross.JoinType, true, Token(SqlTokenRegistry.CrossJoin))
                         .Add(JoinPrime.Cross.JoinItem, true, Expression(JoinItem.Name)))
                     .Add(JoinPrime.Empty, Define()));
         }
@@ -1398,10 +1398,10 @@ namespace SQLGeneration.Parsing
         {
             Define(FilteredJoinType.Name)
                 .Add(true, Options()
-                    .Add(FilteredJoinType.InnerJoin, Token(SqlTokenizer.InnerJoin))
-                    .Add(FilteredJoinType.LeftOuterJoin, Token(SqlTokenizer.LeftOuterJoin))
-                    .Add(FilteredJoinType.RightOuterJoin, Token(SqlTokenizer.RightOuterJoin))
-                    .Add(FilteredJoinType.FullOuterJoin, Token(SqlTokenizer.FullOuterJoin)));
+                    .Add(FilteredJoinType.InnerJoin, Token(SqlTokenRegistry.InnerJoin))
+                    .Add(FilteredJoinType.LeftOuterJoin, Token(SqlTokenRegistry.LeftOuterJoin))
+                    .Add(FilteredJoinType.RightOuterJoin, Token(SqlTokenRegistry.RightOuterJoin))
+                    .Add(FilteredJoinType.FullOuterJoin, Token(SqlTokenRegistry.FullOuterJoin)));
         }
 
         #endregion
@@ -1486,10 +1486,10 @@ namespace SQLGeneration.Parsing
             Define(FilterList.Name)
                 .Add(true, Options()
                     .Add(FilterList.Wrapped.Name, Define()
-                        .Add(FilterList.Wrapped.Not, false, Token(SqlTokenizer.Not))
-                        .Add(FilterList.Wrapped.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(FilterList.Wrapped.Not, false, Token(SqlTokenRegistry.Not))
+                        .Add(FilterList.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(FilterList.Wrapped.FilterList, true, Expression(FilterList.Name))
-                        .Add(FilterList.Wrapped.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                        .Add(FilterList.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(FilterList.Multiple.Name, Expression(OrConjunction.Name)));
         }
 
@@ -1735,11 +1735,11 @@ namespace SQLGeneration.Parsing
             Define(Filter.Name)
                 .Add(true, Options()
                     .Add(Filter.Wrapped.Name, Define()
-                        .Add(Filter.Wrapped.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(Filter.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(Filter.Wrapped.Filter, true, Expression(Filter.Name))
-                        .Add(Filter.Wrapped.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                        .Add(Filter.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(Filter.Not.Name, Define()
-                        .Add(Filter.Not.NotKeyword, true, Token(SqlTokenizer.Not))
+                        .Add(Filter.Not.NotKeyword, true, Token(SqlTokenRegistry.Not))
                         .Add(Filter.Not.Filter, true, Expression(Filter.Name)))
                     .Add(Filter.Order.Name, Define()
                         .Add(Filter.Order.Left, true, Expression(Item.Name))
@@ -1747,30 +1747,30 @@ namespace SQLGeneration.Parsing
                         .Add(Filter.Order.Right, true, Expression(Item.Name)))
                     .Add(Filter.Between.Name, Define()
                         .Add(Filter.Between.Expression, true, Expression(Item.Name))
-                        .Add(Filter.Between.Not, false, Token(SqlTokenizer.Not))
-                        .Add(Filter.Between.BetweenKeyword, true, Token(SqlTokenizer.Between))
+                        .Add(Filter.Between.Not, false, Token(SqlTokenRegistry.Not))
+                        .Add(Filter.Between.BetweenKeyword, true, Token(SqlTokenRegistry.Between))
                         .Add(Filter.Between.LowerBound, true, Expression(Item.Name))
-                        .Add(Filter.Between.And, true, Token(SqlTokenizer.And))
+                        .Add(Filter.Between.And, true, Token(SqlTokenRegistry.And))
                         .Add(Filter.Between.UpperBound, true, Expression(Item.Name)))
                     .Add(Filter.Like.Name, Define()
                         .Add(Filter.Like.Expression, true, Expression(Item.Name))
-                        .Add(Filter.Like.Not, false, Token(SqlTokenizer.Not))
-                        .Add(Filter.Like.LikeKeyword, true, Token(SqlTokenizer.Like))
-                        .Add(Filter.Like.Value, true, Token(SqlTokenizer.String)))
+                        .Add(Filter.Like.Not, false, Token(SqlTokenRegistry.Not))
+                        .Add(Filter.Like.LikeKeyword, true, Token(SqlTokenRegistry.Like))
+                        .Add(Filter.Like.Value, true, Token(SqlTokenRegistry.String)))
                     .Add(Filter.Is.Name, Define()
                         .Add(Filter.Is.Expression, true, Expression(Item.Name))
-                        .Add(Filter.Is.IsKeyword, true, Token(SqlTokenizer.Is))
-                        .Add(Filter.Is.Not, false, Token(SqlTokenizer.Not))
-                        .Add(Filter.Is.Null, true, Token(SqlTokenizer.Null)))
+                        .Add(Filter.Is.IsKeyword, true, Token(SqlTokenRegistry.Is))
+                        .Add(Filter.Is.Not, false, Token(SqlTokenRegistry.Not))
+                        .Add(Filter.Is.Null, true, Token(SqlTokenRegistry.Null)))
                     .Add(Filter.In.Name, Define()
                         .Add(Filter.In.Expression, true, Expression(Item.Name))
-                        .Add(Filter.In.Not, false, Token(SqlTokenizer.Not))
-                        .Add(Filter.In.InKeyword, true, Token(SqlTokenizer.In))
-                        .Add(Filter.In.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(Filter.In.Not, false, Token(SqlTokenRegistry.Not))
+                        .Add(Filter.In.InKeyword, true, Token(SqlTokenRegistry.In))
+                        .Add(Filter.In.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(false, Options()
                             .Add(Filter.In.SelectExpression, Expression(SelectExpression.Name))
                             .Add(Filter.In.ValueList, Expression(ValueList.Name)))
-                        .Add(Filter.In.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis))));
+                        .Add(Filter.In.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))));
         }
 
         #endregion
@@ -1822,12 +1822,12 @@ namespace SQLGeneration.Parsing
         {
             Define(ComparisonOperator.Name)
                 .Add(true, Options()
-                    .Add(ComparisonOperator.EqualTo, Token(SqlTokenizer.EqualTo))
-                    .Add(ComparisonOperator.NotEqualTo, Token(SqlTokenizer.NotEqualTo))
-                    .Add(ComparisonOperator.LessThanEqualTo, Token(SqlTokenizer.LessThanEqualTo))
-                    .Add(ComparisonOperator.GreaterThanEqualTo, Token(SqlTokenizer.GreaterThanEqualTo))
-                    .Add(ComparisonOperator.LessThan, Token(SqlTokenizer.LessThan))
-                    .Add(ComparisonOperator.GreaterThan, Token(SqlTokenizer.GreaterThan)));
+                    .Add(ComparisonOperator.EqualTo, Token(SqlTokenRegistry.EqualTo))
+                    .Add(ComparisonOperator.NotEqualTo, Token(SqlTokenRegistry.NotEqualTo))
+                    .Add(ComparisonOperator.LessThanEqualTo, Token(SqlTokenRegistry.LessThanEqualTo))
+                    .Add(ComparisonOperator.GreaterThanEqualTo, Token(SqlTokenRegistry.GreaterThanEqualTo))
+                    .Add(ComparisonOperator.LessThan, Token(SqlTokenRegistry.LessThan))
+                    .Add(ComparisonOperator.GreaterThan, Token(SqlTokenRegistry.GreaterThan)));
         }
 
         #endregion
@@ -1882,7 +1882,7 @@ namespace SQLGeneration.Parsing
                 .Add(true, Options()
                     .Add(OrConjunction.Multiple.Name, Define()
                         .Add(OrConjunction.Multiple.First, true, Expression(AndConjunction.Name))
-                        .Add(OrConjunction.Multiple.Or, true, Token(SqlTokenizer.Or))
+                        .Add(OrConjunction.Multiple.Or, true, Token(SqlTokenRegistry.Or))
                         .Add(OrConjunction.Multiple.Remaining, true, Expression(OrConjunction.Name)))
                     .Add(OrConjunction.Single, Expression(AndConjunction.Name)));
         }
@@ -1939,7 +1939,7 @@ namespace SQLGeneration.Parsing
                 .Add(true, Options()
                     .Add(AndConjunction.Multiple.Name, Define()
                         .Add(AndConjunction.Multiple.First, true, Expression(Filter.Name))
-                        .Add(AndConjunction.Multiple.And, true, Token(SqlTokenizer.And))
+                        .Add(AndConjunction.Multiple.And, true, Token(SqlTokenRegistry.And))
                         .Add(AndConjunction.Multiple.Remaining, true, Expression(AndConjunction.Name)))
                     .Add(AndConjunction.Single, Expression(Filter.Name)));
         }
@@ -1996,7 +1996,7 @@ namespace SQLGeneration.Parsing
                 .Add(true, Options()
                     .Add(ValueList.Multiple.Name, Define()
                         .Add(ValueList.Multiple.First, true, Expression(Item.Name))
-                        .Add(ValueList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(ValueList.Multiple.Comma, true, Token(SqlTokenRegistry.Comma))
                         .Add(ValueList.Multiple.Remaining, true, Expression(ValueList.Name)))
                     .Add(ValueList.Single, Expression(Item.Name)));
         }
@@ -2053,7 +2053,7 @@ namespace SQLGeneration.Parsing
                 .Add(true, Options()
                     .Add(SqlGrammar.GroupByList.Multiple.Name, Define()
                         .Add(SqlGrammar.GroupByList.Multiple.First, true, Expression(Item.Name))
-                        .Add(SqlGrammar.GroupByList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(SqlGrammar.GroupByList.Multiple.Comma, true, Token(SqlTokenRegistry.Comma))
                         .Add(SqlGrammar.GroupByList.Multiple.Remaining, true, Expression(GroupByList.Name)))
                     .Add(SqlGrammar.GroupByList.Single, Expression(Item.Name)));
         }
@@ -2110,9 +2110,9 @@ namespace SQLGeneration.Parsing
                     .Add(NonArithmeticItem.FunctionCall, Expression(FunctionCall.Name))
                     .Add(NonArithmeticItem.Column, Expression(MultipartIdentifier.Name))
                     .Add(NonArithmeticItem.SelectStatement, Expression(SelectStatement.Name))
-                    .Add(NonArithmeticItem.Number, Token(SqlTokenizer.Number))
-                    .Add(NonArithmeticItem.String, Token(SqlTokenizer.String))
-                    .Add(NonArithmeticItem.Null, Token(SqlTokenizer.Null)));
+                    .Add(NonArithmeticItem.Number, Token(SqlTokenRegistry.Number))
+                    .Add(NonArithmeticItem.String, Token(SqlTokenRegistry.String))
+                    .Add(NonArithmeticItem.Null, Token(SqlTokenRegistry.Null)));
         }
 
         #endregion
@@ -2193,12 +2193,12 @@ namespace SQLGeneration.Parsing
                     .Add(Item.FunctionCall, Expression(FunctionCall.Name))
                     .Add(Item.Column, Expression(MultipartIdentifier.Name))
                     .Add(Item.Select.Name, Define()
-                        .Add(Item.Select.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(Item.Select.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(Item.Select.SelectStatement, true, Expression(SelectStatement.Name))
-                        .Add(Item.Select.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                        .Add(Item.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(Item.ArithmeticExpression, Expression(AdditiveExpression.Name))
-                    .Add(Item.String, Token(SqlTokenizer.String))
-                    .Add(Item.Null, Token(SqlTokenizer.Null)));
+                    .Add(Item.String, Token(SqlTokenRegistry.String))
+                    .Add(Item.Null, Token(SqlTokenRegistry.Null)));
         }
 
         #endregion
@@ -2317,23 +2317,23 @@ namespace SQLGeneration.Parsing
         private void defineInsertStatement()
         {
             Define(InsertStatement.Name)
-                .Add(SqlGrammar.InsertStatement.InsertKeyword, true, Token(SqlTokenizer.Insert))
-                .Add(SqlGrammar.InsertStatement.IntoKeyword, false, Token(SqlTokenizer.Into))
+                .Add(SqlGrammar.InsertStatement.InsertKeyword, true, Token(SqlTokenRegistry.Insert))
+                .Add(SqlGrammar.InsertStatement.IntoKeyword, false, Token(SqlTokenRegistry.Into))
                 .Add(SqlGrammar.InsertStatement.Table, true, Expression(MultipartIdentifier.Name))
                 .Add(SqlGrammar.InsertStatement.Columns.Name, false, Define()
-                    .Add(SqlGrammar.InsertStatement.Columns.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                    .Add(SqlGrammar.InsertStatement.Columns.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                     .Add(SqlGrammar.InsertStatement.Columns.ColumnList, true, Expression(ColumnList.Name))
-                    .Add(SqlGrammar.InsertStatement.Columns.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                    .Add(SqlGrammar.InsertStatement.Columns.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                 .Add(true, Options()
                     .Add(SqlGrammar.InsertStatement.Values.Name, Define()
-                        .Add(SqlGrammar.InsertStatement.Values.ValuesKeyword, true, Token(SqlTokenizer.Values))
-                        .Add(SqlGrammar.InsertStatement.Values.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(SqlGrammar.InsertStatement.Values.ValuesKeyword, true, Token(SqlTokenRegistry.Values))
+                        .Add(SqlGrammar.InsertStatement.Values.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(SqlGrammar.InsertStatement.Values.ValueList, false, Expression(ValueList.Name))
-                        .Add(SqlGrammar.InsertStatement.Values.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis)))
+                        .Add(SqlGrammar.InsertStatement.Values.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(SqlGrammar.InsertStatement.Select.Name, Define()
-                        .Add(SqlGrammar.InsertStatement.Select.LeftParenthesis, true, Token(SqlTokenizer.LeftParenthesis))
+                        .Add(SqlGrammar.InsertStatement.Select.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(SqlGrammar.InsertStatement.Select.SelectExpression, true, Expression(SelectExpression.Name))
-                        .Add(SqlGrammar.InsertStatement.Select.RightParenthesis, true, Token(SqlTokenizer.RightParenthesis))));
+                        .Add(SqlGrammar.InsertStatement.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))));
 
         }
 
@@ -2389,7 +2389,7 @@ namespace SQLGeneration.Parsing
                 .Add(true, Options()
                     .Add(ColumnList.Multiple.Name, Define()
                         .Add(ColumnList.Multiple.First, true, Expression(MultipartIdentifier.Name))
-                        .Add(ColumnList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(ColumnList.Multiple.Comma, true, Token(SqlTokenRegistry.Comma))
                         .Add(ColumnList.Multiple.Remaining, true, Expression(ColumnList.Name)))
                     .Add(ColumnList.Single, Expression(MultipartIdentifier.Name)));
         }
@@ -2453,12 +2453,12 @@ namespace SQLGeneration.Parsing
         private void defineUpdateStatement()
         {
             Define(UpdateStatement.Name)
-                .Add(UpdateStatement.UpdateKeyword, true, Token(SqlTokenizer.Update))
+                .Add(UpdateStatement.UpdateKeyword, true, Token(SqlTokenRegistry.Update))
                 .Add(UpdateStatement.Table, true, Expression(MultipartIdentifier.Name))
-                .Add(UpdateStatement.SetKeyword, true, Token(SqlTokenizer.Set))
+                .Add(UpdateStatement.SetKeyword, true, Token(SqlTokenRegistry.Set))
                 .Add(UpdateStatement.SetterList, true, Expression(SetterList.Name))
                 .Add(UpdateStatement.Where.Name, false, Define()
-                    .Add(UpdateStatement.Where.WhereKeyword, true, Token(SqlTokenizer.Where))
+                    .Add(UpdateStatement.Where.WhereKeyword, true, Token(SqlTokenRegistry.Where))
                     .Add(UpdateStatement.Where.FilterList, true, Expression(FilterList.Name)));
         }
 
@@ -2514,7 +2514,7 @@ namespace SQLGeneration.Parsing
                 .Add(true, Options()
                     .Add(SetterList.Multiple.Name, Define()
                         .Add(SetterList.Multiple.First, true, Expression(Setter.Name))
-                        .Add(SetterList.Multiple.Comma, true, Token(SqlTokenizer.Comma))
+                        .Add(SetterList.Multiple.Comma, true, Token(SqlTokenRegistry.Comma))
                         .Add(SetterList.Multiple.Remaining, true, Expression(SetterList.Name)))
                     .Add(SetterList.Single, Expression(Setter.Name)));
         }
@@ -2553,7 +2553,7 @@ namespace SQLGeneration.Parsing
         {
             Define(Setter.Name)
                 .Add(Setter.Column, true, Expression(MultipartIdentifier.Name))
-                .Add(Setter.Assignment, true, Token(SqlTokenizer.EqualTo))
+                .Add(Setter.Assignment, true, Token(SqlTokenRegistry.EqualTo))
                 .Add(Setter.Item, true, Expression(Item.Name));
         }
 
@@ -2611,11 +2611,11 @@ namespace SQLGeneration.Parsing
         private void defineDeleteStatement()
         {
             Define(DeleteStatement.Name)
-                .Add(DeleteStatement.DeleteKeyword, true, Token(SqlTokenizer.Delete))
-                .Add(DeleteStatement.FromKeyword, false, Token(SqlTokenizer.From))
+                .Add(DeleteStatement.DeleteKeyword, true, Token(SqlTokenRegistry.Delete))
+                .Add(DeleteStatement.FromKeyword, false, Token(SqlTokenRegistry.From))
                 .Add(DeleteStatement.Table, true, Expression(MultipartIdentifier.Name))
                 .Add(DeleteStatement.Where.Name, false, Define()
-                    .Add(DeleteStatement.Where.WhereKeyword, true, Token(SqlTokenizer.Where))
+                    .Add(DeleteStatement.Where.WhereKeyword, true, Token(SqlTokenRegistry.Where))
                     .Add(DeleteStatement.Where.FilterList, true, Expression(FilterList.Name)));
         }
 
@@ -2670,10 +2670,10 @@ namespace SQLGeneration.Parsing
             Define(MultipartIdentifier.Name)
                 .Add(true, Options()
                     .Add(MultipartIdentifier.Multiple.Name, Define()
-                        .Add(MultipartIdentifier.Multiple.First, true, Token(SqlTokenizer.Identifier))
-                        .Add(MultipartIdentifier.Multiple.Dot, true, Token(SqlTokenizer.Dot))
+                        .Add(MultipartIdentifier.Multiple.First, true, Token(SqlTokenRegistry.Identifier))
+                        .Add(MultipartIdentifier.Multiple.Dot, true, Token(SqlTokenRegistry.Dot))
                         .Add(MultipartIdentifier.Multiple.Remaining, true, Expression(MultipartIdentifier.Name)))
-                    .Add(MultipartIdentifier.Single, Token(SqlTokenizer.Identifier)));
+                    .Add(MultipartIdentifier.Single, Token(SqlTokenRegistry.Identifier)));
         }
 
         #endregion
