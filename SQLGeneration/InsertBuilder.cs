@@ -111,7 +111,7 @@ namespace SQLGeneration
             TokenStream stream = new TokenStream();
             stream.Add("INSERT");
             stream.Add("INTO");
-            stream.AddRange(_table.GetDeclarationTokens(options));
+            stream.AddRange(((IJoinItem)_table).GetDeclarationTokens(options));
             stream.AddRange(buildColumnList(options));
             if (!_values.IsQuery)
             {

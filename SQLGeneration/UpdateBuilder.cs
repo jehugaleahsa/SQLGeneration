@@ -125,7 +125,7 @@ namespace SQLGeneration
         {
             TokenStream stream = new TokenStream();
             stream.Add("UPDATE");
-            stream.AddRange(_table.GetDeclarationTokens(options));
+            stream.AddRange(((IJoinItem)_table).GetDeclarationTokens(options));
             stream.Add("SET");
             stream.AddRange(buildSetterList(options));
             if (_where.HasFilters)

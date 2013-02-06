@@ -90,7 +90,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets or sets whether columns should be fully qualified within an UPDATE statement.
         /// </summary>
-        public bool QualifyUpdateColumn { get; set; }
+        public bool QualifyUpdateColumns { get; set; }
 
         /// <summary>
         /// Gets or sets whether columns should be fully qualified within a DELETE statement.

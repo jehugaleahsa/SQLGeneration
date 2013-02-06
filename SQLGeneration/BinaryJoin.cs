@@ -71,7 +71,7 @@ namespace SQLGeneration
             }
             stream.AddRange(LeftHand.GetDeclarationTokens(options));
             stream.Add(GetJoinType(options));
-            stream.AddRange(RightHand.GetDeclarationTokens(options));
+            stream.AddRange(((IJoinItem)RightHand).GetDeclarationTokens(options));
             stream.AddRange(GetOnTokens(options));
             if (WrapInParentheses ?? options.WrapJoinsInParentheses)
             {

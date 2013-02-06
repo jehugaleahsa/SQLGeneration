@@ -10,7 +10,7 @@ namespace SQLGeneration
         /// <summary>
         /// Gets whether the join item is a SELECT statement.
         /// </summary>
-        bool IsQuery
+        bool IsTable
         {
             get;
         }

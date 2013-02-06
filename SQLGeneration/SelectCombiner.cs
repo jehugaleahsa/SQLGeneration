@@ -108,9 +108,9 @@ namespace SQLGeneration
             return null;
         }
 
-        bool IRightJoinItem.IsQuery
+        bool IRightJoinItem.IsTable
         {
-            get { return true; }
+            get { return false; }
         }
 
         bool IValueProvider.IsQuery

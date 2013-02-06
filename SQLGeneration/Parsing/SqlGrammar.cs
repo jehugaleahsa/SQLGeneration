@@ -1130,7 +1130,7 @@ namespace SQLGeneration.Parsing
                     .Add(JoinItem.Table, Expression(MultipartIdentifier.Name))
                     .Add(JoinItem.FunctionCall, Expression(FunctionCall.Name))
                     .Add(JoinItem.SelectExpression, Expression(SelectExpression.Name)))
-                .Add(JoinItem.AliasExpression.Alias, false, Define()
+                .Add(JoinItem.AliasExpression.Name, false, Define()
                     .Add(JoinItem.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
                     .Add(JoinItem.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)));
         }
@@ -2226,9 +2226,41 @@ namespace SQLGeneration.Parsing
             public const string IntoKeyword = "into";
 
             /// <summary>
-            /// Gets the identifier for the table.
+            /// Describes the structure of the Table declaration.
             /// </summary>
-            public const string Table = "table";
+            public static class Table
+            {
+                /// <summary>
+                /// Gets the identifier indicating that a table is being declared.
+                /// </summary>
+                public const string Name = "Table";
+
+                /// <summary>
+                /// Gets the identifier for the table name.
+                /// </summary>
+                public const string TableName = "table_name";
+
+                /// <summary>
+                /// Describes the structure of the table alias.
+                /// </summary>
+                public static class AliasExpression
+                {
+                    /// <summary>
+                    /// Gets the identifier indicating that the table has an alias.
+                    /// </summary>
+                    public const string Name = "AliasExpression";
+
+                    /// <summary>
+                    /// Gets the identifier for the AS keyword.
+                    /// </summary>
+                    public const string AliasIndicator = "alias_indicator";
+
+                    /// <summary>
+                    /// Gets the identiifier for the alias.
+                    /// </summary>
+                    public const string Alias = "alias";
+                }
+            }
 
             /// <summary>
             /// Describes the structure of the columns list.
@@ -2319,7 +2351,11 @@ namespace SQLGeneration.Parsing
             Define(InsertStatement.Name)
                 .Add(SqlGrammar.InsertStatement.InsertKeyword, true, Token(SqlTokenRegistry.Insert))
                 .Add(SqlGrammar.InsertStatement.IntoKeyword, false, Token(SqlTokenRegistry.Into))
-                .Add(SqlGrammar.InsertStatement.Table, true, Expression(MultipartIdentifier.Name))
+                .Add(SqlGrammar.InsertStatement.Table.Name, true, Define()
+                    .Add(SqlGrammar.InsertStatement.Table.TableName, true, Expression(MultipartIdentifier.Name))
+                    .Add(SqlGrammar.InsertStatement.Table.AliasExpression.Name, false, Define()
+                        .Add(SqlGrammar.InsertStatement.Table.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
+                        .Add(SqlGrammar.InsertStatement.Table.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier))))
                 .Add(SqlGrammar.InsertStatement.Columns.Name, false, Define()
                     .Add(SqlGrammar.InsertStatement.Columns.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                     .Add(SqlGrammar.InsertStatement.Columns.ColumnList, true, Expression(ColumnList.Name))

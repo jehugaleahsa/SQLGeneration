@@ -27,7 +27,7 @@ namespace SQLGeneration
         /// <returns>A string declaring the item.</returns>
         internal override IEnumerable<string> GetDeclarationTokens(CommandOptions options)
         {
-            return source.GetDeclarationTokens(options);
+            return ((IJoinItem)source).GetDeclarationTokens(options);
         }
     }
 }

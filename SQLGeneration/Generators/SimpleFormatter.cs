@@ -970,9 +970,23 @@ namespace SQLGeneration.Generators
                 into.GetContext(writer);
                 writer.Write(' ');
             }
-            MatchResult table = result.Matches[SqlGrammar.InsertStatement.Table];
-            table.GetContext(writer);
+            MatchResult table = result.Matches[SqlGrammar.InsertStatement.Table.Name];
+            MatchResult tableName = table.Matches[SqlGrammar.InsertStatement.Table.TableName];
+            tableName.GetContext(writer);
             writer.Write(' ');
+            MatchResult aliasExpression = table.Matches[SqlGrammar.InsertStatement.Table.AliasExpression.Name];
+            if (aliasExpression.IsMatch)
+            {
+                MatchResult aliasIndicator = aliasExpression.Matches[SqlGrammar.InsertStatement.Table.AliasExpression.AliasIndicator];
+                if (aliasIndicator.IsMatch)
+                {
+                    aliasIndicator.GetContext(writer);
+                    writer.Write(' ');
+                }
+                MatchResult alias = aliasExpression.Matches[SqlGrammar.InsertStatement.Table.AliasExpression.Alias];
+                alias.GetContext(writer);
+                writer.Write(' ');
+            }
             MatchResult columns = result.Matches[SqlGrammar.InsertStatement.Columns.Name];
             if (columns.IsMatch)
             {

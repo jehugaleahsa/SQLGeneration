@@ -88,7 +88,7 @@ namespace SQLGeneration
             TokenStream stream = new TokenStream();
             stream.Add("DELETE");
             stream.Add("FROM");
-            stream.AddRange(_table.GetDeclarationTokens(options));
+            stream.AddRange(((IJoinItem)_table).GetDeclarationTokens(options));
             if (_where.HasFilters)
             {
                 stream.Add("WHERE");

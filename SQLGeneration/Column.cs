@@ -68,7 +68,7 @@ namespace SQLGeneration
             TokenStream stream = new TokenStream();
             bool qualify = Qualify ?? (options.IsSelect
                 || (options.IsInsert && options.QualifyInsertColumns)
-                || (options.IsUpdate && options.QualifyUpdateColumn)
+                || (options.IsUpdate && options.QualifyUpdateColumns)
                 || (options.IsDelete && options.QualifyDeleteColumns));
             if (qualify)
             {

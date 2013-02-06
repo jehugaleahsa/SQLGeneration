@@ -8,7 +8,7 @@ namespace SQLGeneration
     /// <summary>
     /// Allows a table or select statement to be referred to by an alias.
     /// </summary>
-    public class AliasedSource
+    public class AliasedSource : IJoinItem
     {
         /// <summary>
         /// Initializes a new instance of an AliasedSource.
@@ -58,7 +58,7 @@ namespace SQLGeneration
         /// </summary>
         /// <param name="options">The configuration settings to use to generate the tokens.</param>
         /// <returns>The tokens comprising a reference to the source.</returns>
-        internal IEnumerable<string> GetDeclarationTokens(CommandOptions options)
+        IEnumerable<string> IJoinItem.GetDeclarationTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             stream.AddRange(Source.GetDeclarationTokens(options));
@@ -83,7 +83,7 @@ namespace SQLGeneration
             TokenStream stream = new TokenStream();
             if (String.IsNullOrWhiteSpace(Alias))
             {
-                if (Source.IsQuery)
+                if (!Source.IsTable)
                 {
                     throw new SQLGenerationException(Resources.ReferencedQueryWithoutAlias);
                 }

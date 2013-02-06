@@ -69,9 +69,9 @@ namespace SQLGeneration
             return Name;
         }
 
-        bool IRightJoinItem.IsQuery
+        bool IRightJoinItem.IsTable
         {
-            get { return false; }
+            get { return true; }
         }
     }
 }

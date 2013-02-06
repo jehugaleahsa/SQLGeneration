@@ -151,15 +151,6 @@ namespace SQLGeneration.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Encountered a duplicate projection name: {0}. Use an alias to distinguish between projections with the same name..
-        /// </summary>
-        internal static string DuplicateProjectionName {
-            get {
-                return ResourceManager.GetString("DuplicateProjectionName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Encountered a duplicate source name: {0}. Use an alias to distinguish between multiple references to the same table..
         /// </summary>
         internal static string DuplicateSourceName {

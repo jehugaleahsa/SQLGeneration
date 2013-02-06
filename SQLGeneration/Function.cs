@@ -8,7 +8,7 @@ namespace SQLGeneration
     /// <summary>
     /// Adds a function call to a command.
     /// </summary>
-    public class Function : IProjectionItem, IFilterItem, IGroupByItem
+    public class Function : IProjectionItem, IRightJoinItem, IFilterItem, IGroupByItem
     {
         private readonly Namespace qualifier;
         private readonly ValueList arguments;
@@ -135,6 +135,21 @@ namespace SQLGeneration
         string IProjectionItem.GetProjectionName()
         {
             return null;
+        }
+
+        bool IRightJoinItem.IsTable
+        {
+            get { return false; }
+        }
+
+        string IRightJoinItem.GetSourceName()
+        {
+            return null;
+        }
+
+        IEnumerable<string> IJoinItem.GetDeclarationTokens(CommandOptions options)
+        {
+            return getFunctionTokens(options);
         }
     }
 }

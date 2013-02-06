@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using SQLGeneration.Properties;
 using SQLGeneration.Parsing;
-using System.Globalization;
+using SQLGeneration.Properties;
 
 namespace SQLGeneration
 {
@@ -15,7 +13,6 @@ namespace SQLGeneration
     {
         private readonly List<IJoinItem> _from;
         private readonly List<AliasedProjection> _projection;
-        private readonly HashSet<string> projectionNames;
         private readonly FilterGroup _where;
         private readonly List<OrderBy> _orderBy;
         private readonly List<IGroupByItem> _groupBy;
@@ -29,7 +26,6 @@ namespace SQLGeneration
         {
             _from = new List<IJoinItem>();
             _projection = new List<AliasedProjection>();
-            projectionNames = new HashSet<string>();
             _where = new FilterGroup();
             _orderBy = new List<OrderBy>();
             _groupBy = new List<IGroupByItem>();
@@ -80,15 +76,6 @@ namespace SQLGeneration
             }
             AliasedProjection projection = new AliasedProjection(item, alias);
             string name = projection.GetProjectionName();
-            if (name != null)
-            {
-                if (projectionNames.Contains(name))
-                {
-                    string message = String.Format(CultureInfo.CurrentCulture, Resources.DuplicateProjectionName, name);
-                    throw new SQLGenerationException(message);
-                }
-                projectionNames.Add(name);
-            }
             _projection.Add(projection);
             return projection;
         }
@@ -112,7 +99,7 @@ namespace SQLGeneration
         /// </summary>
         public IEnumerable<IJoinItem> From
         {
-            get { return new ReadOnlyCollection<IJoinItem>(_from); }
+            get { return _from; }
         }
 
         /// <summary>
@@ -137,7 +124,7 @@ namespace SQLGeneration
             }
             AliasedSource source = new AliasedSource(table, alias);
             sources.AddSource(source.GetSourceName(), source);
-            _from.Add(source.Source);
+            _from.Add(source);
             return source;
         }
 
@@ -147,7 +134,7 @@ namespace SQLGeneration
         /// <param name="builder">The SELECT statement to add.</param>
         /// <param name="alias">The optional alias to give the SELECT statement within the SELECT statement.</param>
         /// <returns>An object to support aliasing the SELECT statement and defining columns.</returns>
-        public AliasedSource AddTable(ISelectBuilder builder, string alias = null)
+        public AliasedSource AddSelect(ISelectBuilder builder, string alias = null)
         {
             if (builder == null)
             {
@@ -155,7 +142,25 @@ namespace SQLGeneration
             }
             AliasedSource source = new AliasedSource(builder, alias);
             sources.AddSource(source.GetSourceName(), source);
-            _from.Add(source.Source);
+            _from.Add(source);
+            return source;
+        }
+
+        /// <summary>
+        /// Adds the given function call to the FROM clause.
+        /// </summary>
+        /// <param name="builder">The function call to add.</param>
+        /// <param name="alias">The optional alias to give the function call within the SELECT statement.</param>
+        /// <returns>An object to support aliasing the function call and defining columns.</returns>
+        public AliasedSource AddSelect(Function builder, string alias = null)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException("builder");
+            }
+            AliasedSource source = new AliasedSource(builder, alias);
+            sources.AddSource(source.GetSourceName(), source);
+            _from.Add(source);
             return source;
         }
 
@@ -496,9 +501,9 @@ namespace SQLGeneration
             return null;
         }
 
-        bool IRightJoinItem.IsQuery
+        bool IRightJoinItem.IsTable
         {
-            get { return true; }
+            get { return false; }
         }
 
         bool IValueProvider.IsQuery
