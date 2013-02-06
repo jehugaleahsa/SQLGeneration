@@ -2226,40 +2226,29 @@ namespace SQLGeneration.Parsing
             public const string IntoKeyword = "into";
 
             /// <summary>
-            /// Describes the structure of the Table declaration.
+            /// Gets the identifier for the table name.
             /// </summary>
-            public static class Table
+            public const string Table = "table";
+
+            /// <summary>
+            /// Describes the structure of the table alias.
+            /// </summary>
+            public static class AliasExpression
             {
                 /// <summary>
-                /// Gets the identifier indicating that a table is being declared.
+                /// Gets the identifier indicating that the table has an alias.
                 /// </summary>
-                public const string Name = "Table";
+                public const string Name = "AliasExpression";
 
                 /// <summary>
-                /// Gets the identifier for the table name.
+                /// Gets the identifier for the AS keyword.
                 /// </summary>
-                public const string TableName = "table_name";
+                public const string AliasIndicator = "alias_indicator";
 
                 /// <summary>
-                /// Describes the structure of the table alias.
+                /// Gets the identiifier for the alias.
                 /// </summary>
-                public static class AliasExpression
-                {
-                    /// <summary>
-                    /// Gets the identifier indicating that the table has an alias.
-                    /// </summary>
-                    public const string Name = "AliasExpression";
-
-                    /// <summary>
-                    /// Gets the identifier for the AS keyword.
-                    /// </summary>
-                    public const string AliasIndicator = "alias_indicator";
-
-                    /// <summary>
-                    /// Gets the identiifier for the alias.
-                    /// </summary>
-                    public const string Alias = "alias";
-                }
+                public const string Alias = "alias";
             }
 
             /// <summary>
@@ -2351,11 +2340,10 @@ namespace SQLGeneration.Parsing
             Define(InsertStatement.Name)
                 .Add(SqlGrammar.InsertStatement.InsertKeyword, true, Token(SqlTokenRegistry.Insert))
                 .Add(SqlGrammar.InsertStatement.IntoKeyword, false, Token(SqlTokenRegistry.Into))
-                .Add(SqlGrammar.InsertStatement.Table.Name, true, Define()
-                    .Add(SqlGrammar.InsertStatement.Table.TableName, true, Expression(MultipartIdentifier.Name))
-                    .Add(SqlGrammar.InsertStatement.Table.AliasExpression.Name, false, Define()
-                        .Add(SqlGrammar.InsertStatement.Table.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
-                        .Add(SqlGrammar.InsertStatement.Table.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier))))
+                .Add(SqlGrammar.InsertStatement.Table, true, Expression(MultipartIdentifier.Name))
+                .Add(SqlGrammar.InsertStatement.AliasExpression.Name, false, Define()
+                    .Add(SqlGrammar.InsertStatement.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
+                    .Add(SqlGrammar.InsertStatement.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)))
                 .Add(SqlGrammar.InsertStatement.Columns.Name, false, Define()
                     .Add(SqlGrammar.InsertStatement.Columns.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                     .Add(SqlGrammar.InsertStatement.Columns.ColumnList, true, Expression(ColumnList.Name))
@@ -2618,9 +2606,30 @@ namespace SQLGeneration.Parsing
             public const string FromKeyword = "from";
 
             /// <summary>
-            /// Gets the identifier for the table.
+            /// Gets the identifeir for the table name.
             /// </summary>
             public const string Table = "table";
+
+            /// <summary>
+            /// Describes the structure of the alias for the table.
+            /// </summary>
+            public static class AliasExpression
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the table is aliased.
+                /// </summary>
+                public const string Name = "AliasExpression";
+
+                /// <summary>
+                /// Gets the indentifier for the AS keyword.
+                /// </summary>
+                public const string AliasIndicator = "alias_indicator";
+
+                /// <summary>
+                /// Gets the identifier for the alias.
+                /// </summary>
+                public const string Alias = "alias";
+            }
 
             /// <summary>
             /// Describes the structure of the WHERE clause.
@@ -2650,6 +2659,9 @@ namespace SQLGeneration.Parsing
                 .Add(DeleteStatement.DeleteKeyword, true, Token(SqlTokenRegistry.Delete))
                 .Add(DeleteStatement.FromKeyword, false, Token(SqlTokenRegistry.From))
                 .Add(DeleteStatement.Table, true, Expression(MultipartIdentifier.Name))
+                .Add(DeleteStatement.AliasExpression.Name, false, Define()
+                    .Add(DeleteStatement.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
+                    .Add(DeleteStatement.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)))
                 .Add(DeleteStatement.Where.Name, false, Define()
                     .Add(DeleteStatement.Where.WhereKeyword, true, Token(SqlTokenRegistry.Where))
                     .Add(DeleteStatement.Where.FilterList, true, Expression(FilterList.Name)));

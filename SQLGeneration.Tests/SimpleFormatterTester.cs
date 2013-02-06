@@ -271,6 +271,12 @@ namespace SQLGeneration.Tests
 
         #endregion
 
+        #region UpdateBuilder
+
+        
+
+        #endregion
+
         #endregion
     }
 }

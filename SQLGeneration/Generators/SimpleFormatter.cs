@@ -970,20 +970,19 @@ namespace SQLGeneration.Generators
                 into.GetContext(writer);
                 writer.Write(' ');
             }
-            MatchResult table = result.Matches[SqlGrammar.InsertStatement.Table.Name];
-            MatchResult tableName = table.Matches[SqlGrammar.InsertStatement.Table.TableName];
-            tableName.GetContext(writer);
+            MatchResult table = result.Matches[SqlGrammar.InsertStatement.Table];
+            table.GetContext(writer);
             writer.Write(' ');
-            MatchResult aliasExpression = table.Matches[SqlGrammar.InsertStatement.Table.AliasExpression.Name];
+            MatchResult aliasExpression = result.Matches[SqlGrammar.InsertStatement.AliasExpression.Name];
             if (aliasExpression.IsMatch)
             {
-                MatchResult aliasIndicator = aliasExpression.Matches[SqlGrammar.InsertStatement.Table.AliasExpression.AliasIndicator];
+                MatchResult aliasIndicator = aliasExpression.Matches[SqlGrammar.InsertStatement.AliasExpression.AliasIndicator];
                 if (aliasIndicator.IsMatch)
                 {
                     aliasIndicator.GetContext(writer);
                     writer.Write(' ');
                 }
-                MatchResult alias = aliasExpression.Matches[SqlGrammar.InsertStatement.Table.AliasExpression.Alias];
+                MatchResult alias = aliasExpression.Matches[SqlGrammar.InsertStatement.AliasExpression.Alias];
                 alias.GetContext(writer);
                 writer.Write(' ');
             }
@@ -1149,6 +1148,20 @@ namespace SQLGeneration.Generators
             }
             MatchResult table = result.Matches[SqlGrammar.DeleteStatement.Table];
             table.GetContext(writer);
+            writer.Write(' ');
+            MatchResult aliasExpression = result.Matches[SqlGrammar.DeleteStatement.AliasExpression.Name];
+            if (aliasExpression.IsMatch)
+            {
+                MatchResult aliasIndicator = aliasExpression.Matches[SqlGrammar.DeleteStatement.AliasExpression.AliasIndicator];
+                if (aliasIndicator.IsMatch)
+                {
+                    aliasIndicator.GetContext(writer);
+                    writer.Write(' ');
+                }
+                MatchResult alias = aliasExpression.Matches[SqlGrammar.DeleteStatement.AliasExpression.Alias];
+                alias.GetContext(writer);
+                writer.Write(' ');
+            }
             MatchResult where = result.Matches[SqlGrammar.DeleteStatement.Where.Name];
             if (where.IsMatch)
             {
