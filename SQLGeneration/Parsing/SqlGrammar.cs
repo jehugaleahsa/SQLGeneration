@@ -1450,35 +1450,9 @@ namespace SQLGeneration.Parsing
             }
 
             /// <summary>
-            /// Describes the structure of a filter made up of multiple filters.
+            /// Gets the identifier indicating that there are multiple filters in the list.
             /// </summary>
-            public static class Multiple
-            {
-                /// <summary>
-                /// Gets the identifier indicating that there are multiple filters in the list.
-                /// </summary>
-                public const string Name = "Multiple";
-
-                /// <summary>
-                /// Gets the identifier for the first filter.
-                /// </summary>
-                public const string First = "first";
-
-                /// <summary>
-                /// Gets the identifier for the conjunction.
-                /// </summary>
-                public const string Conjunction = "conjunction";
-
-                /// <summary>
-                /// Gets the identifier or the rest of the filters.
-                /// </summary>
-                public const string Remaining = "remaining";
-            }
-
-            /// <summary>
-            /// Gets the identifier indicating that the list on has one filter in it.
-            /// </summary>
-            public const string Single = "single";
+            public const string Multiple = "Multiple";
         }
 
         private void defineFilterList()
@@ -1490,7 +1464,7 @@ namespace SQLGeneration.Parsing
                         .Add(FilterList.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(FilterList.Wrapped.FilterList, true, Expression(FilterList.Name))
                         .Add(FilterList.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
-                    .Add(FilterList.Multiple.Name, Expression(OrConjunction.Name)));
+                    .Add(FilterList.Multiple, Expression(OrConjunction.Name)));
         }
 
         #endregion
@@ -2171,11 +2145,6 @@ namespace SQLGeneration.Parsing
             }
 
             /// <summary>
-            /// Gets the identifier indicating that the item is a number.
-            /// </summary>
-            public const string Number = "number";
-
-            /// <summary>
             /// Gets the identifier indicating that the item is a string.
             /// </summary>
             public const string String = "string";
@@ -2192,13 +2161,13 @@ namespace SQLGeneration.Parsing
                 .Add(true, Options()
                     .Add(Item.FunctionCall, Expression(FunctionCall.Name))
                     .Add(Item.Column, Expression(MultipartIdentifier.Name))
+                    .Add(Item.String, Token(SqlTokenRegistry.String))
+                    .Add(Item.Null, Token(SqlTokenRegistry.Null))
                     .Add(Item.Select.Name, Define()
                         .Add(Item.Select.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(Item.Select.SelectStatement, true, Expression(SelectStatement.Name))
                         .Add(Item.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
-                    .Add(Item.ArithmeticExpression, Expression(AdditiveExpression.Name))
-                    .Add(Item.String, Token(SqlTokenRegistry.String))
-                    .Add(Item.Null, Token(SqlTokenRegistry.Null)));
+                    .Add(Item.ArithmeticExpression, Expression(AdditiveExpression.Name)));
         }
 
         #endregion
@@ -2594,7 +2563,7 @@ namespace SQLGeneration.Parsing
             /// <summary>
             /// Gets the identifier for the value the column is being assigned to.
             /// </summary>
-            public const string Item = "item";
+            public const string Value = "item";
         }
 
         private void defineSetter()
@@ -2602,7 +2571,7 @@ namespace SQLGeneration.Parsing
             Define(Setter.Name)
                 .Add(Setter.Column, true, Expression(MultipartIdentifier.Name))
                 .Add(Setter.Assignment, true, Token(SqlTokenRegistry.EqualTo))
-                .Add(Setter.Item, true, Expression(Item.Name));
+                .Add(Setter.Value, true, Expression(Item.Name));
         }
 
         #endregion

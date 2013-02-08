@@ -25,7 +25,7 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Gets the token registery being used.
         /// </summary>
-        public TokenRegistry Tokenizer
+        public TokenRegistry TokenRegistry
         {
             get { return tokenRegistry; }
         }

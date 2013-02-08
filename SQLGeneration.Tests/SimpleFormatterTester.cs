@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SQLGeneration.Builders;
 using SQLGeneration.Generators;
 
 namespace SQLGeneration.Tests
@@ -252,6 +253,29 @@ namespace SQLGeneration.Tests
             SimpleFormatter formatter = new SimpleFormatter();
             string actual = formatter.GetCommandText(builder);
             string expected = "SELECT t1.Column, t2.Column FROM Table1 t1 INNER JOIN Table2 t2 ON t1.Column = t2.Column";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// If we have a sub-select, it should be able to reference columns
+        /// from the outer select statement (maybe).
+        /// </summary>
+        [TestMethod]
+        public void TestColumn_NestedTable_ReferenceOuterColumn()
+        {
+            SelectBuilder outer = new SelectBuilder();
+            AliasedSource outerSource = outer.AddTable(new Table("Customer"), "o");
+            Column outerColumn = outerSource.Column("CustomerId");
+            outer.AddProjection(outerColumn);
+            SelectBuilder inner = new SelectBuilder();
+            AliasedSource innerSource = inner.AddTable(new Table("Customer"), "i");
+            Column innerColumn = innerSource.Column("CustomerId");
+            inner.AddProjection(innerColumn);
+            inner.AddWhere(new EqualToFilter(outerColumn, innerColumn));
+            outer.AddWhere(new InFilter(outerColumn, inner));
+            SimpleFormatter formatter = new SimpleFormatter();
+            string actual = formatter.GetCommandText(outer);
+            string expected = "SELECT o.CustomerId FROM Customer o WHERE o.CustomerId IN (SELECT i.CustomerId FROM Customer i WHERE o.CustomerId = i.CustomerId)";
             Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
         }
 

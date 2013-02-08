@@ -54,8 +54,12 @@ namespace SQLGeneration.Parsing
         public MatchResult Match(IParseAttempt attempt, string itemName)
         {
             TokenResult tokenResult = attempt.GetToken(TokenType);
-            MatchResult result = new MatchResult() { ItemName = itemName, IsMatch = tokenResult.IsMatch };
-            attempt.SetTokenHandler(result, tokenResult.Value);
+            MatchResult result = new MatchResult() 
+            { 
+                ItemName = itemName, 
+                IsMatch = tokenResult.IsMatch,
+                Context = tokenResult,
+            };
             return result;
         }
     }

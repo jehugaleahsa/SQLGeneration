@@ -132,11 +132,11 @@ namespace SQLGeneration.Parsing
         /// Creates a stream of tokens by tokenizing the given string,
         /// verifying the tokens against the token definitions.
         /// </summary>
-        /// <param name="input">The input stream containing the tokens.</param>
+        /// <param name="commandText">The input stream containing the tokens.</param>
         /// <returns>The new token source.</returns>
-        public ITokenSource CreateTokenSource(string input)
+        public ITokenSource CreateTokenSource(string commandText)
         {
-            return new TokenSource(this, tokenize(input));
+            return new TokenSource(this, tokenize(commandText));
         }
 
         private IEnumerable<string> tokenize(string input)

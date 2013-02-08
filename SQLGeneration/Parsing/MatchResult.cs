@@ -36,33 +36,21 @@ namespace SQLGeneration.Parsing
         }
 
         /// <summary>
-        /// Gets the match result for sub-expressions or tokens within the current expression.
-        /// This collection will be empty for tokens.
+        /// Gets any information to be passed along with the match results.
         /// </summary>
-        public MatchResultCollection Matches
-        {
-            get { return matches; }
-        }
-
-        /// <summary>
-        /// Gets the handler used to process the result.
-        /// </summary>
-        public Action<MatchResult, object> Handler
+        public object Context
         {
             get;
             internal set;
         }
 
         /// <summary>
-        /// Gets the data that is meant to be available to the outer expression.
+        /// Gets the match result for sub-expressions or tokens within the current expression.
+        /// This collection will be empty for tokens.
         /// </summary>
-        /// <param name="context">Additional information to pass from an outer expression to an inner expression.</param>
-        public void GetContext(object context)
+        public MatchResultCollection Matches
         {
-            if (Handler != null)
-            {
-                Handler(this, context);
-            }
+            get { return matches; }
         }
     }
 }
