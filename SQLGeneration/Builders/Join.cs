@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
 {
@@ -56,6 +57,15 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// Gets or sets whether the join should be wrapped in parentheses.
+        /// </summary>
+        public bool? WrapInParentheses
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets a collection of the table and SELECT statements within the join.
         /// </summary>
         public SourceCollection Sources
@@ -72,7 +82,17 @@ namespace SQLGeneration.Builders
 
         IEnumerable<string> IJoinItem.GetDeclarationTokens(CommandOptions options)
         {
-            return GetDeclarationTokens(options);
+            TokenStream stream = new TokenStream();
+            if (WrapInParentheses ?? options.WrapJoinsInParentheses)
+            {
+                stream.Add("(");
+            }
+            stream.AddRange(GetDeclarationTokens(options));
+            if (WrapInParentheses ?? options.WrapJoinsInParentheses)
+            {
+                stream.Add(")");
+            }
+            return stream;
         }
 
         /// <summary>

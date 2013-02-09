@@ -189,6 +189,9 @@
   <data name="UnknownConjunction" xml:space="preserve">
     <value>Encountered an unknown conjunction type.</value>
   </data>
+  <data name="UnknownDistinctQualifier" xml:space="preserve">
+    <value>Encountered an unknown distinct qualifier.</value>
+  </data>
   <data name="UnknownNullPlacement" xml:space="preserve">
     <value>Encountered an unknown null placement.</value>
   </data>

@@ -277,6 +277,15 @@ namespace SQLGeneration.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Encountered an unknown distinct qualifier..
+        /// </summary>
+        internal static string UnknownDistinctQualifier {
+            get {
+                return ResourceManager.GetString("UnknownDistinctQualifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Encountered an unknown null placement..
         /// </summary>
         internal static string UnknownNullPlacement {

@@ -4,7 +4,7 @@ using SQLGeneration.Properties;
 namespace SQLGeneration.Builders
 {
     /// <summary>
-    /// Joins filters.
+    /// Affects the logic of how two filters will be applied.
     /// </summary>
     public enum Conjunction
     {

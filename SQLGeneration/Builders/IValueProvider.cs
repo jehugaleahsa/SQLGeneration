@@ -8,9 +8,9 @@ namespace SQLGeneration.Builders
     public interface IValueProvider : IFilterItem
     {
         /// <summary>
-        /// Gets or sets whether the value provider gets its values from a query.
+        /// Gets or sets whether the value provider gets its values from a value list.
         /// </summary>
-        bool IsQuery
+        bool IsValueList
         {
             get;
         }

@@ -105,13 +105,12 @@ namespace SQLGeneration.Builders
 
         private IEnumerable<string> getCommandToken(CommandOptions options)
         {
-            // "INSERT" [ "INTO" ] <Source> [ "(" <ColumnList> ")" ] { "VALUES" "(" <ValueList> ")" | <SubSelect> }
             TokenStream stream = new TokenStream();
             stream.Add("INSERT");
             stream.Add("INTO");
             stream.AddRange(((IJoinItem)_table).GetDeclarationTokens(options));
             stream.AddRange(buildColumnList(options));
-            if (!_values.IsQuery)
+            if (_values.IsValueList)
             {
                 stream.Add("VALUES");
             }

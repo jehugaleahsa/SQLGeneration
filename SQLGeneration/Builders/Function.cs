@@ -8,7 +8,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Adds a function call to a command.
     /// </summary>
-    public class Function : IProjectionItem, IRightJoinItem, IFilterItem, IGroupByItem
+    public class Function : IProjectionItem, IRightJoinItem, IFilterItem, IGroupByItem, IValueProvider
     {
         private readonly Namespace qualifier;
         private readonly ValueList arguments;
@@ -120,7 +120,6 @@ namespace SQLGeneration.Builders
 
         private IEnumerable<string> getFunctionTokens(CommandOptions options)
         {
-            // <Function> => [ <Schema> "." ] <Name> "(" [ <ValueList> ] ")"
             TokenStream stream = new TokenStream();
             if (qualifier != null)
             {
@@ -150,6 +149,11 @@ namespace SQLGeneration.Builders
         IEnumerable<string> IJoinItem.GetDeclarationTokens(CommandOptions options)
         {
             return getFunctionTokens(options);
+        }
+
+        bool IValueProvider.IsValueList
+        {
+            get { return false; }
         }
     }
 }

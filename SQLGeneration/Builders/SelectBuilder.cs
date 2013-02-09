@@ -34,9 +34,9 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets or sets whether to return distinct results.
+        /// Gets or sets how the database will handle duplicate records.
         /// </summary>
-        public bool IsDistinct
+        public DistinctQualifier Distinct
         {
             get;
             set;
@@ -129,30 +129,30 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Adds the given SELECT statement to the FROM clause.
+        /// Adds the given function to the FROM clause.
         /// </summary>
-        /// <param name="builder">The SELECT statement to add.</param>
-        /// <param name="alias">The optional alias to give the SELECT statement within the SELECT statement.</param>
-        /// <returns>An object to support aliasing the SELECT statement and defining columns.</returns>
-        public AliasedSource AddSelect(ISelectBuilder builder, string alias = null)
+        /// <param name="function">The function to add.</param>
+        /// <param name="alias">The optional alias to give the function within the SELECT statement.</param>
+        /// <returns>An object to support aliasing the function and defining column.</returns>
+        public AliasedSource AddFunction(Function function, string alias = null)
         {
-            if (builder == null)
+            if (function == null)
             {
-                throw new ArgumentNullException("builder");
+                throw new ArgumentNullException("function");
             }
-            AliasedSource source = new AliasedSource(builder, alias);
+            AliasedSource source = new AliasedSource(function, alias);
             sources.AddSource(source.GetSourceName(), source);
             _from.Add(source);
             return source;
         }
 
         /// <summary>
-        /// Adds the given function call to the FROM clause.
+        /// Adds the given SELECT statement to the FROM clause.
         /// </summary>
-        /// <param name="builder">The function call to add.</param>
-        /// <param name="alias">The optional alias to give the function call within the SELECT statement.</param>
-        /// <returns>An object to support aliasing the function call and defining columns.</returns>
-        public AliasedSource AddSelect(Function builder, string alias = null)
+        /// <param name="builder">The SELECT statement to add.</param>
+        /// <param name="alias">The optional alias to give the SELECT statement within the SELECT statement.</param>
+        /// <returns>An object to support aliasing the SELECT statement and defining columns.</returns>
+        public AliasedSource AddSelect(ISelectBuilder builder, string alias = null)
         {
             if (builder == null)
             {
@@ -364,9 +364,10 @@ namespace SQLGeneration.Builders
         {
             TokenStream stream = new TokenStream();
             stream.Add("SELECT");
-            if (IsDistinct)
+            if (Distinct != DistinctQualifier.Default)
             {
-                stream.Add("DISTINCT");
+                DistinctQualifierConverter converter = new DistinctQualifierConverter();
+                stream.Add(converter.ToToken(Distinct));
             }
             if (Top != null)
             {
@@ -506,9 +507,9 @@ namespace SQLGeneration.Builders
             get { return false; }
         }
 
-        bool IValueProvider.IsQuery
+        bool IValueProvider.IsValueList
         {
-            get { return true; }
+            get { return false; }
         }
     }
 }

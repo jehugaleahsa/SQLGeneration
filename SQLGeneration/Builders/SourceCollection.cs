@@ -37,6 +37,10 @@ namespace SQLGeneration.Builders
         /// <param name="source">The source to add.</param>
         internal void AddSource(string sourceName, AliasedSource source)
         {
+            if (sourceName == null)
+            {
+                return;
+            }
             if (sourceLookup.ContainsKey(sourceName))
             {
                 string message = String.Format(CultureInfo.CurrentCulture, Resources.DuplicateSourceName, sourceName);

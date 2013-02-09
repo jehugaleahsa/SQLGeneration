@@ -110,9 +110,9 @@ namespace SQLGeneration.Builders
             get { return false; }
         }
 
-        bool IValueProvider.IsQuery
+        bool IValueProvider.IsValueList
         {
-            get { return true; }
+            get { return false; }
         }
 
         string IProjectionItem.GetProjectionName()

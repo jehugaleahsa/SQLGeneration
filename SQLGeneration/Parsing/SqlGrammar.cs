@@ -43,7 +43,7 @@ namespace SQLGeneration.Parsing
             defineAndConjunction();
             defineValueList();
             defineGroupByList();
-            defineNonArithmeticItem();
+            defineArithmeticItem();
             defineItem();
             defineInsertStatement();
             defineColumnList();
@@ -572,7 +572,7 @@ namespace SQLGeneration.Parsing
         private void defineOrderByItem()
         {
             Define(OrderByItem.Name)
-                .Add(OrderByItem.Expression, true, Expression(Item.Name))
+                .Add(OrderByItem.Expression, true, Expression(ArithmeticItem.Name))
                 .Add(OrderByItem.OrderDirection, false, Expression(OrderDirection.Name))
                 .Add(OrderByItem.NullPlacement, false, Expression(NullPlacement.Name));
         }
@@ -814,10 +814,10 @@ namespace SQLGeneration.Parsing
             Define(MultiplicitiveExpression.Name)
                 .Add(true, Options()
                     .Add(MultiplicitiveExpression.Multiple.Name, Define()
-                        .Add(MultiplicitiveExpression.Multiple.First, true, Expression(NonArithmeticItem.Name))
+                        .Add(MultiplicitiveExpression.Multiple.First, true, Expression(Item.Name))
                         .Add(MultiplicitiveExpression.Multiple.Operator, true, Expression(MultiplicitiveOperator.Name))
                         .Add(MultiplicitiveExpression.Multiple.Remaining, true, Expression(MultiplicitiveExpression.Name)))
-                    .Add(MultiplicitiveExpression.Single, Expression(NonArithmeticItem.Name)));
+                    .Add(MultiplicitiveExpression.Single, Expression(Item.Name)));
         }
 
         #endregion
@@ -1009,7 +1009,7 @@ namespace SQLGeneration.Parsing
                             .Add(ProjectionItem.Star.Qualifier.Dot, true, Token(SqlTokenRegistry.Dot)))
                         .Add(ProjectionItem.Star.StarToken, true, Token(SqlTokenRegistry.MultiplicationOperator)))
                     .Add(ProjectionItem.Expression.Name, Define()
-                        .Add(ProjectionItem.Expression.Item, true, Expression(Item.Name))
+                        .Add(ProjectionItem.Expression.Item, true, Expression(ArithmeticItem.Name))
                         .Add(ProjectionItem.Expression.AliasExpression.Name, false, Define()
                             .Add(ProjectionItem.Expression.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
                             .Add(ProjectionItem.Expression.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)))));
@@ -1127,8 +1127,8 @@ namespace SQLGeneration.Parsing
         {
             Define(JoinItem.Name)
                 .Add(true, Options()
-                    .Add(JoinItem.Table, Expression(MultipartIdentifier.Name))
                     .Add(JoinItem.FunctionCall, Expression(FunctionCall.Name))
+                    .Add(JoinItem.Table, Expression(MultipartIdentifier.Name))
                     .Add(JoinItem.SelectExpression, Expression(SelectExpression.Name)))
                 .Add(JoinItem.AliasExpression.Name, false, Define()
                     .Add(JoinItem.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
@@ -1301,7 +1301,7 @@ namespace SQLGeneration.Parsing
                     /// <summary>
                     /// Gets the identifier for the ON keyword.
                     /// </summary>
-                    public const string OnToken = "on";
+                    public const string OnKeyword = "on";
 
                     /// <summary>
                     /// Gets the identifier for the filter list.
@@ -1334,6 +1334,11 @@ namespace SQLGeneration.Parsing
                 /// Gets the identifier for the next join item.
                 /// </summary>
                 public const string JoinItem = "join_item";
+
+                /// <summary>
+                /// Gets the identifier for the next join in the series.
+                /// </summary>
+                public const string JoinPrime = "join_prime";
             }
 
             /// <summary>
@@ -1350,12 +1355,13 @@ namespace SQLGeneration.Parsing
                         .Add(JoinPrime.Filtered.JoinType, true, Expression(FilteredJoinType.Name))
                         .Add(JoinPrime.Filtered.JoinItem, true, Expression(JoinItem.Name))
                         .Add(JoinPrime.Filtered.On.Name, false, Define()
-                            .Add(JoinPrime.Filtered.On.OnToken, true, Token(SqlTokenRegistry.On))
+                            .Add(JoinPrime.Filtered.On.OnKeyword, true, Token(SqlTokenRegistry.On))
                             .Add(JoinPrime.Filtered.On.FilterList, true, Expression(FilterList.Name)))
                         .Add(JoinPrime.Filtered.JoinPrime, true, Expression(JoinPrime.Name)))
                     .Add(JoinPrime.Cross.Name, Define()
                         .Add(JoinPrime.Cross.JoinType, true, Token(SqlTokenRegistry.CrossJoin))
-                        .Add(JoinPrime.Cross.JoinItem, true, Expression(JoinItem.Name)))
+                        .Add(JoinPrime.Cross.JoinItem, true, Expression(JoinItem.Name))
+                        .Add(JoinPrime.Cross.JoinPrime, true, Expression(JoinPrime.Name)))
                     .Add(JoinPrime.Empty, Define()));
         }
 
@@ -1459,12 +1465,12 @@ namespace SQLGeneration.Parsing
         {
             Define(FilterList.Name)
                 .Add(true, Options()
+                    .Add(FilterList.Multiple, Expression(OrFilter.Name))
                     .Add(FilterList.Wrapped.Name, Define()
                         .Add(FilterList.Wrapped.Not, false, Token(SqlTokenRegistry.Not))
                         .Add(FilterList.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(FilterList.Wrapped.FilterList, true, Expression(FilterList.Name))
-                        .Add(FilterList.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
-                    .Add(FilterList.Multiple, Expression(OrConjunction.Name)));
+                        .Add(FilterList.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))));
         }
 
         #endregion
@@ -1613,7 +1619,7 @@ namespace SQLGeneration.Parsing
                 /// <summary>
                 /// Gets the identifier indicating whether to negate the results of the comparison.
                 /// </summary>
-                public const string Not = "not";
+                public const string NotKeyword = "not";
 
                 /// <summary>
                 /// Gets the identifier for the LIKE keyword.
@@ -1649,12 +1655,12 @@ namespace SQLGeneration.Parsing
                 /// <summary>
                 /// Gets the identifier for the NOT keyword.
                 /// </summary>
-                public const string Not = "not";
+                public const string NotKeyword = "not";
 
                 /// <summary>
                 /// Gets the identifier for the NULL keyword.
                 /// </summary>
-                public const string Null = "null";
+                public const string NullKeyword = "null";
             }
 
             /// <summary>
@@ -1675,7 +1681,7 @@ namespace SQLGeneration.Parsing
                 /// <summary>
                 /// Gets the identifier for the NOT keyword.
                 /// </summary>
-                public const string Not = "not";
+                public const string NotKeyword = "not";
 
                 /// <summary>
                 /// Gets the identifier for the IN keyword.
@@ -1683,24 +1689,61 @@ namespace SQLGeneration.Parsing
                 public const string InKeyword = "in";
 
                 /// <summary>
-                /// Gets the identifier for the left parenthesis token.
+                /// Describes the structure of a values list.
                 /// </summary>
-                public const string LeftParenthesis = "left_parenthesis";
+                public static class Values
+                {
+                    /// <summary>
+                    /// Gets the identifier indicating that the source is a value list.
+                    /// </summary>
+                    public const string Name = "Values";
+
+                    /// <summary>
+                    /// Gets the identifier for the left parenthesis token.
+                    /// </summary>
+                    public const string LeftParenthesis = "left_parenthesis";
+
+                    /// <summary>
+                    /// Gets the identifier indicating that the values come from a list of values.
+                    /// </summary>
+                    public const string ValueList = "value_list";
+
+                    /// <summary>
+                    /// Gets the identifier for the right parenthesis.
+                    /// </summary>
+                    public const string RightParenthesis = "right_parenthesis";
+                }
 
                 /// <summary>
-                /// Gets the identifier indicating that the values come from a SELECT expression.
+                /// Describes the structure a select source.
                 /// </summary>
-                public const string SelectExpression = "select_expression";
+                public static class Select
+                {
+                    /// <summary>
+                    /// Gets the identifier indicating that the source is a SELECT expression.
+                    /// </summary>
+                    public const string Name = "Select";
+
+                    /// <summary>
+                    /// Gets the identifier for the left parenthesis token.
+                    /// </summary>
+                    public const string LeftParenthesis = "left_parenthesis";
+
+                    /// <summary>
+                    /// Gets the identifier indicating that the values come from a SELECT expression.
+                    /// </summary>
+                    public const string SelectExpression = "select_expression";
+
+                    /// <summary>
+                    /// Gets the identifier for the right parenthesis.
+                    /// </summary>
+                    public const string RightParenthesis = "right_parenthesis";
+                }
 
                 /// <summary>
-                /// Gets the identifier indicating that the values come from a list of values.
+                /// Gets the identifier indicating that the values come from a function call.
                 /// </summary>
-                public const string ValueList = "value_list";
-
-                /// <summary>
-                /// Gets the identifier for the right parenthesis.
-                /// </summary>
-                public const string RightParenthesis = "right_parenthesis";
+                public const string FunctionCall = "function_call";
             }
         }
 
@@ -1716,35 +1759,40 @@ namespace SQLGeneration.Parsing
                         .Add(Filter.Not.NotKeyword, true, Token(SqlTokenRegistry.Not))
                         .Add(Filter.Not.Filter, true, Expression(Filter.Name)))
                     .Add(Filter.Order.Name, Define()
-                        .Add(Filter.Order.Left, true, Expression(Item.Name))
+                        .Add(Filter.Order.Left, true, Expression(ArithmeticItem.Name))
                         .Add(Filter.Order.ComparisonOperator, true, Expression(ComparisonOperator.Name))
-                        .Add(Filter.Order.Right, true, Expression(Item.Name)))
+                        .Add(Filter.Order.Right, true, Expression(ArithmeticItem.Name)))
                     .Add(Filter.Between.Name, Define()
-                        .Add(Filter.Between.Expression, true, Expression(Item.Name))
+                        .Add(Filter.Between.Expression, true, Expression(ArithmeticItem.Name))
                         .Add(Filter.Between.Not, false, Token(SqlTokenRegistry.Not))
                         .Add(Filter.Between.BetweenKeyword, true, Token(SqlTokenRegistry.Between))
-                        .Add(Filter.Between.LowerBound, true, Expression(Item.Name))
+                        .Add(Filter.Between.LowerBound, true, Expression(ArithmeticItem.Name))
                         .Add(Filter.Between.And, true, Token(SqlTokenRegistry.And))
-                        .Add(Filter.Between.UpperBound, true, Expression(Item.Name)))
+                        .Add(Filter.Between.UpperBound, true, Expression(ArithmeticItem.Name)))
                     .Add(Filter.Like.Name, Define()
-                        .Add(Filter.Like.Expression, true, Expression(Item.Name))
-                        .Add(Filter.Like.Not, false, Token(SqlTokenRegistry.Not))
+                        .Add(Filter.Like.Expression, true, Expression(ArithmeticItem.Name))
+                        .Add(Filter.Like.NotKeyword, false, Token(SqlTokenRegistry.Not))
                         .Add(Filter.Like.LikeKeyword, true, Token(SqlTokenRegistry.Like))
                         .Add(Filter.Like.Value, true, Token(SqlTokenRegistry.String)))
                     .Add(Filter.Is.Name, Define()
-                        .Add(Filter.Is.Expression, true, Expression(Item.Name))
+                        .Add(Filter.Is.Expression, true, Expression(ArithmeticItem.Name))
                         .Add(Filter.Is.IsKeyword, true, Token(SqlTokenRegistry.Is))
-                        .Add(Filter.Is.Not, false, Token(SqlTokenRegistry.Not))
-                        .Add(Filter.Is.Null, true, Token(SqlTokenRegistry.Null)))
+                        .Add(Filter.Is.NotKeyword, false, Token(SqlTokenRegistry.Not))
+                        .Add(Filter.Is.NullKeyword, true, Token(SqlTokenRegistry.Null)))
                     .Add(Filter.In.Name, Define()
-                        .Add(Filter.In.Expression, true, Expression(Item.Name))
-                        .Add(Filter.In.Not, false, Token(SqlTokenRegistry.Not))
+                        .Add(Filter.In.Expression, true, Expression(ArithmeticItem.Name))
+                        .Add(Filter.In.NotKeyword, false, Token(SqlTokenRegistry.Not))
                         .Add(Filter.In.InKeyword, true, Token(SqlTokenRegistry.In))
-                        .Add(Filter.In.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
-                        .Add(false, Options()
-                            .Add(Filter.In.SelectExpression, Expression(SelectExpression.Name))
-                            .Add(Filter.In.ValueList, Expression(ValueList.Name)))
-                        .Add(Filter.In.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))));
+                        .Add(true, Options()
+                            .Add(Filter.In.Values.Name, Define()
+                                .Add(Filter.In.Values.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
+                                .Add(Filter.In.Values.ValueList, false, Expression(ValueList.Name))
+                                .Add(Filter.In.Values.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
+                            .Add(Filter.In.Select.Name, Define()
+                                .Add(Filter.In.Select.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
+                                .Add(Filter.In.Select.SelectExpression, true, Expression(SelectExpression.Name))
+                                .Add(Filter.In.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
+                            .Add(Filter.In.FunctionCall, Expression(FunctionCall.Name)))));
         }
 
         #endregion
@@ -1806,17 +1854,17 @@ namespace SQLGeneration.Parsing
 
         #endregion
 
-        #region OrConjunction
+        #region OrFilter
 
         /// <summary>
         /// Describes the structure of two filters OR'd together.
         /// </summary>
-        public static class OrConjunction
+        public static class OrFilter
         {
             /// <summary>
             /// Gets the identifier indicating that two filters are OR'd together.
             /// </summary>
-            public const string Name = "OrConjunction";
+            public const string Name = "OrFilter";
 
             /// <summary>
             /// Gets the identifier indicating that two filter are OR'd together.
@@ -1852,28 +1900,28 @@ namespace SQLGeneration.Parsing
 
         private void defineOrConjunction()
         {
-            Define(OrConjunction.Name)
+            Define(OrFilter.Name)
                 .Add(true, Options()
-                    .Add(OrConjunction.Multiple.Name, Define()
-                        .Add(OrConjunction.Multiple.First, true, Expression(AndConjunction.Name))
-                        .Add(OrConjunction.Multiple.Or, true, Token(SqlTokenRegistry.Or))
-                        .Add(OrConjunction.Multiple.Remaining, true, Expression(OrConjunction.Name)))
-                    .Add(OrConjunction.Single, Expression(AndConjunction.Name)));
+                    .Add(OrFilter.Multiple.Name, Define()
+                        .Add(OrFilter.Multiple.First, true, Expression(AndFilter.Name))
+                        .Add(OrFilter.Multiple.Or, true, Token(SqlTokenRegistry.Or))
+                        .Add(OrFilter.Multiple.Remaining, true, Expression(OrFilter.Name)))
+                    .Add(OrFilter.Single, Expression(AndFilter.Name)));
         }
 
         #endregion
 
-        #region AndConjunction
+        #region AndFilter
 
         /// <summary>
         /// Describes the structure of two filters AND'd together.
         /// </summary>
-        public static class AndConjunction
+        public static class AndFilter
         {
             /// <summary>
             /// Gets the identifier indicating that two filters are AND'd together.
             /// </summary>
-            public const string Name = "AndConjunction";
+            public const string Name = "AndFilter";
 
             /// <summary>
             /// Gets the identifier indicating that two filter are AND'd together.
@@ -1909,13 +1957,13 @@ namespace SQLGeneration.Parsing
 
         private void defineAndConjunction()
         {
-            Define(AndConjunction.Name)
+            Define(AndFilter.Name)
                 .Add(true, Options()
-                    .Add(AndConjunction.Multiple.Name, Define()
-                        .Add(AndConjunction.Multiple.First, true, Expression(Filter.Name))
-                        .Add(AndConjunction.Multiple.And, true, Token(SqlTokenRegistry.And))
-                        .Add(AndConjunction.Multiple.Remaining, true, Expression(AndConjunction.Name)))
-                    .Add(AndConjunction.Single, Expression(Filter.Name)));
+                    .Add(AndFilter.Multiple.Name, Define()
+                        .Add(AndFilter.Multiple.First, true, Expression(Filter.Name))
+                        .Add(AndFilter.Multiple.And, true, Token(SqlTokenRegistry.And))
+                        .Add(AndFilter.Multiple.Remaining, true, Expression(AndFilter.Name)))
+                    .Add(AndFilter.Single, Expression(Filter.Name)));
         }
 
         #endregion
@@ -1969,10 +2017,10 @@ namespace SQLGeneration.Parsing
             Define(ValueList.Name)
                 .Add(true, Options()
                     .Add(ValueList.Multiple.Name, Define()
-                        .Add(ValueList.Multiple.First, true, Expression(Item.Name))
+                        .Add(ValueList.Multiple.First, true, Expression(ArithmeticItem.Name))
                         .Add(ValueList.Multiple.Comma, true, Token(SqlTokenRegistry.Comma))
                         .Add(ValueList.Multiple.Remaining, true, Expression(ValueList.Name)))
-                    .Add(ValueList.Single, Expression(Item.Name)));
+                    .Add(ValueList.Single, Expression(ArithmeticItem.Name)));
         }
 
         #endregion
@@ -2026,67 +2074,36 @@ namespace SQLGeneration.Parsing
             Define(GroupByList.Name)
                 .Add(true, Options()
                     .Add(SqlGrammar.GroupByList.Multiple.Name, Define()
-                        .Add(SqlGrammar.GroupByList.Multiple.First, true, Expression(Item.Name))
+                        .Add(SqlGrammar.GroupByList.Multiple.First, true, Expression(ArithmeticItem.Name))
                         .Add(SqlGrammar.GroupByList.Multiple.Comma, true, Token(SqlTokenRegistry.Comma))
                         .Add(SqlGrammar.GroupByList.Multiple.Remaining, true, Expression(GroupByList.Name)))
-                    .Add(SqlGrammar.GroupByList.Single, Expression(Item.Name)));
+                    .Add(SqlGrammar.GroupByList.Single, Expression(ArithmeticItem.Name)));
         }
 
         #endregion
 
-        #region NonArithmeticItem
+        #region ArithmeticItem
 
         /// <summary>
-        /// Describes the structure of an item that is non-arithmetic.
+        /// Describes the structure of an item that can be an arithmetic expression.
         /// </summary>
-        public static class NonArithmeticItem
+        public static class ArithmeticItem
         {
             /// <summary>
-            /// Gets the name identifying the item.
+            /// The identifier indicating that the item can be an arithmetic expression.
             /// </summary>
-            public const string Name = "NonArithmeticItem";
+            public const string Name = "ArithmeticItem";
 
             /// <summary>
-            /// Gets the identifier indicating that the item is a column.
+            /// Gets the identifier indicating that the item is an arithmetic expression.
             /// </summary>
-            public const string Column = "column";
-
-            /// <summary>
-            /// Gets the identifier indicating that the item is a function call.
-            /// </summary>
-            public const string FunctionCall = "function_call";
-
-            /// <summary>
-            /// Gets the identifier indicating that the item is a select statement.
-            /// </summary>
-            public const string SelectStatement = "select_statement";
-
-            /// <summary>
-            /// Gets the identifier indicating that the item is a number.
-            /// </summary>
-            public const string Number = "number";
-
-            /// <summary>
-            /// Gets the identifier indicating that the item is a string.
-            /// </summary>
-            public const string String = "string";
-
-            /// <summary>
-            /// Gets the identifier indicating that the item is a null.
-            /// </summary>
-            public const string Null = "null";
+            public const string ArithmeticExpression = "arithmetic_expression";
         }
 
-        private void defineNonArithmeticItem()
+        private void defineArithmeticItem()
         {
-            Define(NonArithmeticItem.Name)
-                .Add(true, Options()
-                    .Add(NonArithmeticItem.FunctionCall, Expression(FunctionCall.Name))
-                    .Add(NonArithmeticItem.Column, Expression(MultipartIdentifier.Name))
-                    .Add(NonArithmeticItem.SelectStatement, Expression(SelectStatement.Name))
-                    .Add(NonArithmeticItem.Number, Token(SqlTokenRegistry.Number))
-                    .Add(NonArithmeticItem.String, Token(SqlTokenRegistry.String))
-                    .Add(NonArithmeticItem.Null, Token(SqlTokenRegistry.Null)));
+            Define(ArithmeticItem.Name)
+                .Add(ArithmeticItem.ArithmeticExpression, true, Expression(AdditiveExpression.Name));
         }
 
         #endregion
@@ -2112,11 +2129,6 @@ namespace SQLGeneration.Parsing
             /// Gets the identifier indicating that the item is a function call.
             /// </summary>
             public const string FunctionCall = "function_call";
-
-            /// <summary>
-            /// Gets the identifier indicating that the item is an arithmetic expression.
-            /// </summary>
-            public const string ArithmeticExpression = "arithmetic_expression";
 
             /// <summary>
             /// Gets the identifier indicating that the item is a select statement.
@@ -2145,6 +2157,11 @@ namespace SQLGeneration.Parsing
             }
 
             /// <summary>
+            /// Gets the identifier indicating that the item is a number.
+            /// </summary>
+            public const string Number = "number";
+
+            /// <summary>
             /// Gets the identifier indicating that the item is a string.
             /// </summary>
             public const string String = "string";
@@ -2159,15 +2176,15 @@ namespace SQLGeneration.Parsing
         {
             Define(Item.Name)
                 .Add(true, Options()
-                    .Add(Item.FunctionCall, Expression(FunctionCall.Name))
-                    .Add(Item.Column, Expression(MultipartIdentifier.Name))
+                    .Add(Item.Number, Token(SqlTokenRegistry.Number))
                     .Add(Item.String, Token(SqlTokenRegistry.String))
                     .Add(Item.Null, Token(SqlTokenRegistry.Null))
+                    .Add(Item.FunctionCall, Expression(FunctionCall.Name))
+                    .Add(Item.Column, Expression(MultipartIdentifier.Name))
                     .Add(Item.Select.Name, Define()
                         .Add(Item.Select.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(Item.Select.SelectStatement, true, Expression(SelectStatement.Name))
-                        .Add(Item.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
-                    .Add(Item.ArithmeticExpression, Expression(AdditiveExpression.Name)));
+                        .Add(Item.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))));
         }
 
         #endregion
@@ -2571,7 +2588,7 @@ namespace SQLGeneration.Parsing
             Define(Setter.Name)
                 .Add(Setter.Column, true, Expression(MultipartIdentifier.Name))
                 .Add(Setter.Assignment, true, Token(SqlTokenRegistry.EqualTo))
-                .Add(Setter.Value, true, Expression(Item.Name));
+                .Add(Setter.Value, true, Expression(ArithmeticItem.Name));
         }
 
         #endregion

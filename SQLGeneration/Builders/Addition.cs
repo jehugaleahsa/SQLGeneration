@@ -3,16 +3,16 @@
 namespace SQLGeneration.Builders
 {
     /// <summary>
-    /// Represents the multiplication of two items in a command.
+    /// Represents the addition of two items in a command.
     /// </summary>
-    public class MultiplyExpression : ArithmeticExpression
+    public class Addition : ArithmeticExpression
     {
         /// <summary>
-        /// Initializes a new instance of a MultiplyExpression.
+        /// Initializes a new instance of a Addition.
         /// </summary>
         /// <param name="leftHand">The left hand side of the expression.</param>
         /// <param name="rightHand">The right hand side of the expression.</param>
-        public MultiplyExpression(IProjectionItem leftHand, IProjectionItem rightHand)
+        public Addition(IProjectionItem leftHand, IProjectionItem rightHand)
             : base(leftHand, rightHand)
         {
         }
@@ -24,8 +24,7 @@ namespace SQLGeneration.Builders
         /// <returns>The token representing the arithmetic operator.</returns>
         protected override string GetOperator(CommandOptions options)
         {
-            // <Left> "*" <Right>
-            return "*";
+            return "+";
         }
     }
 }

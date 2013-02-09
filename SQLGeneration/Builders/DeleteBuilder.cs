@@ -84,10 +84,12 @@ namespace SQLGeneration.Builders
 
         private IEnumerable<string> getCommandTokens(CommandOptions options)
         {
-            // <DeleteCommand> => "DELETE" [ "FROM" ] <Source> [ "WHERE" <Filter> ]
             TokenStream stream = new TokenStream();
             stream.Add("DELETE");
-            stream.Add("FROM");
+            if (options.VerboseDeleteStatement)
+            {
+                stream.Add("FROM");
+            }
             stream.AddRange(((IJoinItem)_table).GetDeclarationTokens(options));
             if (_where.HasFilters)
             {

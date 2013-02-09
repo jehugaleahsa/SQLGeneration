@@ -14,6 +14,7 @@ namespace SQLGeneration.Builders
         {
             AliasProjectionsUsingAs = true;
             WrapArithmeticExpressionsInParentheses = true;
+            VerboseDeleteStatement = true;
             VerboseInnerJoin = true;
             VerboseOuterJoin = true;
         }
@@ -71,6 +72,11 @@ namespace SQLGeneration.Builders
         /// Gets or sets whether to wrap joins in parentheses by default.
         /// </summary>
         public bool WrapJoinsInParentheses { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether DELETE statements should print the FROM keyword.
+        /// </summary>
+        public bool VerboseDeleteStatement { get; set; }
 
         /// <summary>
         /// Gets or sets whether inner joins should specify INNER explicitly.

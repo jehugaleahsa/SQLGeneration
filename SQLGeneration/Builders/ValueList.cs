@@ -94,9 +94,9 @@ namespace SQLGeneration.Builders
             }
         }
 
-        bool IValueProvider.IsQuery
+        bool IValueProvider.IsValueList
         {
-            get { return false; }
+            get { return true; }
         }
     }
 }

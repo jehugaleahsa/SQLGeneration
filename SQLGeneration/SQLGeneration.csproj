@@ -42,14 +42,15 @@
     <Compile Include="Builders\ArithmeticExpression.cs" />
     <Compile Include="Builders\BetweenFilter.cs" />
     <Compile Include="Builders\Column.cs" />
-    <Compile Include="Generators\SimpleFormatter.cs" />
+    <Compile Include="Builders\DistinctQualifierConverter.cs" />
+    <Compile Include="Generators\Formatter.cs" />
     <Compile Include="Builders\OrderFilter.cs" />
     <Compile Include="Builders\CommandOptions.cs" />
     <Compile Include="Builders\ConjunctionConverter.cs" />
     <Compile Include="Builders\Except.cs" />
     <Compile Include="Builders\CrossJoin.cs" />
     <Compile Include="Builders\DeleteBuilder.cs" />
-    <Compile Include="Builders\DivideExpression.cs" />
+    <Compile Include="Builders\Division.cs" />
     <Compile Include="Builders\FilteredJoin.cs" />
     <Compile Include="Builders\IArithmetic.cs" />
     <Compile Include="Builders\ICommand.cs" />
@@ -106,8 +107,8 @@
     <Compile Include="Builders\LessThanFilter.cs" />
     <Compile Include="Builders\LikeFilter.cs" />
     <Compile Include="Builders\Minus.cs" />
-    <Compile Include="Builders\MinusExpression.cs" />
-    <Compile Include="Builders\MultiplyExpression.cs" />
+    <Compile Include="Builders\Subtraction.cs" />
+    <Compile Include="Builders\Multiplication.cs" />
     <Compile Include="Builders\NotEqualToFilter.cs" />
     <Compile Include="Builders\NullFilter.cs" />
     <Compile Include="Builders\NullLiteral.cs" />
@@ -115,7 +116,7 @@
     <Compile Include="Builders\NumericLiteral.cs" />
     <Compile Include="Builders\OrderBy.cs" />
     <Compile Include="Builders\OrderConverter.cs" />
-    <Compile Include="Builders\PlusExpression.cs" />
+    <Compile Include="Builders\Addition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

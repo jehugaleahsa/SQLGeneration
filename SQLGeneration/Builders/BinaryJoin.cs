@@ -30,15 +30,6 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets or sets whether the join should be wrapped in parentheses.
-        /// </summary>
-        public bool? WrapInParentheses
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Gets the item on the left hand side of the join.
         /// </summary>
         public Join LeftHand
@@ -64,18 +55,10 @@ namespace SQLGeneration.Builders
         internal override IEnumerable<string> GetDeclarationTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            if (WrapInParentheses ?? options.WrapJoinsInParentheses)
-            {
-                stream.Add("(");
-            }
             stream.AddRange(LeftHand.GetDeclarationTokens(options));
             stream.Add(GetJoinType(options));
             stream.AddRange(((IJoinItem)RightHand).GetDeclarationTokens(options));
             stream.AddRange(GetOnTokens(options));
-            if (WrapInParentheses ?? options.WrapJoinsInParentheses)
-            {
-                stream.Add(")");
-            }
             return stream;
         }
 

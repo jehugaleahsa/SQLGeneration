@@ -47,7 +47,7 @@ namespace SQLGeneration.Builders
         {
             TokenStream stream = new TokenStream();
             stream.AddRange(ProjectionItem.GetProjectionTokens(options));
-            if (!String.IsNullOrWhiteSpace(Alias))
+            if (!String.IsNullOrWhiteSpace(Alias) && !(ProjectionItem is AllColumns))
             {
                 if (options.AliasProjectionsUsingAs)
                 {

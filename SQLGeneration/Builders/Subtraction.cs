@@ -5,14 +5,14 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Represents the substraction of two items in a command.
     /// </summary>
-    public class MinusExpression : ArithmeticExpression
+    public class Subtraction : ArithmeticExpression
     {
         /// <summary>
-        /// Initializes a new instance of a MinusExpression.
+        /// Initializes a new instance of a Subtraction.
         /// </summary>
         /// <param name="leftHand">The left hand side of the expression.</param>
         /// <param name="rightHand">The right hand side of the expression.</param>
-        public MinusExpression(IProjectionItem leftHand, IProjectionItem rightHand)
+        public Subtraction(IProjectionItem leftHand, IProjectionItem rightHand)
             : base(leftHand, rightHand)
         {
         }
@@ -24,7 +24,6 @@ namespace SQLGeneration.Builders
         /// <returns>The token representing the arithmetic operator.</returns>
         protected override string GetOperator(CommandOptions options)
         {
-            // <Left> "-" <Right>
             return "-";
         }
     }
