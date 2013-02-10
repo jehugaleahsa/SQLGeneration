@@ -8,7 +8,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Represents a literal string.
     /// </summary>
-    public class StringLiteral : IProjectionItem, IFilterItem, IGroupByItem
+    public class StringLiteral : Literal
     {
         /// <summary>
         /// Initializes a new instance of a StringLiteral.
@@ -36,24 +36,13 @@ namespace SQLGeneration.Builders
             set;
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
+        /// <summary>
+        /// Gets a string representing the item.
+        /// </summary>
+        /// <param name="options">The configuration to use when building the command.</param>
+        /// <returns>The generated text.</returns>
+        protected override IEnumerable<string> GetTokens(CommandOptions options)
         {
-            return getStringToken();
-        }
-
-        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
-        {
-            return getStringToken();
-        }
-
-        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
-        {
-            return getStringToken();
-        }
-
-        private IEnumerable<string> getStringToken()
-        {
-            // "'" .* "'"
             StringBuilder result = new StringBuilder();
             result.Append("'");
             if (Value != null)
@@ -64,11 +53,6 @@ namespace SQLGeneration.Builders
             TokenStream stream = new TokenStream();
             stream.Add(result.ToString());
             return stream;
-        }
-
-        string IProjectionItem.GetProjectionName()
-        {
-            return null;
         }
     }
 }

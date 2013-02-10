@@ -61,8 +61,7 @@ namespace SQLGeneration.Parsing
         /// </summary>
         /// <param name="expressionType">The type of the expression to start parsing.</param>
         /// <param name="tokenSource">The source of tokens.</param>
-        /// <param name="context">The initial context to pass to the expression handlers.</param>
-        public MatchResult Parse(string expressionType, ITokenSource tokenSource, object context)
+        public MatchResult Parse(string expressionType, ITokenSource tokenSource)
         {
             if (tokenSource == null)
             {

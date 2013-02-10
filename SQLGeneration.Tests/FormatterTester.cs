@@ -52,7 +52,7 @@ namespace SQLGeneration.Tests
         {
             SelectBuilder builder = new SelectBuilder();
             builder.AddProjection(new NumericLiteral(1));
-            UnionAll union = new UnionAll(builder, builder);
+            Union union = new Union(builder, builder) { Distinct = DistinctQualifier.All };
             Formatter formatter = new Formatter();
             string commandText = formatter.GetCommandText(union);
             string expected = "SELECT 1 UNION ALL SELECT 1";
@@ -785,6 +785,80 @@ namespace SQLGeneration.Tests
             Formatter formatter = new Formatter();
             string commandText = formatter.GetCommandText(builder);
             string expected = "SELECT Table.Column FROM Table WHERE Table.Column IN GetData()";
+            Assert.AreEqual(expected, commandText, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// This sees whether we can use an EXISTS filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_ExistsFilter()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource table = builder.AddTable(new Table("Table"));
+            builder.AddProjection(table.Column("Column"));
+            SelectBuilder inner = new SelectBuilder();
+            inner.AddProjection(new NumericLiteral(1));
+            ExistsFilter filter = new ExistsFilter(inner);
+            builder.AddWhere(filter);
+            Formatter formatter = new Formatter();
+            string commandText = formatter.GetCommandText(builder);
+            string expected = "SELECT Table.Column FROM Table WHERE EXISTS(SELECT 1)";
+            Assert.AreEqual(expected, commandText, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// This sees whether we can use an equality quantifier.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_All_Select()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource table = builder.AddTable(new Table("Table"));
+            builder.AddProjection(table.Column("Column"));
+            SelectBuilder inner = new SelectBuilder();
+            inner.AddProjection(new NumericLiteral(1));
+            EqualToQuantifierFilter filter = new EqualToQuantifierFilter(table.Column("Column"), Quantifier.All, inner);
+            builder.AddWhere(filter);
+            Formatter formatter = new Formatter();
+            string commandText = formatter.GetCommandText(builder);
+            string expected = "SELECT Table.Column FROM Table WHERE Table.Column = ALL (SELECT 1)";
+            Assert.AreEqual(expected, commandText, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// This sees whether we can use a inequality quantifier with a value list.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Any_ValueList()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource table = builder.AddTable(new Table("Table"));
+            builder.AddProjection(table.Column("Column"));
+            ValueList values = new ValueList(new NumericLiteral(1), new NumericLiteral(2), new NumericLiteral(3));
+            NotEqualToQuantifierFilter filter = new NotEqualToQuantifierFilter(table.Column("Column"), Quantifier.Any, values);
+            builder.AddWhere(filter);
+            Formatter formatter = new Formatter();
+            string commandText = formatter.GetCommandText(builder);
+            string expected = "SELECT Table.Column FROM Table WHERE Table.Column <> ANY (1, 2, 3)";
+            Assert.AreEqual(expected, commandText, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// This sees whether we can use a inequality quantifier with a value list.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Some()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource table = builder.AddTable(new Table("Table"));
+            builder.AddProjection(table.Column("Column"));
+            ValueList values = new ValueList(new NumericLiteral(1), new NumericLiteral(2), new NumericLiteral(3));
+            LessThanQuantifierFilter filter = new LessThanQuantifierFilter(table.Column("Column"), Quantifier.Some, values);
+            builder.AddWhere(filter);
+            Formatter formatter = new Formatter();
+            string commandText = formatter.GetCommandText(builder);
+            string expected = "SELECT Table.Column FROM Table WHERE Table.Column < SOME (1, 2, 3)";
             Assert.AreEqual(expected, commandText, "The wrong SQL was generated.");
         }
 

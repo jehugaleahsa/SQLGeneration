@@ -8,7 +8,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Represents a numeric literal.
     /// </summary>
-    public class NumericLiteral : IArithmetic, IProjectionItem, IFilterItem, IGroupByItem
+    public class NumericLiteral : Literal, IArithmetic
     {
         /// <summary>
         /// Initializes a new instance of a NumericLiteral.
@@ -35,31 +35,16 @@ namespace SQLGeneration.Builders
             set;
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
-        {
-            return getNumberToken();
-        }
-
-        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
-        {
-            return getNumberToken();
-        }
-
-        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
-        {
-            return getNumberToken();
-        }
-
-        private IEnumerable<string> getNumberToken()
+        /// <summary>
+        /// Gets a string representing the item.
+        /// </summary>
+        /// <param name="options">The configuration to use when building the command.</param>
+        /// <returns>The generated text.</returns>
+        protected override IEnumerable<string> GetTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             stream.Add(Value.ToString(CultureInfo.InvariantCulture));
             return stream;
-        }
-
-        string IProjectionItem.GetProjectionName()
-        {
-            return null;
         }
     }
 }

@@ -198,6 +198,9 @@
   <data name="UnknownOrder" xml:space="preserve">
     <value>Encountered an unknown ordering.</value>
   </data>
+  <data name="UnknownQuantifier" xml:space="preserve">
+    <value>Encountered an unknown quantifier.</value>
+  </data>
   <data name="UnknownSource" xml:space="preserve">
     <value>An attempt was made to retrieve an unknown table or select statement.</value>
   </data>

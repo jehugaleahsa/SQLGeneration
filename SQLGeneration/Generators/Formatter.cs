@@ -10,7 +10,7 @@ namespace SQLGeneration.Generators
     /// <summary>
     /// Generates simple SQL from a token source.
     /// </summary>
-    public sealed class Formatter : SqlResponder
+    public sealed class Formatter : SqlGenerator
     {
         /// <summary>
         /// Initializes a new instance of a SimpleFormatter.
@@ -45,7 +45,7 @@ namespace SQLGeneration.Generators
             StringBuilder builder = new StringBuilder();
             using (StringWriter writer = new StringWriter(builder))
             {
-                MatchResult result = GetResult(tokenSource, writer);
+                MatchResult result = GetResult(tokenSource);
                 buildStart(result, writer);
             }
             return builder.ToString();
@@ -117,6 +117,12 @@ namespace SQLGeneration.Generators
                 MatchResult combiner = remaining.Matches[SqlGrammar.SelectExpression.Remaining.Combiner];
                 buildSelectCombiner(combiner, writer);
                 writer.Write(' ');
+                MatchResult distinctQualifier = remaining.Matches[SqlGrammar.SelectExpression.Remaining.DistinctQualifier];
+                if (distinctQualifier.IsMatch)
+                {
+                    buildDistinctQualifier(distinctQualifier, writer);
+                    writer.Write(' ');
+                }
                 MatchResult selectExpression = remaining.Matches[SqlGrammar.SelectExpression.Remaining.SelectExpression];
                 buildSelectExpression(selectExpression, writer);
             }
@@ -443,12 +449,6 @@ namespace SQLGeneration.Generators
 
         private void buildSelectCombiner(MatchResult result, TextWriter writer)
         {
-            MatchResult unionAll = result.Matches[SqlGrammar.SelectCombiner.UnionAll];
-            if (unionAll.IsMatch)
-            {
-                writeToken(unionAll, writer);
-                return;
-            }
             MatchResult union = result.Matches[SqlGrammar.SelectCombiner.Union];
             if (union.IsMatch)
             {
@@ -837,6 +837,34 @@ namespace SQLGeneration.Generators
                 buildFilter(filter, writer);
                 return;
             }
+            MatchResult quantify = result.Matches[SqlGrammar.Filter.Quantify.Name];
+            if (quantify.IsMatch)
+            {
+                MatchResult expression = quantify.Matches[SqlGrammar.Filter.Quantify.Expression];
+                buildArithmeticItem(expression, writer);
+                writer.Write(' ');
+                MatchResult comparison = quantify.Matches[SqlGrammar.Filter.Quantify.ComparisonOperator];
+                buildComparisonOperator(comparison, writer);
+                writer.Write(' ');
+                MatchResult quantifier = quantify.Matches[SqlGrammar.Filter.Quantify.Quantifier];
+                buildQuantifier(quantifier, writer);
+                writer.Write(' ');
+                MatchResult leftParenthesis = quantify.Matches[SqlGrammar.Filter.Quantify.LeftParenthesis];
+                writeToken(leftParenthesis, writer);
+                MatchResult valueList = quantify.Matches[SqlGrammar.Filter.Quantify.ValueList];
+                if (valueList.IsMatch)
+                {
+                    buildValueList(valueList, writer);
+                }
+                MatchResult select = quantify.Matches[SqlGrammar.Filter.Quantify.SelectExpression];
+                if (select.IsMatch)
+                {
+                    buildSelectExpression(select, writer);
+                }
+                MatchResult rightParenthesis = quantify.Matches[SqlGrammar.Filter.Quantify.RightParenthesis];
+                writeToken(rightParenthesis, writer);
+                return;
+            }
             MatchResult order = result.Matches[SqlGrammar.Filter.Order.Name];
             if (order.IsMatch)
             {
@@ -914,6 +942,7 @@ namespace SQLGeneration.Generators
                 return;
             }
             MatchResult inResult = result.Matches[SqlGrammar.Filter.In.Name];
+            if (inResult.IsMatch)
             {
                 MatchResult expression = inResult.Matches[SqlGrammar.Filter.In.Expression];
                 buildArithmeticItem(expression, writer);
@@ -955,6 +984,41 @@ namespace SQLGeneration.Generators
                 {
                     buildFunctionCall(functionCall, writer);
                 }
+                return;
+            }
+            MatchResult exists = result.Matches[SqlGrammar.Filter.Exists.Name];
+            if (exists.IsMatch)
+            {
+                MatchResult existsKeyword = exists.Matches[SqlGrammar.Filter.Exists.ExistsKeyword];
+                writeToken(existsKeyword, writer);
+                MatchResult leftParenthesis = exists.Matches[SqlGrammar.Filter.Exists.LeftParenthesis];
+                writeToken(leftParenthesis, writer);
+                MatchResult selectExpression = exists.Matches[SqlGrammar.Filter.Exists.SelectExpression];
+                buildSelectExpression(selectExpression, writer);
+                MatchResult rightParenthesis = exists.Matches[SqlGrammar.Filter.Exists.RightParenthesis];
+                writeToken(rightParenthesis, writer);
+                return;
+            }
+        }
+
+        private void buildQuantifier(MatchResult result, TextWriter writer)
+        {
+            MatchResult all = result.Matches[SqlGrammar.Quantifier.All];
+            if (all.IsMatch)
+            {
+                writeToken(all, writer);
+                return;
+            }
+            MatchResult any = result.Matches[SqlGrammar.Quantifier.Any];
+            if (any.IsMatch)
+            {
+                writeToken(any, writer);
+                return;
+            }
+            MatchResult some = result.Matches[SqlGrammar.Quantifier.Some];
+            if (some.IsMatch)
+            {
+                writeToken(some, writer);
                 return;
             }
         }

@@ -12,6 +12,6 @@ namespace SQLGeneration.Parsing
         /// </summary>
         /// <param name="tokenName">The name of the token to search for.</param>
         /// <returns>True if the token has been registered; otherwise, false.</returns>
-        bool Exists(string tokenName);
+        bool IsRegistered(string tokenName);
     }
 }

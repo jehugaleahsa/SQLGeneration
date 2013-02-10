@@ -304,6 +304,15 @@ namespace SQLGeneration.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Encountered an unknown quantifier..
+        /// </summary>
+        internal static string UnknownQuantifier {
+            get {
+                return ResourceManager.GetString("UnknownQuantifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An attempt was made to retrieve an unknown table or select statement..
         /// </summary>
         internal static string UnknownSource {

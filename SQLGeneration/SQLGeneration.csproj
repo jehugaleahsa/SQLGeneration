@@ -42,7 +42,18 @@
     <Compile Include="Builders\ArithmeticExpression.cs" />
     <Compile Include="Builders\BetweenFilter.cs" />
     <Compile Include="Builders\Column.cs" />
+    <Compile Include="Builders\NotEqualToQuantifierFilter.cs" />
+    <Compile Include="Builders\LessThanQuantifierFilter.cs" />
+    <Compile Include="Builders\LessThanEqualToQuantifierFilter.cs" />
+    <Compile Include="Builders\GreaterThanQuantifierFilter.cs" />
+    <Compile Include="Builders\GreaterThanEqualToQuantifierFilter.cs" />
     <Compile Include="Builders\DistinctQualifierConverter.cs" />
+    <Compile Include="Builders\EqualToQuantifierFilter.cs" />
+    <Compile Include="Builders\ExistsFilter.cs" />
+    <Compile Include="Builders\Literal.cs" />
+    <Compile Include="Builders\QuantifierFilter.cs" />
+    <Compile Include="Builders\QuantifierConverter.cs" />
+    <Compile Include="Generators\CommandBuilder.cs" />
     <Compile Include="Generators\Formatter.cs" />
     <Compile Include="Builders\OrderFilter.cs" />
     <Compile Include="Builders\CommandOptions.cs" />
@@ -72,7 +83,7 @@
     <Compile Include="Parsing\Options.cs" />
     <Compile Include="Parsing\Parser.cs" />
     <Compile Include="Parsing\SqlGrammar.cs" />
-    <Compile Include="Parsing\SqlResponder.cs" />
+    <Compile Include="Generators\SqlGenerator.cs" />
     <Compile Include="Parsing\SqlTokenRegistry.cs" />
     <Compile Include="Parsing\Token.cs" />
     <Compile Include="Parsing\TokenRegistry.cs" />
@@ -133,7 +144,6 @@
     <Compile Include="Builders\Table.cs" />
     <Compile Include="Builders\Top.cs" />
     <Compile Include="Builders\Union.cs" />
-    <Compile Include="Builders\UnionAll.cs" />
     <Compile Include="Builders\UpdateBuilder.cs" />
   </ItemGroup>
   <ItemGroup>

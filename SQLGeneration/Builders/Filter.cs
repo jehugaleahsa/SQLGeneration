@@ -27,7 +27,6 @@ namespace SQLGeneration.Builders
 
         IEnumerable<string> IFilter.GetFilterTokens(CommandOptions options)
         {
-            // <Filter> => [ "(" ] <Filter> [ ")" ]
             TokenStream stream = new TokenStream();
             bool wrapInParentheses = ShouldWrapInParentheses(options);
             if (wrapInParentheses)

@@ -56,7 +56,7 @@ namespace SQLGeneration.Parsing
         /// </summary>
         /// <param name="tokenName">The name of the token to search for.</param>
         /// <returns>True if the token has been registered; otherwise, false.</returns>
-        public bool Exists(string tokenName)
+        public bool IsRegistered(string tokenName)
         {
             return definitionLookup.ContainsKey(tokenName);
         }
@@ -192,7 +192,7 @@ namespace SQLGeneration.Parsing
             /// </returns>
             public TokenResult GetToken(string tokenName)
             {
-                if (!registry.Exists(tokenName))
+                if (!registry.IsRegistered(tokenName))
                 {
                     throw new ArgumentException(Resources.UnknownTokenType, "tokenName");
                 }

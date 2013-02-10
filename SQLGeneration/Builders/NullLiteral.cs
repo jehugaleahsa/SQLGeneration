@@ -7,7 +7,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Represents the literal NULL.
     /// </summary>
-    public class NullLiteral : IProjectionItem, IFilterItem, IGroupByItem
+    public class NullLiteral : Literal
     {
         /// <summary>
         /// Initializes a new instance of a NullLiteral.
@@ -16,32 +16,16 @@ namespace SQLGeneration.Builders
         {
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
+        /// <summary>
+        /// Gets a string representing the item.
+        /// </summary>
+        /// <param name="options">The configuration to use when building the command.</param>
+        /// <returns>The generated text.</returns>
+        protected override IEnumerable<string> GetTokens(CommandOptions options)
         {
-            return getNullToken();
-        }
-
-        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
-        {
-            return getNullToken();
-        }
-
-        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
-        {
-            return getNullToken();
-        }
-
-        private static IEnumerable<string> getNullToken()
-        {
-            // "NULL"
             TokenStream stream = new TokenStream();
             stream.Add("NULL");
-            return stream;
-        }
-
-        string IProjectionItem.GetProjectionName()
-        {
-            return null;
+            return stream;            
         }
     }
 }

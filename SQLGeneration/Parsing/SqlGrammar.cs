@@ -39,6 +39,7 @@ namespace SQLGeneration.Parsing
             defineFilterList();
             defineFilter();
             defineComparisonOperator();
+            defineQuantifier();
             defineOrConjunction();
             defineAndConjunction();
             defineValueList();
@@ -208,6 +209,11 @@ namespace SQLGeneration.Parsing
                 public const string Combiner = "combiner";
 
                 /// <summary>
+                /// Gets the identifier for the distinct qualifier.
+                /// </summary>
+                public const string DistinctQualifier = "distinct_qualifier";
+
+                /// <summary>
                 /// Gets the SELECT expression identifier.
                 /// </summary>
                 public const string SelectExpression = "select_expression";
@@ -225,6 +231,7 @@ namespace SQLGeneration.Parsing
                     .Add(SelectExpression.SelectSpecification, Expression(SelectSpecification.Name)))
                 .Add(SelectExpression.Remaining.Name, false, Define()
                     .Add(SelectExpression.Remaining.Combiner, true, Expression(SelectCombiner.Name))
+                    .Add(SelectExpression.Remaining.DistinctQualifier, false, Expression(DistinctQualifier.Name))
                     .Add(SelectExpression.Remaining.SelectExpression, true, Expression(SelectExpression.Name)));
         }
 
@@ -241,11 +248,6 @@ namespace SQLGeneration.Parsing
             /// Gets the identifier indicating that the token is a SELECT combiner.
             /// </summary>
             public const string Name = "SelectCombiner";
-
-            /// <summary>
-            /// Gets the identifier for the UNION ALL keyword.
-            /// </summary>
-            public const string UnionAll = "UnionAll";
 
             /// <summary>
             /// Gets the identifier for the UNION keyword.
@@ -272,7 +274,6 @@ namespace SQLGeneration.Parsing
         {
             Define(SelectCombiner.Name)
                 .Add(true, Options()
-                    .Add(SelectCombiner.UnionAll, Token(SqlTokenRegistry.UnionAll))
                     .Add(SelectCombiner.Union, Token(SqlTokenRegistry.Union))
                     .Add(SelectCombiner.Intersect, Token(SqlTokenRegistry.Intersect))
                     .Add(SelectCombiner.Except, Token(SqlTokenRegistry.Except))
@@ -1745,6 +1746,83 @@ namespace SQLGeneration.Parsing
                 /// </summary>
                 public const string FunctionCall = "function_call";
             }
+
+            /// <summary>
+            /// Describes the structure of an Exists filter.
+            /// </summary>
+            public static class Exists
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the filter is an exists filter.
+                /// </summary>
+                public const string Name = "Exists";
+
+                /// <summary>
+                /// Gets the identifier for the EXISTS keyword.
+                /// </summary>
+                public const string ExistsKeyword = "exists";
+
+                /// <summary>
+                /// Gets the identfier for the left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the SELECT expression.
+                /// </summary>
+                public const string SelectExpression = "select_expression";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
+
+            /// <summary>
+            /// Describes the structure of a existential or universal quantifier.
+            /// </summary>
+            public static class Quantify
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the filter is a quantifier.
+                /// </summary>
+                public const string Name = "Quantify";
+
+                /// <summary>
+                /// Gets the identifier for the value being compared.
+                /// </summary>
+                public const string Expression = "expression";
+
+                /// <summary>
+                /// Gets the identifier for the comparison operator.
+                /// </summary>
+                public const string ComparisonOperator = "comparison_operator";
+
+                /// <summary>
+                /// Gets the identifier for the existential or universal quantifier.
+                /// </summary>
+                public const string Quantifier = "quantifier";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the select expression.
+                /// </summary>
+                public const string SelectExpression = "select_expression";
+
+                /// <summary>
+                /// Gets the identifier for the value list.
+                /// </summary>
+                public const string ValueList = "value_list";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
         }
 
         private void defineFilter()
@@ -1758,6 +1836,15 @@ namespace SQLGeneration.Parsing
                     .Add(Filter.Not.Name, Define()
                         .Add(Filter.Not.NotKeyword, true, Token(SqlTokenRegistry.Not))
                         .Add(Filter.Not.Filter, true, Expression(Filter.Name)))
+                    .Add(Filter.Quantify.Name, Define()
+                        .Add(Filter.Quantify.Expression, true, Expression(SqlGrammar.ArithmeticItem.Name))
+                        .Add(Filter.Quantify.ComparisonOperator, true, Expression(SqlGrammar.ComparisonOperator.Name))
+                        .Add(Filter.Quantify.Quantifier, true, Expression(SqlGrammar.Quantifier.Name))
+                        .Add(Filter.Quantify.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
+                        .Add(true, Options()
+                            .Add(Filter.Quantify.SelectExpression, Expression(SelectExpression.Name))
+                            .Add(Filter.Quantify.ValueList, Expression(ValueList.Name)))
+                        .Add(Filter.Quantify.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(Filter.Order.Name, Define()
                         .Add(Filter.Order.Left, true, Expression(ArithmeticItem.Name))
                         .Add(Filter.Order.ComparisonOperator, true, Expression(ComparisonOperator.Name))
@@ -1792,7 +1879,12 @@ namespace SQLGeneration.Parsing
                                 .Add(Filter.In.Select.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                                 .Add(Filter.In.Select.SelectExpression, true, Expression(SelectExpression.Name))
                                 .Add(Filter.In.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
-                            .Add(Filter.In.FunctionCall, Expression(FunctionCall.Name)))));
+                            .Add(Filter.In.FunctionCall, Expression(FunctionCall.Name))))
+                    .Add(Filter.Exists.Name, Define()
+                        .Add(Filter.Exists.ExistsKeyword, true, Token(SqlTokenRegistry.Exists))
+                        .Add(Filter.Exists.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
+                        .Add(Filter.Exists.SelectExpression, true, Expression(SqlGrammar.SelectExpression.Name))
+                        .Add(Filter.Exists.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))));
         }
 
         #endregion
@@ -1850,6 +1942,45 @@ namespace SQLGeneration.Parsing
                     .Add(ComparisonOperator.GreaterThanEqualTo, Token(SqlTokenRegistry.GreaterThanEqualTo))
                     .Add(ComparisonOperator.LessThan, Token(SqlTokenRegistry.LessThan))
                     .Add(ComparisonOperator.GreaterThan, Token(SqlTokenRegistry.GreaterThan)));
+        }
+
+        #endregion
+
+        #region Quantifier
+
+        /// <summary>
+        /// Describes the structure of a quantifier.
+        /// </summary>
+        public static class Quantifier
+        {
+            /// <summary>
+            /// Gets the identifier indicating that the current token is a quantifier.
+            /// </summary>
+            public const string Name = "Quantifier";
+
+            /// <summary>
+            /// Gets the identifier for the ALL quantifier.
+            /// </summary>
+            public const string All = "all";
+
+            /// <summary>
+            /// Gets the identifier for the ANY quantifier.
+            /// </summary>
+            public const string Any = "any";
+
+            /// <summary>
+            /// Gets the identifier for the SOME quantifier.
+            /// </summary>
+            public const string Some = "some";
+        }
+
+        private void defineQuantifier()
+        {
+            Define(Quantifier.Name)
+                .Add(true, Options()
+                    .Add(Quantifier.All, Token(SqlTokenRegistry.All))
+                    .Add(Quantifier.Any, Token(SqlTokenRegistry.Any))
+                    .Add(Quantifier.Some, Token(SqlTokenRegistry.Some)));
         }
 
         #endregion

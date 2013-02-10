@@ -1,11 +1,12 @@
 ﻿using System;
+using SQLGeneration.Parsing;
 
-namespace SQLGeneration.Parsing
+namespace SQLGeneration.Generators
 {
     /// <summary>
     /// Provides the methods that must be overridden in order to properly process SQL expressions.
     /// </summary>
-    public abstract class SqlResponder
+    public abstract class SqlGenerator
     {
         private readonly SqlGrammar grammar;
 
@@ -13,7 +14,7 @@ namespace SQLGeneration.Parsing
         /// Initializes a new instance of a SqlResponder.
         /// </summary>
         /// <param name="grammar">The grammar to use.</param>
-        protected SqlResponder(SqlGrammar grammar)
+        protected SqlGenerator(SqlGrammar grammar)
         {
             if (grammar == null)
             {
@@ -34,12 +35,11 @@ namespace SQLGeneration.Parsing
         /// Extracts expressions from the token stream and calls the corresponding handler.
         /// </summary>
         /// <param name="tokenSource">The source of SQL tokens.</param>
-        /// <param name="context">The context to pass among the expressions.</param>
         /// <returns>The results of the parse.</returns>
-        protected MatchResult GetResult(ITokenSource tokenSource, object context)
+        protected MatchResult GetResult(ITokenSource tokenSource)
         {
             Parser parser = new Parser(grammar);
-            return parser.Parse(SqlGrammar.Start.Name, tokenSource, context);
+            return parser.Parse(SqlGrammar.Start.Name, tokenSource);
         }
     }
 }

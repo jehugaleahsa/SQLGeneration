@@ -75,7 +75,7 @@ namespace SQLGeneration.Parsing
         /// <returns>The token placeholder.</returns>
         public Token Token(string tokenName)
         {
-            if (String.IsNullOrWhiteSpace(tokenName) || !tokenRegistry.Exists(tokenName))
+            if (String.IsNullOrWhiteSpace(tokenName) || !tokenRegistry.IsRegistered(tokenName))
             {
                 throw new ArgumentException(Resources.UnknownTokenType, "tokenName");
             }
@@ -90,7 +90,7 @@ namespace SQLGeneration.Parsing
         /// <returns>The token placeholder.</returns>
         public Token Token(string tokenName, string expectedValue)
         {
-            if (String.IsNullOrWhiteSpace(tokenName) || !tokenRegistry.Exists(tokenName))
+            if (String.IsNullOrWhiteSpace(tokenName) || !tokenRegistry.IsRegistered(tokenName))
             {
                 throw new ArgumentException(Resources.UnknownTokenType, "tokenName");
             }

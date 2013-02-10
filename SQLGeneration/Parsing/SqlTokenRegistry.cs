@@ -63,6 +63,16 @@ namespace SQLGeneration.Parsing
         public const string All = "All";
 
         /// <summary>
+        /// Gets the identifier for the ANY keyword.
+        /// </summary>
+        public const string Any = "Any";
+
+        /// <summary>
+        /// Gets the identifier for the SOME keyword.
+        /// </summary>
+        public const string Some = "Some";
+
+        /// <summary>
         /// Gets the identifier for the DISTINCT keyword.
         /// </summary>
         public const string Distinct = "Distinct";
@@ -208,11 +218,6 @@ namespace SQLGeneration.Parsing
         public const string Select = "Select";
 
         /// <summary>
-        /// Gets the identifier for the UNION ALL keyword.
-        /// </summary>
-        public const string UnionAll = "UnionAll";
-
-        /// <summary>
         /// Gets the identifier for the UNION keyword.
         /// </summary>
         public const string Union = "Union";
@@ -298,6 +303,11 @@ namespace SQLGeneration.Parsing
         public const string GreaterThan = "greater_than";
 
         /// <summary>
+        /// Gets the identifier for the EXISTS keyword.
+        /// </summary>
+        public const string Exists = "exists";
+
+        /// <summary>
         /// Initializes a new instance of a SqlTokenizer.
         /// </summary>
         public SqlTokenRegistry()
@@ -312,6 +322,8 @@ namespace SQLGeneration.Parsing
             Define(Or, @"OR\b", true);
             Define(Delete, @"DELETE\b", true);
             Define(All, @"ALL\b", true);
+            Define(Any, @"ANY\b", true);
+            Define(Some, @"SOME\b", true);
             Define(Distinct, @"DISTINCT\b", true);
             Define(From, @"FROM\b", true);
             Define(GroupBy, @"GROUP\s+BY\b", true);
@@ -335,7 +347,6 @@ namespace SQLGeneration.Parsing
             Define(Descending, @"DESC\b", true);
             Define(Percent, @"PERCENT\b", true);
             Define(Select, @"SELECT\b", true);
-            Define(UnionAll, @"UNION ALL\b", true);
             Define(Union, @"UNION\b", true);
             Define(Intersect, @"INTERSECT\b", true);
             Define(Except, @"EXCEPT\b", true);
@@ -343,6 +354,7 @@ namespace SQLGeneration.Parsing
             Define(Set, @"SET\b", true);
             Define(On, @"ON\b", true);
             Define(AliasIndicator, @"AS\b", true);
+            Define(Exists, @"EXISTS\b", true);
 
             Define(Identifier, @"([\p{L}:?@#_][\p{L}\p{N}@#$_]*)|(""(\.|"""")+"")|(\[[^\]]+\])");
 

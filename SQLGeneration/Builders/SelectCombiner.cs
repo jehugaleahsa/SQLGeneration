@@ -46,13 +46,21 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// Gets the distinct qualifier for the combiner.
+        /// </summary>
+        public DistinctQualifier Distinct
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets the command expression.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The expression making up the command.</returns>
         IEnumerable<string> ICommand.GetCommandTokens(CommandOptions options)
         {
-            // <SelectCombiner> => <Select> <Combiner> <Select>
             if (options == null)
             {
                 throw new ArgumentNullException("options");
@@ -96,6 +104,11 @@ namespace SQLGeneration.Builders
             TokenStream stream = new TokenStream();
             stream.AddRange(leftHand.GetCommandTokens(options));
             stream.Add(GetCombinationType(options));
+            if (Distinct != DistinctQualifier.Default)
+            {
+                DistinctQualifierConverter converter = new DistinctQualifierConverter();
+                stream.Add(converter.ToToken(Distinct));
+            }
             stream.AddRange(rightHand.GetCommandTokens(options));
             return stream;
         }

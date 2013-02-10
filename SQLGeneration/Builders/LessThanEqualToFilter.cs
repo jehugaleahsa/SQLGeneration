@@ -22,7 +22,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string containing the name of the operation that compares the left and right hand sides.</returns>
-        protected override string GetCombinerName(CommandOptions options)
+        protected override string GetComparisonOperator(CommandOptions options)
         {
             // <Left> "<=" <Right>
             return "<=";
