@@ -4,6 +4,9 @@ Provides core classes for generating SQL at runtime.
 
 Download using NuGet: [SQLGeneration](http://nuget.org/packages/SQLGeneration)
 
+## Recent Updates
+Please view the [Recent Updates Wiki](https://github.com/jehugaleahsa/SQLGeneration/wiki/Recent-Updates) to learn the latest news.
+
 ## Overview
 With all the ORMs out there today, it's amazing how many systems have their own micro-ORMs. We've all been there. We start writing SQL by hand and using core ADO.NET classes. Some of us try to use parameters whenever possible; others just concatenate strings. Even those virtuous enough to stick with parameters eventually run into problems... an IN filter, for example, or a screen that the user can sort and filter values on.
 
