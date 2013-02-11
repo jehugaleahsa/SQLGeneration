@@ -36,15 +36,15 @@ namespace SQLGeneration.Parsing
             defineJoin();
             defineJoinPrime();
             defineFilteredJoinType();
-            defineFilterList();
             defineFilter();
             defineComparisonOperator();
             defineQuantifier();
-            defineOrConjunction();
-            defineAndConjunction();
+            defineOrFilter();
+            defineAndFilter();
             defineValueList();
             defineGroupByList();
             defineArithmeticItem();
+            defineWrappedItem();
             defineItem();
             defineInsertStatement();
             defineColumnList();
@@ -441,13 +441,13 @@ namespace SQLGeneration.Parsing
                     .Add(SelectSpecification.From.FromList, true, Expression(FromList.Name)))
                 .Add(SelectSpecification.Where.Name, false, Define()
                     .Add(SelectSpecification.Where.WhereKeyword, true, Token(SqlTokenRegistry.Where))
-                    .Add(SelectSpecification.Where.FilterList, true, Expression(FilterList.Name)))
+                    .Add(SelectSpecification.Where.FilterList, true, Expression(OrFilter.Name)))
                 .Add(SelectSpecification.GroupBy.Name, false, Define()
                     .Add(SelectSpecification.GroupBy.GroupByKeyword, true, Token(SqlTokenRegistry.GroupBy))
                     .Add(SelectSpecification.GroupBy.GroupByList, true, Expression(GroupByList.Name)))
                 .Add(SelectSpecification.Having.Name, false, Define()
                     .Add(SelectSpecification.Having.HavingKeyword, true, Token(SqlTokenRegistry.Having))
-                    .Add(SelectSpecification.Having.FilterList, true, Expression(FilterList.Name)));
+                    .Add(SelectSpecification.Having.FilterList, true, Expression(OrFilter.Name)));
         }
 
         #endregion
@@ -659,32 +659,6 @@ namespace SQLGeneration.Parsing
             public const string Name = "AdditiveExpression";
 
             /// <summary>
-            /// Describes the structure of an arithmetic expression wrapped in parentheses.
-            /// </summary>
-            public static class Wrapped
-            {
-                /// <summary>
-                /// Gets the identifier indicating that an arithmetic expression is wrapped in parentheses.
-                /// </summary>
-                public const string Name = "Wrapped";
-
-                /// <summary>
-                /// Gets the identifier for the left parenthesis.
-                /// </summary>
-                public const string LeftParenthesis = "left_parethesis";
-
-                /// <summary>
-                /// Gets the identifier for the wrapped arithmetic expression.
-                /// </summary>
-                public const string Expression = "expression";
-
-                /// <summary>
-                /// Gets the identifier for the right parenthesis.
-                /// </summary>
-                public const string RightParenthesis = "right_parenthesis";
-            }
-
-            /// <summary>
             /// Describes the structure of a additive expression adding or substracting multiple values.
             /// </summary>
             public static class Multiple
@@ -720,10 +694,6 @@ namespace SQLGeneration.Parsing
         {
             Define(AdditiveExpression.Name)
                 .Add(true, Options()
-                    .Add(AdditiveExpression.Wrapped.Name, Define()
-                        .Add(AdditiveExpression.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
-                        .Add(AdditiveExpression.Wrapped.Expression, true, Expression(SqlGrammar.AdditiveExpression.Name))
-                        .Add(AdditiveExpression.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(AdditiveExpression.Multiple.Name, Define()
                         .Add(AdditiveExpression.Multiple.First, true, Expression(MultiplicitiveExpression.Name))
                         .Add(AdditiveExpression.Multiple.Operator, true, Expression(AdditiveOperator.Name))
@@ -815,10 +785,10 @@ namespace SQLGeneration.Parsing
             Define(MultiplicitiveExpression.Name)
                 .Add(true, Options()
                     .Add(MultiplicitiveExpression.Multiple.Name, Define()
-                        .Add(MultiplicitiveExpression.Multiple.First, true, Expression(Item.Name))
+                        .Add(MultiplicitiveExpression.Multiple.First, true, Expression(WrappedItem.Name))
                         .Add(MultiplicitiveExpression.Multiple.Operator, true, Expression(MultiplicitiveOperator.Name))
                         .Add(MultiplicitiveExpression.Multiple.Remaining, true, Expression(MultiplicitiveExpression.Name)))
-                    .Add(MultiplicitiveExpression.Single, Expression(Item.Name)));
+                    .Add(MultiplicitiveExpression.Single, Expression(WrappedItem.Name)));
         }
 
         #endregion
@@ -1218,6 +1188,11 @@ namespace SQLGeneration.Parsing
                 /// Gets the identifier for the right parenthesis.
                 /// </summary>
                 public const string RightParenthesis = "right_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the rest of the join statement.
+                /// </summary>
+                public const string JoinPrime = "join_prime";
             }
 
             /// <summary>
@@ -1249,7 +1224,8 @@ namespace SQLGeneration.Parsing
                     .Add(Join.Wrapped.Name, Define()
                         .Add(Join.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(Join.Wrapped.Join, true, Expression(Join.Name))
-                        .Add(Join.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
+                        .Add(Join.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))
+                        .Add(Join.Wrapped.JoinPrime, true, Expression(JoinPrime.Name)))
                     .Add(Join.Joined.Name, Define()
                         .Add(Join.Joined.JoinItem, true, Expression(JoinItem.Name))
                         .Add(Join.Joined.JoinPrime, true, Expression(JoinPrime.Name))));
@@ -1357,7 +1333,7 @@ namespace SQLGeneration.Parsing
                         .Add(JoinPrime.Filtered.JoinItem, true, Expression(JoinItem.Name))
                         .Add(JoinPrime.Filtered.On.Name, false, Define()
                             .Add(JoinPrime.Filtered.On.OnKeyword, true, Token(SqlTokenRegistry.On))
-                            .Add(JoinPrime.Filtered.On.FilterList, true, Expression(FilterList.Name)))
+                            .Add(JoinPrime.Filtered.On.FilterList, true, Expression(OrFilter.Name)))
                         .Add(JoinPrime.Filtered.JoinPrime, true, Expression(JoinPrime.Name)))
                     .Add(JoinPrime.Cross.Name, Define()
                         .Add(JoinPrime.Cross.JoinType, true, Token(SqlTokenRegistry.CrossJoin))
@@ -1409,69 +1385,6 @@ namespace SQLGeneration.Parsing
                     .Add(FilteredJoinType.LeftOuterJoin, Token(SqlTokenRegistry.LeftOuterJoin))
                     .Add(FilteredJoinType.RightOuterJoin, Token(SqlTokenRegistry.RightOuterJoin))
                     .Add(FilteredJoinType.FullOuterJoin, Token(SqlTokenRegistry.FullOuterJoin)));
-        }
-
-        #endregion
-
-        #region FilterList
-
-        /// <summary>
-        /// Describes the structure of the filter list.
-        /// </summary>
-        public static class FilterList
-        {
-            /// <summary>
-            /// Gets the name identifying the filter list.
-            /// </summary>
-            public const string Name = "FilterList";
-
-            /// <summary>
-            /// Describes the structure of a filter list wrapped in parentheses.
-            /// </summary>
-            public static class Wrapped
-            {
-                /// <summary>
-                /// Gets the identifier indicating that the filter list is wrapped in parentheses.
-                /// </summary>
-                public const string Name = "Wrapped";
-
-                /// <summary>
-                /// Gets the identifier for the NOT keyword.
-                /// </summary>
-                public const string Not = "not";
-
-                /// <summary>
-                /// Gets the identifier for a left parenthesis.
-                /// </summary>
-                public const string LeftParenthesis = "left_parenthesis";
-
-                /// <summary>
-                /// Gets the identifier for the filter list.
-                /// </summary>
-                public const string FilterList = "filter_list";
-
-                /// <summary>
-                /// Gets the identifier for the right parenthesis.
-                /// </summary>
-                public const string RightParenthesis = "right_parenthesis";
-            }
-
-            /// <summary>
-            /// Gets the identifier indicating that there are multiple filters in the list.
-            /// </summary>
-            public const string Multiple = "Multiple";
-        }
-
-        private void defineFilterList()
-        {
-            Define(FilterList.Name)
-                .Add(true, Options()
-                    .Add(FilterList.Multiple, Expression(OrFilter.Name))
-                    .Add(FilterList.Wrapped.Name, Define()
-                        .Add(FilterList.Wrapped.Not, false, Token(SqlTokenRegistry.Not))
-                        .Add(FilterList.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
-                        .Add(FilterList.Wrapped.FilterList, true, Expression(FilterList.Name))
-                        .Add(FilterList.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))));
         }
 
         #endregion
@@ -1579,7 +1492,7 @@ namespace SQLGeneration.Parsing
                 /// <summary>
                 /// Gets the identifier for whether or not to negate the filter.
                 /// </summary>
-                public const string Not = "not";
+                public const string NotKeyword = "not";
 
                 /// <summary>
                 /// Gets the identifier for the BETWEEN keyword.
@@ -1829,13 +1742,13 @@ namespace SQLGeneration.Parsing
         {
             Define(Filter.Name)
                 .Add(true, Options()
-                    .Add(Filter.Wrapped.Name, Define()
-                        .Add(Filter.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
-                        .Add(Filter.Wrapped.Filter, true, Expression(Filter.Name))
-                        .Add(Filter.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(Filter.Not.Name, Define()
                         .Add(Filter.Not.NotKeyword, true, Token(SqlTokenRegistry.Not))
                         .Add(Filter.Not.Filter, true, Expression(Filter.Name)))
+                    .Add(Filter.Wrapped.Name, Define()
+                        .Add(Filter.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
+                        .Add(Filter.Wrapped.Filter, true, Expression(OrFilter.Name))
+                        .Add(Filter.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(Filter.Quantify.Name, Define()
                         .Add(Filter.Quantify.Expression, true, Expression(SqlGrammar.ArithmeticItem.Name))
                         .Add(Filter.Quantify.ComparisonOperator, true, Expression(SqlGrammar.ComparisonOperator.Name))
@@ -1851,7 +1764,7 @@ namespace SQLGeneration.Parsing
                         .Add(Filter.Order.Right, true, Expression(ArithmeticItem.Name)))
                     .Add(Filter.Between.Name, Define()
                         .Add(Filter.Between.Expression, true, Expression(ArithmeticItem.Name))
-                        .Add(Filter.Between.Not, false, Token(SqlTokenRegistry.Not))
+                        .Add(Filter.Between.NotKeyword, false, Token(SqlTokenRegistry.Not))
                         .Add(Filter.Between.BetweenKeyword, true, Token(SqlTokenRegistry.Between))
                         .Add(Filter.Between.LowerBound, true, Expression(ArithmeticItem.Name))
                         .Add(Filter.Between.And, true, Token(SqlTokenRegistry.And))
@@ -1998,7 +1911,38 @@ namespace SQLGeneration.Parsing
             public const string Name = "OrFilter";
 
             /// <summary>
-            /// Gets the identifier indicating that two filter are OR'd together.
+            /// Gets the structure of a filter wrapped in parentheses.
+            /// </summary>
+            public static class Wrapped
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the filter is wrapped in parenthesis.
+                /// </summary>
+                public const string Name = "Wrapped";
+
+                /// <summary>
+                /// Gets the identifier for the NOT keyword.
+                /// </summary>
+                public const string NotKeyword = "not";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the wrapped filter.
+                /// </summary>
+                public const string OrFilter = "or_filter";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
+
+            /// <summary>
+            /// Describes the structure of a filter joining two filters with an OR.
             /// </summary>
             public static class Multiple
             {
@@ -2029,7 +1973,7 @@ namespace SQLGeneration.Parsing
             public const string Single = "single";
         }
 
-        private void defineOrConjunction()
+        private void defineOrFilter()
         {
             Define(OrFilter.Name)
                 .Add(true, Options()
@@ -2081,19 +2025,50 @@ namespace SQLGeneration.Parsing
             }
 
             /// <summary>
+            /// Gets the structure of a filter wrapped in parentheses.
+            /// </summary>
+            public static class Wrapped
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the filter is wrapped in parenthesis.
+                /// </summary>
+                public const string Name = "Wrapped";
+
+                /// <summary>
+                /// Gets the identifier for the NOT keyword.
+                /// </summary>
+                public const string NotKeyword = "not";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the wrapped filter.
+                /// </summary>
+                public const string AndFilter = "and_filter";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
+
+            /// <summary>
             /// Gets the identifier for a single filter.
             /// </summary>
             public const string Single = "single";
         }
 
-        private void defineAndConjunction()
+        private void defineAndFilter()
         {
             Define(AndFilter.Name)
                 .Add(true, Options()
                     .Add(AndFilter.Multiple.Name, Define()
                         .Add(AndFilter.Multiple.First, true, Expression(Filter.Name))
                         .Add(AndFilter.Multiple.And, true, Token(SqlTokenRegistry.And))
-                        .Add(AndFilter.Multiple.Remaining, true, Expression(AndFilter.Name)))
+                        .Add(AndFilter.Multiple.Remaining, true, Expression(OrFilter.Name)))
                     .Add(AndFilter.Single, Expression(Filter.Name)));
         }
 
@@ -2235,6 +2210,87 @@ namespace SQLGeneration.Parsing
         {
             Define(ArithmeticItem.Name)
                 .Add(ArithmeticItem.ArithmeticExpression, true, Expression(AdditiveExpression.Name));
+        }
+
+        #endregion
+
+        #region WrappedItem
+
+        /// <summary>
+        /// Describes the structure of an item that is potentially wrapped by parenthesis.
+        /// </summary>
+        public static class WrappedItem
+        {
+            /// <summary>
+            /// Gets the identifier indicating that the item is a wrapped item.
+            /// </summary>
+            public const string Name = "WrappedItem";
+
+            /// <summary>
+            /// Describes the structure of an negated expression.
+            /// </summary>
+            public static class Negated
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the expression is negated.
+                /// </summary>
+                public const string Name = "Negated";
+
+                /// <summary>
+                /// Gets the identifier for the minus sign.
+                /// </summary>
+                public const string Minus = "minus";
+
+                /// <summary>
+                /// Gets the identifier for the expression being negated.
+                /// </summary>
+                public const string Item = "item";
+            }
+
+            /// <summary>
+            /// Describes the structure of an item that is wrapped in parentheses.
+            /// </summary>
+            public static class Wrapped
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the item is wrapped.
+                /// </summary>
+                public const string Name = "Wrapped";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the additive expression.
+                /// </summary>
+                public const string AdditiveExpression = "additive_expression";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
+            
+            /// <summary>
+            /// Gets the identifier for an unwrapped item.
+            /// </summary>
+            public const string Item = "item";
+        }
+
+        private void defineWrappedItem()
+        {
+            Define(WrappedItem.Name)
+                .Add(true, Options()
+                    .Add(WrappedItem.Negated.Name, Define()
+                        .Add(WrappedItem.Negated.Minus, true, Token(SqlTokenRegistry.MinusOperator))
+                        .Add(WrappedItem.Negated.Item, true, Expression(WrappedItem.Name)))
+                    .Add(WrappedItem.Wrapped.Name, Define()
+                        .Add(WrappedItem.Wrapped.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
+                        .Add(WrappedItem.Wrapped.AdditiveExpression, true, Expression(AdditiveExpression.Name))
+                        .Add(WrappedItem.Wrapped.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
+                    .Add(WrappedItem.Item, Expression(Item.Name)));
         }
 
         #endregion
@@ -2624,7 +2680,7 @@ namespace SQLGeneration.Parsing
                 .Add(UpdateStatement.SetterList, true, Expression(SetterList.Name))
                 .Add(UpdateStatement.Where.Name, false, Define()
                     .Add(UpdateStatement.Where.WhereKeyword, true, Token(SqlTokenRegistry.Where))
-                    .Add(UpdateStatement.Where.FilterList, true, Expression(FilterList.Name)));
+                    .Add(UpdateStatement.Where.FilterList, true, Expression(OrFilter.Name)));
         }
 
         #endregion
@@ -2805,7 +2861,7 @@ namespace SQLGeneration.Parsing
                     .Add(DeleteStatement.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)))
                 .Add(DeleteStatement.Where.Name, false, Define()
                     .Add(DeleteStatement.Where.WhereKeyword, true, Token(SqlTokenRegistry.Where))
-                    .Add(DeleteStatement.Where.FilterList, true, Expression(FilterList.Name)));
+                    .Add(DeleteStatement.Where.FilterList, true, Expression(OrFilter.Name)));
         }
 
         #endregion

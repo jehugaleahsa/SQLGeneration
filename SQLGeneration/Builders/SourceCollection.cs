@@ -80,6 +80,22 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// Gets the number of sources in the source collection.
+        /// </summary>
+        internal int Count
+        {
+            get { return sourceLookup.Count; }
+        }
+
+        /// <summary>
+        /// Gets the aliased sources in the collection.
+        /// </summary>
+        internal IEnumerable<AliasedSource> Sources
+        {
+            get { return sourceLookup.Values; }
+        }
+
+        /// <summary>
         /// Gets whether a source exists with the given name.
         /// </summary>
         /// <param name="sourceName">The name of the source.</param>

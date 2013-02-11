@@ -11,12 +11,14 @@ namespace SQLGeneration.Generators
     /// </summary>
     public sealed class CommandBuilder : SqlGenerator
     {
+        private readonly SourceScope scope;
+
         /// <summary>
         /// Initializes a new instance of a SimpleFormatter.
         /// </summary>
         /// <param name="registry">The token registry to use.</param>
         public CommandBuilder(SqlTokenRegistry registry)
-            : base(new SqlGrammar(registry))
+            : this(new SqlGrammar(registry))
         {
         }
 
@@ -27,6 +29,7 @@ namespace SQLGeneration.Generators
         public CommandBuilder(SqlGrammar grammar = null)
             : base(grammar)
         {
+            scope = new SourceScope();
         }
 
         /// <summary>
@@ -36,6 +39,7 @@ namespace SQLGeneration.Generators
         /// <returns>The command that was parsed.</returns>
         public ICommand GetCommand(string commandText)
         {
+            scope.Clear();
             ITokenSource tokenSource = Grammar.TokenRegistry.CreateTokenSource(commandText);
             MatchResult result = GetResult(tokenSource);
             return buildStart(result);
@@ -125,13 +129,14 @@ namespace SQLGeneration.Generators
                 MatchResult fromList = from.Matches[SqlGrammar.SelectSpecification.From.FromList];
                 buildFromList(fromList, builder);
             }
+            scope.Push(builder.Sources);
             MatchResult projectionList = result.Matches[SqlGrammar.SelectSpecification.ProjectionList];
             buildProjectionList(projectionList, builder);
             MatchResult where = result.Matches[SqlGrammar.SelectSpecification.Where.Name];
             if (where.IsMatch)
             {
                 MatchResult filterList = where.Matches[SqlGrammar.SelectSpecification.Where.FilterList];
-                buildFilterList(filterList, builder._where);
+                buildOrFilter(filterList, builder.WhereFilterGroup, Conjunction.And);
             }
             MatchResult groupBy = result.Matches[SqlGrammar.SelectSpecification.GroupBy.Name];
             if (groupBy.IsMatch)
@@ -143,8 +148,9 @@ namespace SQLGeneration.Generators
             if (having.IsMatch)
             {
                 MatchResult filterList = having.Matches[SqlGrammar.SelectSpecification.Having.FilterList];
-                buildFilterList(filterList, builder._having);
+                buildOrFilter(filterList, builder.HavingFilterGroup, Conjunction.And);
             }
+            scope.Pop();
             return builder;
         }
 
@@ -168,7 +174,7 @@ namespace SQLGeneration.Generators
         private Top buildTop(MatchResult result, SelectBuilder builder)
         {
             MatchResult expressionResult = result.Matches[SqlGrammar.SelectSpecification.Top.Expression];
-            IProjectionItem expression = (IProjectionItem)buildArithmeticItem(expressionResult, builder.Sources);
+            IProjectionItem expression = (IProjectionItem)buildArithmeticItem(expressionResult);
             Top top = new Top(expression);
             MatchResult percentResult = result.Matches[SqlGrammar.SelectSpecification.Top.PercentKeyword];
             top.IsPercent = percentResult.IsMatch;
@@ -183,24 +189,32 @@ namespace SQLGeneration.Generators
             if (multiple.IsMatch)
             {
                 MatchResult first = multiple.Matches[SqlGrammar.FromList.Multiple.First];
-                buildJoin(first, builder, false);
+                Join join = buildJoin(first, false);
+                addJoinItem(builder, join);
                 MatchResult remaining = multiple.Matches[SqlGrammar.FromList.Multiple.Remaining];
                 buildFromList(remaining, builder);
             }
             MatchResult single = result.Matches[SqlGrammar.FromList.Single];
             if (single.IsMatch)
             {
-                buildJoin(single, builder, false);
+                Join join = buildJoin(single, false);
+                addJoinItem(builder, join);
             }
         }
 
-        private void buildJoin(MatchResult result, SelectBuilder builder, bool wrap)
+        private Join buildJoin(MatchResult result, bool wrap)
         {
             MatchResult wrapped = result.Matches[SqlGrammar.Join.Wrapped.Name];
             if (wrapped.IsMatch)
             {
-                MatchResult join = wrapped.Matches[SqlGrammar.Join.Wrapped.Join];
-                buildJoin(join, builder, true);
+                MatchResult joinResult = wrapped.Matches[SqlGrammar.Join.Wrapped.Join];
+                Join first = buildJoin(joinResult, true);
+                first.WrapInParentheses = true;
+                scope.Push(first.Sources);
+                MatchResult joinPrime = wrapped.Matches[SqlGrammar.Join.Wrapped.JoinPrime];
+                Join join = buildJoinPrime(joinPrime, first);
+                scope.Pop();
+                return join;
             }
             MatchResult joined = result.Matches[SqlGrammar.Join.Joined.Name];
             if (joined.IsMatch)
@@ -208,32 +222,14 @@ namespace SQLGeneration.Generators
                 string alias;
                 MatchResult joinItemResult = joined.Matches[SqlGrammar.Join.Joined.JoinItem];
                 IRightJoinItem first = buildJoinItem(joinItemResult, out alias);
+                Join start = Join.From(first, alias);
+                scope.Push(start.Sources);
                 MatchResult joinPrime = joined.Matches[SqlGrammar.Join.Joined.JoinPrime];
-                IJoinItem joinItem = buildJoinPrime(joinPrime, first);
-                Join join = joinItem as Join;
-                if (wrap && join != null)
-                {
-                    join.WrapInParentheses = true;
-                    builder.AddJoin(join);
-                    return;
-                }
-                Table table = joinItem as Table;
-                if (table != null)
-                {
-                    builder.AddTable(table, alias);
-                    return;
-                }
-                ISelectBuilder select = joinItem as SelectBuilder;
-                if (select != null)
-                {
-                    builder.AddSelect(select, alias);
-                }
-                Function functionCall = joinItem as Function;
-                if (functionCall != null)
-                {
-                    builder.AddFunction(functionCall, alias);
-                }
+                Join join = buildJoinPrime(joinPrime, start);
+                scope.Pop();
+                return join;
             }
+            return null;
         }
 
         private IRightJoinItem buildJoinItem(MatchResult result, out string alias)
@@ -242,7 +238,7 @@ namespace SQLGeneration.Generators
             MatchResult aliasExpression = result.Matches[SqlGrammar.JoinItem.AliasExpression.Name];
             if (aliasExpression.IsMatch)
             {
-                MatchResult aliasResult = result.Matches[SqlGrammar.JoinItem.AliasExpression.Alias];
+                MatchResult aliasResult = aliasExpression.Matches[SqlGrammar.JoinItem.AliasExpression.Alias];
                 alias = getToken(aliasResult);
             }
             MatchResult tableResult = result.Matches[SqlGrammar.JoinItem.Table];
@@ -258,26 +254,106 @@ namespace SQLGeneration.Generators
             MatchResult select = result.Matches[SqlGrammar.JoinItem.SelectExpression];
             if (select.IsMatch)
             {
+                return buildSelectExpression(select);
             }
             MatchResult functionCall = result.Matches[SqlGrammar.JoinItem.FunctionCall];
             if (functionCall.IsMatch)
             {
+                return buildFunctionCall(functionCall);
             }
-            throw new NotImplementedException();
+            return null;
         }
 
-        private IJoinItem buildJoinPrime(MatchResult result, IRightJoinItem leftHand)
+        private Join buildJoinPrime(MatchResult result, Join join)
         {
             MatchResult filtered = result.Matches[SqlGrammar.JoinPrime.Filtered.Name];
             if (filtered.IsMatch)
             {
-                
+                MatchResult joinItemResult = filtered.Matches[SqlGrammar.JoinPrime.Filtered.JoinItem];
+                string alias;
+                IRightJoinItem joinItem = buildJoinItem(joinItemResult, out alias);
+                MatchResult joinTypeResult = filtered.Matches[SqlGrammar.JoinPrime.Filtered.JoinType];
+                FilteredJoin filteredJoin = buildFilteredJoin(joinTypeResult, join, joinItem, alias);
+                scope.Push(filteredJoin.Sources);
+                MatchResult onResult = filtered.Matches[SqlGrammar.JoinPrime.Filtered.On.Name];
+                MatchResult filterListResult = onResult.Matches[SqlGrammar.JoinPrime.Filtered.On.FilterList];
+                buildOrFilter(filterListResult, filteredJoin.OnFilterGroup, Conjunction.And);
+                MatchResult joinPrimeResult = filtered.Matches[SqlGrammar.JoinPrime.Filtered.JoinPrime];
+                Join prime = buildJoinPrime(joinPrimeResult, filteredJoin);
+                scope.Pop();
+                return prime;
             }
             MatchResult cross = result.Matches[SqlGrammar.JoinPrime.Cross.Name];
             if (cross.IsMatch)
             {
+                MatchResult joinItemResult = cross.Matches[SqlGrammar.JoinPrime.Cross.JoinItem];
+                string alias;
+                IRightJoinItem joinItem = buildJoinItem(joinItemResult, out alias);
+                Join crossJoin = join.CrossJoin(joinItem, alias);
+                scope.Push(crossJoin.Sources);
+                MatchResult joinPrimeResult = cross.Matches[SqlGrammar.JoinPrime.Cross.JoinPrime];
+                Join prime = buildJoinPrime(joinPrimeResult, crossJoin);
+                scope.Pop();
+                return prime;
             }
-            return leftHand;
+            MatchResult empty = result.Matches[SqlGrammar.JoinPrime.Empty];
+            if (empty.IsMatch)
+            {
+                return join;
+            }
+            return null;
+        }
+
+        private FilteredJoin buildFilteredJoin(MatchResult result, Join join, IRightJoinItem joinItem, string alias)
+        {
+            MatchResult innerResult = result.Matches[SqlGrammar.FilteredJoinType.InnerJoin];
+            if (innerResult.IsMatch)
+            {
+                return join.InnerJoin(joinItem, alias);
+            }
+            MatchResult leftResult = result.Matches[SqlGrammar.FilteredJoinType.LeftOuterJoin];
+            if (leftResult.IsMatch)
+            {
+                return join.LeftOuterJoin(joinItem, alias);
+            }
+            MatchResult rightResult = result.Matches[SqlGrammar.FilteredJoinType.RightOuterJoin];
+            if (rightResult.IsMatch)
+            {
+                return join.RightOuterJoin(joinItem, alias);
+            }
+            MatchResult fullResult = result.Matches[SqlGrammar.FilteredJoinType.FullOuterJoin];
+            if (fullResult.IsMatch)
+            {
+                return join.FullOuterJoin(joinItem, alias);
+            }
+            return null;
+        }
+
+        private void addJoinItem(SelectBuilder builder, Join join)
+        {
+            JoinStart start = join as JoinStart;
+            if (start == null)
+            {
+                builder.AddJoin(join);
+                return;
+            }
+            AliasedSource source = start.Source;
+            Table table = source.Source as Table;
+            if (table != null)
+            {
+                builder.AddTable(table, source.Alias);
+                return;
+            }
+            ISelectBuilder select = source.Source as SelectBuilder;
+            if (select != null)
+            {
+                builder.AddSelect(select, source.Alias);
+            }
+            Function functionCall = source.Source as Function;
+            if (functionCall != null)
+            {
+                builder.AddFunction(functionCall, source.Alias);
+            }
         }
 
         private void buildProjectionList(MatchResult result, SelectBuilder builder)
@@ -305,7 +381,7 @@ namespace SQLGeneration.Generators
             if (expression.IsMatch)
             {
                 MatchResult itemResult = expression.Matches[SqlGrammar.ProjectionItem.Expression.Item];
-                IProjectionItem item = (IProjectionItem)buildArithmeticItem(itemResult, builder.Sources);
+                IProjectionItem item = (IProjectionItem)buildArithmeticItem(itemResult);
                 string alias = null;
                 MatchResult aliasExpression = expression.Matches[SqlGrammar.ProjectionItem.Expression.AliasExpression.Name];
                 if (aliasExpression.IsMatch)
@@ -320,14 +396,14 @@ namespace SQLGeneration.Generators
             if (star.IsMatch)
             {
                 AliasedSource source = null;
-                MatchResult qualifier = expression.Matches[SqlGrammar.ProjectionItem.Star.Qualifier.Name];
+                MatchResult qualifier = star.Matches[SqlGrammar.ProjectionItem.Star.Qualifier.Name];
                 if (qualifier.IsMatch)
                 {
                     MatchResult columnSource = qualifier.Matches[SqlGrammar.ProjectionItem.Star.Qualifier.ColumnSource];
                     List<string> parts = new List<string>();
                     buildMultipartIdentifier(columnSource, parts);
-                    string name = parts[parts.Count - 1];
-                    source = builder.Sources[name];
+                    string sourceName = parts[parts.Count - 1];
+                    source = scope.GetSource(sourceName);
                 }
                 AllColumns all = new AllColumns(source);
                 builder.AddProjection(all);
@@ -337,12 +413,233 @@ namespace SQLGeneration.Generators
 
         private void buildGroupByList(MatchResult result, SelectBuilder builder)
         {
+            MatchResult multiple = result.Matches[SqlGrammar.GroupByList.Multiple.Name];
+            if (multiple.IsMatch)
+            {
+                MatchResult firstResult = multiple.Matches[SqlGrammar.GroupByList.Multiple.First];
+                IGroupByItem first = (IGroupByItem)buildArithmeticItem(firstResult);
+                builder.AddGroupBy(first);
+                MatchResult remainingResult = multiple.Matches[SqlGrammar.GroupByList.Multiple.Remaining];
+                buildGroupByList(remainingResult, builder);
+            }
+            MatchResult single = result.Matches[SqlGrammar.GroupByList.Single];
+            if (single.IsMatch)
+            {
+                IGroupByItem item = (IGroupByItem)buildArithmeticItem(single);
+                builder.AddGroupBy(item);
+            }
+        }
+
+        private void buildOrFilter(MatchResult result, FilterGroup filterGroup, Conjunction conjunction)
+        {
+            MatchResult multiple = result.Matches[SqlGrammar.OrFilter.Multiple.Name];
+            if (multiple.IsMatch)
+            {
+                MatchResult first = multiple.Matches[SqlGrammar.OrFilter.Multiple.First];
+                buildAndFilter(first, filterGroup, conjunction);
+                MatchResult remaining = multiple.Matches[SqlGrammar.OrFilter.Multiple.Remaining];
+                buildOrFilter(remaining, filterGroup, Conjunction.Or);
+                return;
+            }
+            MatchResult single = result.Matches[SqlGrammar.OrFilter.Single];
+            if (single.IsMatch)
+            {
+                buildAndFilter(single, filterGroup, conjunction);
+                return;
+            }
+        }
+
+        private void buildAndFilter(MatchResult result, FilterGroup filterGroup, Conjunction conjunction)
+        {
+            MatchResult multiple = result.Matches[SqlGrammar.AndFilter.Multiple.Name];
+            if (multiple.IsMatch)
+            {
+                MatchResult first = multiple.Matches[SqlGrammar.AndFilter.Multiple.First];
+                IFilter filter = buildFilter(first);
+                filterGroup.AddFilter(filter, conjunction);
+                MatchResult remaining = multiple.Matches[SqlGrammar.AndFilter.Multiple.Remaining];
+                buildOrFilter(remaining, filterGroup, Conjunction.And);
+                return;
+            }
+            MatchResult single = result.Matches[SqlGrammar.AndFilter.Single];
+            if (single.IsMatch)
+            {
+                IFilter filter = buildFilter(single);
+                filterGroup.AddFilter(filter, conjunction);
+                return;
+            }
+        }
+
+        private IFilter buildFilter(MatchResult result)
+        {
+            MatchResult notResult = result.Matches[SqlGrammar.Filter.Not.Name];
+            if (notResult.IsMatch)
+            {
+                MatchResult filterResult = notResult.Matches[SqlGrammar.Filter.Not.Filter];
+                IFilter filter = buildFilter(filterResult);
+                return new NotFilter(filter);
+            }
+            MatchResult wrappedResult = result.Matches[SqlGrammar.Filter.Wrapped.Name];
+            if (wrappedResult.IsMatch)
+            {
+                MatchResult filterResult = wrappedResult.Matches[SqlGrammar.Filter.Wrapped.Filter];
+                FilterGroup nested = new FilterGroup();
+                buildOrFilter(filterResult, nested, Conjunction.And);
+                nested.WrapInParentheses = true;
+                return nested;
+            }
+            MatchResult quantifyResult = result.Matches[SqlGrammar.Filter.Quantify.Name];
+            if (quantifyResult.IsMatch)
+            {
+                MatchResult expressionResult = quantifyResult.Matches[SqlGrammar.Filter.Quantify.Expression];
+                IFilterItem filterItem = (IFilterItem)buildArithmeticItem(expressionResult);
+                MatchResult quantifierResult = quantifyResult.Matches[SqlGrammar.Filter.Quantify.Quantifier];
+                Quantifier quantifier = buildQuantifier(quantifierResult);
+                IValueProvider valueProvider = null;
+                MatchResult selectResult = quantifyResult.Matches[SqlGrammar.Filter.Quantify.SelectExpression];
+                if (selectResult.IsMatch)
+                {
+                    valueProvider = buildSelectExpression(selectResult);
+                }
+                MatchResult valueListResult = quantifyResult.Matches[SqlGrammar.Filter.Quantify.ValueList];
+                if (valueListResult.IsMatch)
+                {
+                    ValueList values = new ValueList();
+                    buildValueList(valueListResult, values);
+                    valueProvider = values;
+                }
+                MatchResult operatorResult = quantifyResult.Matches[SqlGrammar.Filter.Quantify.ComparisonOperator];
+                return buildQuantifierFilter(operatorResult, filterItem, quantifier, valueProvider);
+            }
+            MatchResult orderResult = result.Matches[SqlGrammar.Filter.Order.Name];
+            if (orderResult.IsMatch)
+            {
+                MatchResult leftResult = orderResult.Matches[SqlGrammar.Filter.Order.Left];
+                IFilterItem left = (IFilterItem)buildArithmeticItem(leftResult);
+                MatchResult rightResult = orderResult.Matches[SqlGrammar.Filter.Order.Right];
+                IFilterItem right = (IFilterItem)buildArithmeticItem(rightResult);
+                MatchResult operatorResult = orderResult.Matches[SqlGrammar.Filter.Order.ComparisonOperator];
+                return buildOrderFilter(operatorResult, left, right);
+            }
+            MatchResult betweenResult = result.Matches[SqlGrammar.Filter.Between.Name];
+            if (betweenResult.IsMatch)
+            {
+                MatchResult expressionResult = betweenResult.Matches[SqlGrammar.Filter.Between.Expression];
+                IFilterItem expression = (IFilterItem)buildArithmeticItem(expressionResult);
+                MatchResult lowerBoundResult = betweenResult.Matches[SqlGrammar.Filter.Between.LowerBound];
+                IFilterItem lowerBound = (IFilterItem)buildArithmeticItem(lowerBoundResult);
+                MatchResult upperBoundResult = betweenResult.Matches[SqlGrammar.Filter.Between.UpperBound];
+                IFilterItem upperBound = (IFilterItem)buildArithmeticItem(upperBoundResult);
+                BetweenFilter filter = new BetweenFilter(expression, lowerBound, upperBound);
+                MatchResult betweenNotResult = betweenResult.Matches[SqlGrammar.Filter.Between.NotKeyword];
+                filter.Not = betweenNotResult.IsMatch;
+                return filter;
+            }
+            MatchResult likeResult = result.Matches[SqlGrammar.Filter.Like.Name];
+            if (likeResult.IsMatch)
+            {
+                MatchResult expressionResult = likeResult.Matches[SqlGrammar.Filter.Like.Expression];
+                IFilterItem expression = (IFilterItem)buildArithmeticItem(expressionResult);
+                MatchResult valueResult = likeResult.Matches[SqlGrammar.Filter.Like.Value];
+                StringLiteral value = buildStringLiteral(valueResult);
+                LikeFilter filter = new LikeFilter(expression, value);
+                MatchResult likeNotResult = likeResult.Matches[SqlGrammar.Filter.Like.NotKeyword];
+                filter.Not = likeNotResult.IsMatch;
+                return filter;
+            }
+            MatchResult isResult = result.Matches[SqlGrammar.Filter.Is.Name];
+            if (isResult.IsMatch)
+            {
+                MatchResult expressionResult = isResult.Matches[SqlGrammar.Filter.Is.Expression];
+                IFilterItem expression = (IFilterItem)buildArithmeticItem(expressionResult);
+                NullFilter filter = new NullFilter(expression);
+                MatchResult isNotResult = result.Matches[SqlGrammar.Filter.Is.NotKeyword];
+                filter.Not = isNotResult.IsMatch;
+                return filter;
+            }
+            MatchResult inResult = result.Matches[SqlGrammar.Filter.In.Name];
+            if (inResult.IsMatch)
+            {
+                MatchResult expressionResult = inResult.Matches[SqlGrammar.Filter.In.Expression];
+                IFilterItem expression = (IFilterItem)buildArithmeticItem(expressionResult);
+                IValueProvider valueProvider = null;
+                MatchResult valuesResult = inResult.Matches[SqlGrammar.Filter.In.Values.Name];
+                if (valuesResult.IsMatch)
+                {
+                    MatchResult valueListResult = valuesResult.Matches[SqlGrammar.Filter.In.Values.ValueList];
+                    ValueList values = new ValueList();
+                    buildValueList(valueListResult, values);
+                }
+                MatchResult selectResult = inResult.Matches[SqlGrammar.Filter.In.Select.Name];
+                if (selectResult.IsMatch)
+                {
+                    MatchResult selectExpressionResult = selectResult.Matches[SqlGrammar.Filter.In.Select.SelectExpression];
+                    valueProvider = buildSelectExpression(selectExpressionResult);
+                }
+                MatchResult functionCall = inResult.Matches[SqlGrammar.Filter.In.FunctionCall];
+                if (functionCall.IsMatch)
+                {
+                    valueProvider = buildFunctionCall(functionCall);
+                }
+                InFilter filter = new InFilter(expression, valueProvider);
+                MatchResult inNotResult = inResult.Matches[SqlGrammar.Filter.In.NotKeyword];
+                filter.Not = inNotResult.IsMatch;
+                return filter;
+            }
+            MatchResult existsResult = result.Matches[SqlGrammar.Filter.Exists.Name];
+            if (existsResult.IsMatch)
+            {
+                MatchResult selectExpressionResult = existsResult.Matches[SqlGrammar.Filter.Exists.SelectExpression];
+                ISelectBuilder builder = buildSelectExpression(selectExpressionResult);
+                ExistsFilter filter = new ExistsFilter(builder);
+                return filter;
+            }
+            return null;
+        }
+
+        private Quantifier buildQuantifier(MatchResult result)
+        {
             throw new NotImplementedException();
         }
 
-        private void buildFilterList(MatchResult result, FilterGroup filterGroup)
+        private IFilter buildQuantifierFilter(MatchResult result, IFilterItem filterItem, Quantifier quantifier, IValueProvider valueProvider)
         {
             throw new NotImplementedException();
+        }
+
+        private IFilter buildOrderFilter(MatchResult result, IFilterItem left, IFilterItem right)
+        {
+            MatchResult equalToResult = result.Matches[SqlGrammar.ComparisonOperator.EqualTo];
+            if (equalToResult.IsMatch)
+            {
+                return new EqualToFilter(left, right);
+            }
+            MatchResult notEqualToResult = result.Matches[SqlGrammar.ComparisonOperator.NotEqualTo];
+            if (notEqualToResult.IsMatch)
+            {
+                return new NotEqualToFilter(left, right);
+            }
+            MatchResult lessThanEqualToResult = result.Matches[SqlGrammar.ComparisonOperator.LessThanEqualTo];
+            if (lessThanEqualToResult.IsMatch)
+            {
+                return new LessThanEqualToFilter(left, right);
+            }
+            MatchResult greaterThanEqualToResult = result.Matches[SqlGrammar.ComparisonOperator.GreaterThanEqualTo];
+            if (greaterThanEqualToResult.IsMatch)
+            {
+                return new GreaterThanEqualToFilter(left, right);
+            }
+            MatchResult lessThanResult = result.Matches[SqlGrammar.ComparisonOperator.LessThan];
+            if (lessThanResult.IsMatch)
+            {
+                return new LessThanFilter(left, right);
+            }
+            MatchResult greaterThanResult = result.Matches[SqlGrammar.ComparisonOperator.GreaterThan];
+            if (greaterThanResult.IsMatch)
+            {
+                return new GreaterThanFilter(left, right);
+            }
+            return null;
         }
 
         private SelectCombiner buildSelectCombiner(MatchResult result, ISelectBuilder leftHand, ISelectBuilder rightHand)
@@ -390,7 +687,7 @@ namespace SQLGeneration.Generators
         private void buildOrderByItem(MatchResult result, ISelectBuilder builder)
         {
             MatchResult expressionResult = result.Matches[SqlGrammar.OrderByItem.Expression];
-            IProjectionItem expression = (IProjectionItem)buildArithmeticItem(expressionResult, null);
+            IProjectionItem expression = (IProjectionItem)buildArithmeticItem(expressionResult);
             Order order = Order.Default;
             MatchResult directionResult = result.Matches[SqlGrammar.OrderByItem.OrderDirection];
             if (directionResult.IsMatch)
@@ -469,40 +766,28 @@ namespace SQLGeneration.Generators
             }
         }
 
-        private object buildArithmeticItem(MatchResult result, SourceCollection sources)
+        private object buildArithmeticItem(MatchResult result)
         {
             MatchResult expression = result.Matches[SqlGrammar.ArithmeticItem.ArithmeticExpression];
-            return buildAdditiveExpression(expression, sources);
+            return buildAdditiveExpression(expression);
         }
 
-        private object buildAdditiveExpression(MatchResult result, SourceCollection sources)
+        private object buildAdditiveExpression(MatchResult result)
         {
-            MatchResult wrapped = result.Matches[SqlGrammar.AdditiveExpression.Wrapped.Name];
-            if (wrapped.IsMatch)
-            {
-                MatchResult expressionResult = wrapped.Matches[SqlGrammar.AdditiveExpression.Wrapped.Expression];
-                object expression = buildAdditiveExpression(expressionResult, sources);
-                ArithmeticExpression arithmetic = expression as ArithmeticExpression;
-                if (arithmetic != null)
-                {
-                    arithmetic.WrapInParentheses = true;
-                }
-                return expression;
-            }
             MatchResult multiple = result.Matches[SqlGrammar.AdditiveExpression.Multiple.Name];
             if (multiple.IsMatch)
             {
                 MatchResult firstResult = multiple.Matches[SqlGrammar.AdditiveExpression.Multiple.First];
-                IProjectionItem first = (IProjectionItem)buildMultiplicitiveExpression(firstResult, sources);
+                IProjectionItem first = (IProjectionItem)buildMultiplicitiveExpression(firstResult);
                 MatchResult remainingResult = multiple.Matches[SqlGrammar.AdditiveExpression.Multiple.Remaining];
-                IProjectionItem remaining = (IProjectionItem)buildAdditiveExpression(remainingResult, sources);
+                IProjectionItem remaining = (IProjectionItem)buildAdditiveExpression(remainingResult);
                 MatchResult operatorResult = multiple.Matches[SqlGrammar.AdditiveExpression.Multiple.Operator];
                 return buildAdditiveOperator(operatorResult, first, remaining);
             }
             MatchResult single = result.Matches[SqlGrammar.AdditiveExpression.Single];
             if (single.IsMatch)
             {
-                return buildMultiplicitiveExpression(single, sources);
+                return buildMultiplicitiveExpression(single);
             }
             return null;
         }
@@ -522,22 +807,22 @@ namespace SQLGeneration.Generators
             return null;
         }
 
-        private object buildMultiplicitiveExpression(MatchResult result, SourceCollection sources)
+        private object buildMultiplicitiveExpression(MatchResult result)
         {
             MatchResult multiple = result.Matches[SqlGrammar.MultiplicitiveExpression.Multiple.Name];
             if (multiple.IsMatch)
             {
                 MatchResult firstResult = multiple.Matches[SqlGrammar.MultiplicitiveExpression.Multiple.First];
-                IProjectionItem first = (IProjectionItem)buildItem(firstResult, sources);
+                IProjectionItem first = (IProjectionItem)buildItem(firstResult);
                 MatchResult remainingResult = multiple.Matches[SqlGrammar.MultiplicitiveExpression.Multiple.Remaining];
-                IProjectionItem remaining = (IProjectionItem)buildMultiplicitiveExpression(remainingResult, sources);
+                IProjectionItem remaining = (IProjectionItem)buildMultiplicitiveExpression(remainingResult);
                 MatchResult operatorResult = multiple.Matches[SqlGrammar.MultiplicitiveExpression.Multiple.Operator];
                 return buildMultiplicitiveOperator(operatorResult, first, remaining);
             }
             MatchResult single = result.Matches[SqlGrammar.MultiplicitiveExpression.Single];
             if (single.IsMatch)
             {
-                return buildItem(single, sources);
+                return buildItem(single);
             }
             return null;
         }
@@ -557,7 +842,7 @@ namespace SQLGeneration.Generators
             return null;
         }
 
-        private object buildItem(MatchResult result, SourceCollection sources)
+        private object buildItem(MatchResult result)
         {
             MatchResult numberResult = result.Matches[SqlGrammar.Item.Number];
             if (numberResult.IsMatch)
@@ -569,12 +854,102 @@ namespace SQLGeneration.Generators
             MatchResult stringResult = result.Matches[SqlGrammar.Item.String];
             if (stringResult.IsMatch)
             {
-                string value = getToken(stringResult);
-                value = value.Substring(1, value.Length - 1);
-                value = value.Replace("''", "'");
-                return new StringLiteral(value);
+                return buildStringLiteral(stringResult);
             }
-            throw new NotImplementedException();
+            MatchResult nullResult = result.Matches[SqlGrammar.Item.Null];
+            if (nullResult.IsMatch)
+            {
+                return new NullLiteral();
+            }
+            MatchResult functionCallResult = result.Matches[SqlGrammar.Item.FunctionCall];
+            if (functionCallResult.IsMatch)
+            {
+                return buildFunctionCall(functionCallResult);
+            }
+            MatchResult columnResult = result.Matches[SqlGrammar.Item.Column];
+            if (columnResult.IsMatch)
+            {
+                List<string> parts = new List<string>();
+                buildMultipartIdentifier(columnResult, parts);
+                if (parts.Count > 1)
+                {
+                    Namespace qualifier = getNamespace(parts.Take(parts.Count - 2));
+                    string tableName = parts[parts.Count - 2];
+                    AliasedSource source = scope.GetSource(tableName);
+                    string columnName = parts[parts.Count - 1];
+                    return source.Column(columnName);
+                }
+                else
+                {
+                    string columnName = parts[0];
+                    Column column;
+                    AliasedSource source;
+                    if (scope.HasSingleSource(out source))
+                    {
+                        column = source.Column(columnName);
+                        column.Qualify = false;
+                    }
+                    else
+                    {
+                        column = new Column(columnName);
+                    }
+                    return column;
+                }
+            }
+            MatchResult selectResult = result.Matches[SqlGrammar.Item.Select.Name];
+            if (selectResult.IsMatch)
+            {
+                MatchResult selectExpressionResult = selectResult.Matches[SqlGrammar.Item.Select.SelectStatement];
+                return buildSelectStatement(selectExpressionResult);
+            }
+            return null;
+        }
+
+        private StringLiteral buildStringLiteral(MatchResult result)
+        {
+            string value = getToken(result);
+            value = value.Substring(1, value.Length - 2);
+            value = value.Replace("''", "'");
+            return new StringLiteral(value);
+        }
+
+        private Function buildFunctionCall(MatchResult result)
+        {
+            MatchResult functionNameResult = result.Matches[SqlGrammar.FunctionCall.FunctionName];
+            List<string> parts = new List<string>();
+            buildMultipartIdentifier(functionNameResult, parts);
+            Namespace qualifier = getNamespace(parts.Take(parts.Count - 1));
+            string functionName = parts[parts.Count - 1];
+            Function function = new Function(qualifier, functionName);
+            MatchResult argumentsResult = result.Matches[SqlGrammar.FunctionCall.Arguments];
+            if (argumentsResult.IsMatch)
+            {
+                ValueList arguments = new ValueList();
+                buildValueList(argumentsResult, arguments);
+                foreach (IProjectionItem value in arguments.Values)
+                {
+                    function.AddArgument(value);
+                }
+            }
+            return function;
+        }
+
+        private void buildValueList(MatchResult result, ValueList values)
+        {
+            MatchResult multiple = result.Matches[SqlGrammar.ValueList.Multiple.First];
+            if (multiple.IsMatch)
+            {
+                MatchResult first = multiple.Matches[SqlGrammar.ValueList.Multiple.First];
+                IProjectionItem value = (IProjectionItem)buildArithmeticItem(first);
+                MatchResult remaining = multiple.Matches[SqlGrammar.ValueList.Multiple.Remaining];
+                buildValueList(remaining, values);
+            }
+            MatchResult single = result.Matches[SqlGrammar.ValueList.Single];
+            if (single.IsMatch)
+            {
+                IProjectionItem value = (IProjectionItem)buildArithmeticItem(single);
+                values.AddValue(value);
+            }
         }
 
         private Namespace getNamespace(IEnumerable<string> qualifiers)
@@ -595,6 +970,63 @@ namespace SQLGeneration.Generators
         {
             TokenResult tokenResult = (TokenResult)result.Context;
             return tokenResult.Value;
+        }
+
+        private sealed class SourceScope
+        {
+            private readonly List<SourceCollection> stack;
+
+            public SourceScope()
+            {
+                stack = new List<SourceCollection>();
+            }
+
+            public void Push(SourceCollection collection)
+            {
+                stack.Add(collection);
+            }
+
+            public void Pop()
+            {
+                stack.RemoveAt(stack.Count - 1);
+            }
+
+            public void Clear()
+            {
+                stack.Clear();
+            }
+
+            public AliasedSource GetSource(string sourceName)
+            {
+                int index = stack.Count;
+                while (index != 0)
+                {
+                    --index;
+                    SourceCollection collection = stack[index];
+                    if (collection.Exists(sourceName))
+                    {
+                        return collection[sourceName];
+                    }
+                }
+                return null;
+            }
+
+            public bool HasSingleSource(out AliasedSource source)
+            {
+                if (stack.Count == 0)
+                {
+                    source = null;
+                    return false;
+                }
+                SourceCollection collection = stack[stack.Count - 1];
+                if (collection.Count > 1)
+                {
+                    source = null;
+                    return false;
+                }
+                source = collection.Sources.First();
+                return true;
+            }
         }
     }
 }

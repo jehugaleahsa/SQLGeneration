@@ -13,10 +13,10 @@ namespace SQLGeneration.Builders
     {
         private readonly List<IJoinItem> _from;
         private readonly List<AliasedProjection> _projection;
-        internal readonly FilterGroup _where;
+        private readonly FilterGroup _where;
         private readonly List<OrderBy> _orderBy;
         private readonly List<IGroupByItem> _groupBy;
-        internal readonly FilterGroup _having;
+        private readonly FilterGroup _having;
         private readonly SourceCollection sources;
 
         /// <summary>
@@ -292,6 +292,14 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// Gets the filter group used to build the where clause.
+        /// </summary>
+        internal FilterGroup WhereFilterGroup
+        {
+            get { return _where; }
+        }
+
+        /// <summary>
         /// Adds the filter to the where clause.
         /// </summary>
         /// <param name="filter">The filter to add.</param>
@@ -317,6 +325,14 @@ namespace SQLGeneration.Builders
         public IEnumerable<IFilter> Having
         {
             get { return _having.Filters; }
+        }
+
+        /// <summary>
+        /// Gets the filter group used to building the having clause.
+        /// </summary>
+        public FilterGroup HavingFilterGroup
+        {
+            get { return _having; }
         }
 
         /// <summary>

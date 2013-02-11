@@ -55,7 +55,7 @@ namespace SQLGeneration.Builders
         internal override IEnumerable<string> GetDeclarationTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.AddRange(LeftHand.GetDeclarationTokens(options));
+            stream.AddRange(((IJoinItem)LeftHand).GetDeclarationTokens(options));
             stream.Add(GetJoinType(options));
             stream.AddRange(((IJoinItem)RightHand).GetDeclarationTokens(options));
             stream.AddRange(GetOnTokens(options));

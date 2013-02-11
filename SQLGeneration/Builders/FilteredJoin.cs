@@ -49,6 +49,14 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// Gets the filter group.
+        /// </summary>
+        internal FilterGroup OnFilterGroup
+        {
+            get { return on; }
+        }
+
+        /// <summary>
         /// Adds the filter to the group.
         /// </summary>
         /// <param name="filter">The filter to add.</param>

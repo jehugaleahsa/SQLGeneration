@@ -654,7 +654,7 @@ namespace SQLGeneration.Tests
             builder.AddWhere(new NotFilter(new EqualToFilter(new NumericLiteral(1), new NumericLiteral(1))));
             Formatter formatter = new Formatter();
             string commandText = formatter.GetCommandText(builder);
-            string expected = "SELECT Table.Column FROM Table WHERE NOT (1 = 1)";
+            string expected = "SELECT Table.Column FROM Table WHERE NOT 1 = 1";
             Assert.AreEqual(expected, commandText, "The wrong SQL was generated.");
         }
 

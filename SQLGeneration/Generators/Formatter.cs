@@ -164,7 +164,7 @@ namespace SQLGeneration.Generators
                 writeToken(whereKeyword, writer);
                 writer.Write(' ');
                 MatchResult filterList = where.Matches[SqlGrammar.SelectSpecification.Where.FilterList];
-                buildFilterList(filterList, writer);
+                buildOrFilter(filterList, writer);
             }
             MatchResult groupBy = result.Matches[SqlGrammar.SelectSpecification.GroupBy.Name];
             if (groupBy.IsMatch)
@@ -184,7 +184,7 @@ namespace SQLGeneration.Generators
                 writeToken(havingKeyword, writer);
                 writer.Write(' ');
                 MatchResult filterList = having.Matches[SqlGrammar.SelectSpecification.Having.FilterList];
-                buildFilterList(filterList, writer);
+                buildOrFilter(filterList, writer);
             }
         }
 
@@ -315,6 +315,8 @@ namespace SQLGeneration.Generators
                 buildJoin(join, writer);
                 MatchResult rightParenthesis = wrapped.Matches[SqlGrammar.Join.Wrapped.RightParenthesis];
                 writeToken(rightParenthesis, writer);
+                MatchResult joinPrime = wrapped.Matches[SqlGrammar.Join.Wrapped.JoinPrime];
+                buildJoinPrime(joinPrime, writer);
                 return;
             }
             MatchResult joined = result.Matches[SqlGrammar.Join.Joined.Name];
@@ -377,7 +379,7 @@ namespace SQLGeneration.Generators
                 writeToken(onKeyword, writer);
                 writer.Write(' ');
                 MatchResult filterList = on.Matches[SqlGrammar.JoinPrime.Filtered.On.FilterList];
-                buildFilterList(filterList, writer);
+                buildOrFilter(filterList, writer);
                 MatchResult joinPrime = filtered.Matches[SqlGrammar.JoinPrime.Filtered.JoinPrime];
                 buildJoinPrime(joinPrime, writer);
                 return;
@@ -665,7 +667,7 @@ namespace SQLGeneration.Generators
                 writeToken(whereKeyword, writer);
                 writer.Write(' ');
                 MatchResult filterList = where.Matches[SqlGrammar.UpdateStatement.Where.FilterList];
-                buildFilterList(filterList, writer);
+                buildOrFilter(filterList, writer);
             }
         }
 
@@ -737,34 +739,7 @@ namespace SQLGeneration.Generators
                 writeToken(whereKeyword, writer);
                 writer.Write(' ');
                 MatchResult filterList = where.Matches[SqlGrammar.DeleteStatement.Where.FilterList];
-                buildFilterList(filterList, writer);
-            }
-        }
-
-        private void buildFilterList(MatchResult result, TextWriter writer)
-        {
-            MatchResult multiple = result.Matches[SqlGrammar.FilterList.Multiple];
-            if (multiple.IsMatch)
-            {
-                buildOrFilter(multiple, writer);
-                return;
-            }
-            MatchResult wrapped = result.Matches[SqlGrammar.FilterList.Wrapped.Name];
-            if (wrapped.IsMatch)
-            {
-                MatchResult not = wrapped.Matches[SqlGrammar.FilterList.Wrapped.Not];
-                if (not.IsMatch)
-                {
-                    writeToken(not, writer);
-                    writer.Write(' ');
-                }
-                MatchResult leftParenthesis = wrapped.Matches[SqlGrammar.FilterList.Wrapped.LeftParenthesis];
-                writeToken(leftParenthesis, writer);
-                MatchResult filterList = wrapped.Matches[SqlGrammar.FilterList.Wrapped.FilterList];
-                buildFilterList(filterList, writer);
-                MatchResult rightParenthesis = wrapped.Matches[SqlGrammar.FilterList.Wrapped.RightParenthesis];
-                writeToken(rightParenthesis, writer);
-                return;
+                buildOrFilter(filterList, writer);
             }
         }
 
@@ -803,7 +778,7 @@ namespace SQLGeneration.Generators
                 writeToken(and, writer);
                 writer.Write(' ');
                 MatchResult remaining = multiple.Matches[SqlGrammar.AndFilter.Multiple.Remaining];
-                buildAndFilter(remaining, writer);
+                buildOrFilter(remaining, writer);
                 return;
             }
             MatchResult single = result.Matches[SqlGrammar.AndFilter.Single];
@@ -816,17 +791,6 @@ namespace SQLGeneration.Generators
 
         private void buildFilter(MatchResult result, TextWriter writer)
         {
-            MatchResult wrapped = result.Matches[SqlGrammar.Filter.Wrapped.Name];
-            if (wrapped.IsMatch)
-            {
-                MatchResult leftParenthesis = wrapped.Matches[SqlGrammar.Filter.Wrapped.LeftParenthesis];
-                writeToken(leftParenthesis, writer);
-                MatchResult filter = wrapped.Matches[SqlGrammar.Filter.Wrapped.Filter];
-                buildFilter(filter, writer);
-                MatchResult rightParenthesis = wrapped.Matches[SqlGrammar.Filter.Wrapped.RightParenthesis];
-                writeToken(rightParenthesis, writer);
-                return;
-            }
             MatchResult notResult = result.Matches[SqlGrammar.Filter.Not.Name];
             if (notResult.IsMatch)
             {
@@ -835,6 +799,17 @@ namespace SQLGeneration.Generators
                 writer.Write(' ');
                 MatchResult filter = notResult.Matches[SqlGrammar.Filter.Not.Filter];
                 buildFilter(filter, writer);
+                return;
+            }
+            MatchResult wrapped = result.Matches[SqlGrammar.Filter.Wrapped.Name];
+            if (wrapped.IsMatch)
+            {
+                MatchResult leftParenthesis = wrapped.Matches[SqlGrammar.Filter.Wrapped.LeftParenthesis];
+                writeToken(leftParenthesis, writer);
+                MatchResult filter = wrapped.Matches[SqlGrammar.Filter.Wrapped.Filter];
+                buildOrFilter(filter, writer);
+                MatchResult rightParenthesis = wrapped.Matches[SqlGrammar.Filter.Wrapped.RightParenthesis];
+                writeToken(rightParenthesis, writer);
                 return;
             }
             MatchResult quantify = result.Matches[SqlGrammar.Filter.Quantify.Name];
@@ -884,7 +859,7 @@ namespace SQLGeneration.Generators
                 MatchResult expression = between.Matches[SqlGrammar.Filter.Between.Expression];
                 buildArithmeticItem(expression, writer);
                 writer.Write(' ');
-                MatchResult notKeyword = between.Matches[SqlGrammar.Filter.Between.Not];
+                MatchResult notKeyword = between.Matches[SqlGrammar.Filter.Between.NotKeyword];
                 if (notKeyword.IsMatch)
                 {
                     writeToken(notKeyword, writer);
@@ -1075,17 +1050,6 @@ namespace SQLGeneration.Generators
 
         private void buildAdditiveExpression(MatchResult result, TextWriter writer)
         {
-            MatchResult wrapped = result.Matches[SqlGrammar.AdditiveExpression.Wrapped.Name];
-            if (wrapped.IsMatch)
-            {
-                MatchResult leftParenthesis = wrapped.Matches[SqlGrammar.AdditiveExpression.Wrapped.LeftParenthesis];
-                writeToken(leftParenthesis, writer);
-                MatchResult expression = wrapped.Matches[SqlGrammar.AdditiveExpression.Wrapped.Expression];
-                buildAdditiveExpression(expression, writer);
-                MatchResult rightParenthesis = wrapped.Matches[SqlGrammar.AdditiveExpression.Wrapped.RightParenthesis];
-                writeToken(rightParenthesis, writer);
-                return;
-            }
             MatchResult multiple = result.Matches[SqlGrammar.AdditiveExpression.Multiple.Name];
             if (multiple.IsMatch)
             {
@@ -1129,7 +1093,7 @@ namespace SQLGeneration.Generators
             if (multiple.IsMatch)
             {
                 MatchResult first = multiple.Matches[SqlGrammar.MultiplicitiveExpression.Multiple.First];
-                buildItem(first, writer);
+                buildWrappedItem(first, writer);
                 writer.Write(' ');
                 MatchResult multiplicitiveOperator = multiple.Matches[SqlGrammar.MultiplicitiveExpression.Multiple.Operator];
                 buildMultiplicitiveOperator(multiplicitiveOperator, writer);
@@ -1141,7 +1105,7 @@ namespace SQLGeneration.Generators
             MatchResult single = result.Matches[SqlGrammar.MultiplicitiveExpression.Single];
             if (single.IsMatch)
             {
-                buildItem(single, writer);
+                buildWrappedItem(single, writer);
                 return;
             }
         }
@@ -1158,6 +1122,35 @@ namespace SQLGeneration.Generators
             if (division.IsMatch)
             {
                 writeToken(division, writer);
+                return;
+            }
+        }
+
+        private void buildWrappedItem(MatchResult result, TextWriter writer)
+        {
+            MatchResult negated = result.Matches[SqlGrammar.WrappedItem.Negated.Name];
+            if (negated.IsMatch)
+            {
+                MatchResult minus = negated.Matches[SqlGrammar.WrappedItem.Negated.Minus];
+                writeToken(minus, writer);
+                MatchResult wrappedItem = negated.Matches[SqlGrammar.WrappedItem.Negated.Item];
+                buildWrappedItem(wrappedItem, writer);
+            }
+            MatchResult wrapped = result.Matches[SqlGrammar.WrappedItem.Wrapped.Name];
+            if (wrapped.IsMatch)
+            {
+                MatchResult leftParenthesis = wrapped.Matches[SqlGrammar.WrappedItem.Wrapped.LeftParenthesis];
+                writeToken(leftParenthesis, writer);
+                MatchResult additiveExpression = wrapped.Matches[SqlGrammar.WrappedItem.Wrapped.AdditiveExpression];
+                buildAdditiveExpression(additiveExpression, writer);
+                MatchResult rightParenthesis = wrapped.Matches[SqlGrammar.WrappedItem.Wrapped.RightParenthesis];
+                writeToken(rightParenthesis, writer);
+                return;
+            }
+            MatchResult item = result.Matches[SqlGrammar.WrappedItem.Item];
+            if (item.IsMatch)
+            {
+                buildItem(item, writer);
                 return;
             }
         }

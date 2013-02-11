@@ -77,6 +77,14 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// Gets the number of items in the filter.
+        /// </summary>
+        internal int Count
+        {
+            get { return _filters.Count; }
+        }
+
+        /// <summary>
         /// Gets the filter text irrespective of the parentheses.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>

@@ -21,6 +21,14 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// Gets the source.
+        /// </summary>
+        internal AliasedSource Source
+        {
+            get { return source; }
+        }
+
+        /// <summary>
         /// Gets a string that declares the item.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>

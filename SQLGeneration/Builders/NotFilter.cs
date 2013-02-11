@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -31,13 +32,29 @@ namespace SQLGeneration.Builders
         /// <returns>A string representing the filter.</returns>
         protected override IEnumerable<string> GetInnerFilterTokens(CommandOptions options)
         {
-            // "NOT" "(" <Filter> ")"
             TokenStream stream = new TokenStream();
             stream.Add("NOT");
-            stream.Add("(");
+            bool wrapInParenthesis = shouldWrapInParenthesis(options);
+            if (wrapInParenthesis)
+            {
+                stream.Add("(");
+            }
             stream.AddRange(filter.GetFilterTokens(options));
-            stream.Add(")");
+            if (wrapInParenthesis)
+            {
+                stream.Add(")");
+            }
             return stream;
+        }
+
+        private bool shouldWrapInParenthesis(CommandOptions options)
+        {
+            FilterGroup group = filter as FilterGroup;
+            if (group == null || group.Count == 1 || (group.WrapInParentheses ?? options.WrapFiltersInParentheses))
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
