@@ -7,7 +7,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Represents an arithmetic expression in a command.
     /// </summary>
-    public abstract class ArithmeticExpression : IArithmetic
+    public abstract class ArithmeticExpression : IProjectionItem, IFilterItem, IGroupByItem
     {
         private readonly IProjectionItem _leftHand;
         private readonly IProjectionItem _rightHand;

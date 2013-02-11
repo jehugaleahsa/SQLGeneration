@@ -9,13 +9,13 @@ namespace SQLGeneration.Builders
     /// </summary>
     public class Top
     {
-        private readonly IArithmetic _expression;
+        private readonly IProjectionItem _expression;
 
         /// <summary>
         /// Initializes a new instance of a Top.
         /// </summary>
         /// <param name="expression">The number or percent of items to return.</param>
-        public Top(IArithmetic expression)
+        public Top(IProjectionItem expression)
         {
             if (expression == null)
             {
@@ -25,9 +25,9 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets the arithmetic expression representing the number or percent of rows to return.
+        /// Gets the expression representing the number or percent of rows to return.
         /// </summary>
-        public IArithmetic Expression
+        public IProjectionItem Expression
         {
             get
             {
@@ -61,10 +61,9 @@ namespace SQLGeneration.Builders
         /// <returns>The generated text.</returns>
         internal IEnumerable<string> GetTopTokens(CommandOptions options)
         {
-            // <Top> => "TOP" <Arithmetic> [ "PERCENT" ] [ "WITH TIES" ]
             TokenStream stream = new TokenStream();
             stream.Add("TOP");
-            stream.AddRange(_expression.GetFilterTokens(options));
+            stream.AddRange(_expression.GetProjectionTokens(options));
             if (IsPercent)
             {
                 stream.Add("PERCENT");

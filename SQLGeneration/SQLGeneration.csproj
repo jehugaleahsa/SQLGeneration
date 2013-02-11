@@ -63,7 +63,6 @@
     <Compile Include="Builders\DeleteBuilder.cs" />
     <Compile Include="Builders\Division.cs" />
     <Compile Include="Builders\FilteredJoin.cs" />
-    <Compile Include="Builders\IArithmetic.cs" />
     <Compile Include="Builders\ICommand.cs" />
     <Compile Include="Builders\IRightJoinItem.cs" />
     <Compile Include="Builders\ISelectBuilder.cs" />

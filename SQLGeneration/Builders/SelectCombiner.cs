@@ -11,6 +11,7 @@ namespace SQLGeneration.Builders
     {
         private readonly ISelectBuilder leftHand;
         private readonly ISelectBuilder rightHand;
+        private readonly List<OrderBy> orderBy;
 
         /// <summary>
         /// Initializes a new instance of a SelectCombiner.
@@ -27,6 +28,7 @@ namespace SQLGeneration.Builders
             }
             this.leftHand = leftHand;
             this.rightHand = rightHand;
+            this.orderBy = new List<OrderBy>();
         }
 
         /// <summary>
@@ -52,6 +54,41 @@ namespace SQLGeneration.Builders
         {
             get;
             set;
+        }
+
+        /// <summary>
+        /// Gets the items used to sort the results.
+        /// </summary>
+        public IEnumerable<OrderBy> OrderBy
+        {
+            get { return orderBy; }
+        }
+
+        /// <summary>
+        /// Adds a sort criteria to the query.
+        /// </summary>
+        /// <param name="item">The sort criteria to add.</param>
+        public void AddOrderBy(OrderBy item)
+        {
+            if (item == null)
+            {
+                throw new ArgumentNullException("item");
+            }
+            orderBy.Add(item);
+        }
+
+        /// <summary>
+        /// Removes the sort criteria from the query.
+        /// </summary>
+        /// <param name="item">The order by item to remove.</param>
+        /// <returns>True if the item was removed; otherwise, false.</returns>
+        public bool RemoveOrderBy(OrderBy item)
+        {
+            if (item == null)
+            {
+                throw new ArgumentNullException("item");
+            }
+            return orderBy.Remove(item);
         }
 
         /// <summary>
@@ -110,7 +147,27 @@ namespace SQLGeneration.Builders
                 stream.Add(converter.ToToken(Distinct));
             }
             stream.AddRange(rightHand.GetCommandTokens(options));
+            stream.AddRange(buildOrderBy(options));
             return stream;
+        }
+
+        private IEnumerable<string> buildOrderBy(CommandOptions options)
+        {
+            using (IEnumerator<OrderBy> enumerator = orderBy.GetEnumerator())
+            {
+                TokenStream stream = new TokenStream();
+                if (enumerator.MoveNext())
+                {
+                    stream.Add("ORDER BY");
+                    stream.AddRange(enumerator.Current.GetOrderByTokens(options));
+                    while (enumerator.MoveNext())
+                    {
+                        stream.Add(",");
+                        stream.AddRange(enumerator.Current.GetOrderByTokens(options));
+                    }
+                }
+                return stream;
+            }
         }
 
         string IRightJoinItem.GetSourceName()

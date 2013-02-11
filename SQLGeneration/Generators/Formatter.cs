@@ -210,7 +210,7 @@ namespace SQLGeneration.Generators
             writeToken(topKeyword, writer);
             writer.Write(' ');
             MatchResult expression = result.Matches[SqlGrammar.SelectSpecification.Top.Expression];
-            buildAdditiveExpression(expression, writer);
+            buildArithmeticItem(expression, writer);
             writer.Write(' ');
             MatchResult percentKeyword = result.Matches[SqlGrammar.SelectSpecification.Top.PercentKeyword];
             if (percentKeyword.IsMatch)

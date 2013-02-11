@@ -13,10 +13,10 @@ namespace SQLGeneration.Builders
     {
         private readonly List<IJoinItem> _from;
         private readonly List<AliasedProjection> _projection;
-        private readonly FilterGroup _where;
+        internal readonly FilterGroup _where;
         private readonly List<OrderBy> _orderBy;
         private readonly List<IGroupByItem> _groupBy;
-        private readonly FilterGroup _having;
+        internal readonly FilterGroup _having;
         private readonly SourceCollection sources;
 
         /// <summary>
@@ -56,10 +56,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         public IEnumerable<AliasedProjection> Projection
         {
-            get 
-            {
-                return new ReadOnlyCollection<AliasedProjection>(_projection);
-            }
+            get { return _projection; }
         }
 
         /// <summary>
@@ -221,7 +218,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         public IEnumerable<OrderBy> OrderBy
         {
-            get { return new ReadOnlyCollection<OrderBy>(_orderBy); }
+            get { return _orderBy; }
         }
 
         /// <summary>
@@ -256,7 +253,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         public IEnumerable<IGroupByItem> GroupBy
         {
-            get { return new ReadOnlyCollection<IGroupByItem>(_groupBy); }
+            get { return _groupBy; }
         }
 
         /// <summary>

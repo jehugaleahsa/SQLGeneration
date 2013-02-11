@@ -432,7 +432,7 @@ namespace SQLGeneration.Parsing
                 .Add(SelectSpecification.DistinctQualifier, false, Expression(DistinctQualifier.Name))
                 .Add(SelectSpecification.Top.Name, false, Define()
                     .Add(SelectSpecification.Top.TopKeyword, true, Token(SqlTokenRegistry.Top))
-                    .Add(SelectSpecification.Top.Expression, true, Expression(AdditiveExpression.Name))
+                    .Add(SelectSpecification.Top.Expression, true, Expression(ArithmeticItem.Name))
                     .Add(SelectSpecification.Top.PercentKeyword, false, Token(SqlTokenRegistry.Percent))
                     .Add(SelectSpecification.Top.WithTiesKeyword, false, Token(SqlTokenRegistry.WithTies)))
                 .Add(SelectSpecification.ProjectionList, true, Expression(ProjectionList.Name))

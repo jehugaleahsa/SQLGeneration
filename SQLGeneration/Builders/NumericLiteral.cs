@@ -8,7 +8,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Represents a numeric literal.
     /// </summary>
-    public class NumericLiteral : Literal, IArithmetic
+    public class NumericLiteral : Literal
     {
         /// <summary>
         /// Initializes a new instance of a NumericLiteral.
