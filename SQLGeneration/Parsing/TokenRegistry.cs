@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using SQLGeneration.Properties;
@@ -12,14 +11,16 @@ namespace SQLGeneration.Parsing
     /// </summary>
     public abstract class TokenRegistry : ITokenRegistry
     {
+        private readonly List<string> tokenNames;
         private readonly Dictionary<string, TokenDefinition> definitionLookup;
-        private Regex regex;
+        private Dictionary<string, Regex> checks;
 
         /// <summary>
         /// Initializes a new instance of a TokenRegistry.
         /// </summary>
         protected TokenRegistry()
         {
+            tokenNames = new List<string>();
             definitionLookup = new Dictionary<string, TokenDefinition>();
         }
 
@@ -41,6 +42,7 @@ namespace SQLGeneration.Parsing
                 string message = String.Format(Resources.DuplicateTokenDefinition, tokenName);
                 throw new SQLGenerationException(message);
             }
+            tokenNames.Add(tokenName);
             TokenDefinition definition = new TokenDefinition()
             {
                 Type = tokenName,
@@ -48,7 +50,6 @@ namespace SQLGeneration.Parsing
                 IgnoreCase = ignoreCase,
             };
             definitionLookup.Add(tokenName, definition);
-            regex = null;
         }
 
         /// <summary>
@@ -69,43 +70,57 @@ namespace SQLGeneration.Parsing
         /// <returns>The extracted token -or- null if no token is found.</returns>
         private string GetToken(string input, ref int index)
         {
-            Regex regex = getRegex();
-            Match match = regex.Match(input, index);
-            if (match.Success)
+            Dictionary<string, Regex> checks = getRegex();
+            foreach (string tokenName in tokenNames)
             {
-                index = match.Index + match.Length;
-                return match.Value;
+                Regex regex = checks[tokenName];
+                Match match = regex.Match(input, index);
+                if (match.Success)
+                {
+                    index = match.Index + match.Length;
+                    return match.Groups["Token"].Value;
+                }
             }
-            else
-            {
-                index = input.Length;
-                return null;
-            }
+            index = input.Length;
+            return null;
         }
 
-        private bool Match(string tokenName, string token)
+        private bool Match(string token, out string tokenName)
         {
-            Regex regex = getRegex();
-            Match match = regex.Match(token, 0);
-            return match.Groups[tokenName].Success;
+            Dictionary<string, Regex> checks = getRegex();
+            foreach (string name in tokenNames)
+            {
+                Regex regex = checks[name];
+                Match match = regex.Match(token, 0);
+                if (match.Success)
+                {
+                    tokenName = name;
+                    return true;
+                }
+            }
+            tokenName = null;
+            return false;
         }
 
-        private Regex getRegex()
+        private Dictionary<string, Regex> getRegex()
         {
-            if (regex == null)
+            if (checks == null)
             {
-                string pattern = String.Join("|", definitionLookup.Keys.Select(tokenName => getTokenRegex(definitionLookup[tokenName])));
-                regex = new Regex(@"\G" + pattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+                checks = new Dictionary<string, Regex>();
+                foreach (string tokenName in definitionLookup.Keys)
+                {
+                    string pattern = getTokenRegex(definitionLookup[tokenName]);
+                    Regex regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+                    checks.Add(tokenName, regex);
+                }
             }
-            return regex;
+            return checks;
         }
 
         private string getTokenRegex(TokenDefinition definition)
         {
             StringBuilder regexBuilder = new StringBuilder();
-            regexBuilder.Append("(?<");
-            regexBuilder.Append(definition.Type);
-            regexBuilder.Append(">");
+            regexBuilder.Append(@"\G\s*(?<Token>");
             if (definition.IgnoreCase)
             {
                 regexBuilder.Append("(?i)");
@@ -167,7 +182,7 @@ namespace SQLGeneration.Parsing
         {
             private readonly TokenRegistry registry;
             private readonly IEnumerator<string> tokenEnumerator;
-            private readonly Stack<string> undoBuffer;
+            private readonly Stack<TokenResult> undoBuffer;
 
             /// <summary>
             /// Initializes a new instance of a TokenSource.
@@ -178,7 +193,7 @@ namespace SQLGeneration.Parsing
             {
                 this.registry = registry;
                 tokenEnumerator = tokenStream.GetEnumerator();
-                undoBuffer = new Stack<string>();
+                undoBuffer = new Stack<TokenResult>();
             }
 
             /// <summary>
@@ -200,43 +215,43 @@ namespace SQLGeneration.Parsing
                 {
                     if (!tokenEnumerator.MoveNext())
                     {
-                        return new TokenResult(tokenName, false, null);
+                        return new TokenResult(null, false, null);
                     }
                     string token = tokenEnumerator.Current;
-                    bool isMatch = token == null ? false : registry.Match(tokenName, token);
-                    return new TokenResult(tokenName, isMatch, token);
+                    string name;
+                    bool isMatch = registry.Match(token, out name);
+                    isMatch &= tokenName == name;
+                    return new TokenResult(name, isMatch, token);
                 }
                 else
                 {
-                    string token = undoBuffer.Pop();
-                    bool isMatch = registry.Match(tokenName, token);
-                    return new TokenResult(tokenName, isMatch, token);
+                    TokenResult tokenResult = undoBuffer.Pop();
+                    bool isMatch = tokenResult.Name == tokenName;
+                    return new TokenResult(tokenResult.Name, isMatch, tokenResult.Value);
                 }
             }
 
             /// <summary>
-            /// Attempts to retrieve a token matching the definition associated
-            /// with the given name.
+            /// Gets whether the token source has more items.
             /// </summary>
-            /// <returns>
-            /// A result object describing whether the match was a success and what value 
-            /// was found.
-            /// </returns>
-            public string GetToken()
+            public bool HasMore
             {
-                if (undoBuffer.Count == 0)
+                get
                 {
-                    if (!tokenEnumerator.MoveNext())
+                    if (undoBuffer.Count > 0)
                     {
-                        return null;
+                        return true;
                     }
-                    string token = tokenEnumerator.Current;
-                    return token;
-                }
-                else
-                {
-                    string token = undoBuffer.Pop();
-                    return token;
+                    if (tokenEnumerator.MoveNext())
+                    {
+                        string token = tokenEnumerator.Current;
+                        string name;
+                        bool isMatch = registry.Match(token, out name);
+                        TokenResult result = new TokenResult(name, isMatch, token);
+                        undoBuffer.Push(result);
+                        return true;
+                    }
+                    return false;
                 }
             }
 
@@ -244,7 +259,7 @@ namespace SQLGeneration.Parsing
             /// Restores the given token to the front of the token stream.
             /// </summary>
             /// <param name="result">The token to restore.</param>
-            public void PutBack(string result)
+            public void PutBack(TokenResult result)
             {
                 undoBuffer.Push(result);
             }

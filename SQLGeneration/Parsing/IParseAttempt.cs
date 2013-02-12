@@ -11,7 +11,7 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Gets the tokens that were collected during the attempt.
         /// </summary>
-        List<string> Tokens { get; }
+        List<TokenResult> Tokens { get; }
 
         /// <summary>
         /// Attempts to get a token of the given type.

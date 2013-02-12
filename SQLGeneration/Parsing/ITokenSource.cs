@@ -8,10 +8,12 @@ namespace SQLGeneration.Parsing
     public interface ITokenSource
     {
         /// <summary>
-        /// Attempts to retrieve the next token.
+        /// Gets whether there are more tokens in the source.
         /// </summary>
-        /// <returns>The next token -or- null if there are no more tokens.</returns>
-        string GetToken();
+        bool HasMore
+        {
+            get;
+        }
 
         /// <summary>
         /// Attempts to retrieve a token matching the definition associated
@@ -27,7 +29,7 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Restores the given token to the front of the token stream.
         /// </summary>
-        /// <param name="token">The token to restore.</param>
-        void PutBack(string token);
+        /// <param name="result">The token to restore.</param>
+        void PutBack(TokenResult result);
     }
 }

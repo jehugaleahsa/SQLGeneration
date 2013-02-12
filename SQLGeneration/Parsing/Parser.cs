@@ -71,8 +71,7 @@ namespace SQLGeneration.Parsing
             Expression expression = grammar.Expression(expressionType);
             ParseAttempt attempt = new ParseAttempt(this, tokenSource);
             MatchResult result = expression.Match(attempt, String.Empty);
-            string token = tokenSource.GetToken();
-            if (token != null)
+            if (tokenSource.HasMore)
             {
                 result.IsMatch = false;
             }
@@ -83,7 +82,7 @@ namespace SQLGeneration.Parsing
         {
             private readonly Parser parser;
             private readonly ITokenSource tokenSource;
-            private readonly List<string> tokens;
+            private readonly List<TokenResult> tokens;
 
             /// <summary>
             /// Initializes a new instance of a ParseAttempt.
@@ -94,13 +93,13 @@ namespace SQLGeneration.Parsing
             {
                 this.parser = parser;
                 this.tokenSource = tokenSource;
-                this.tokens = new List<string>();
+                this.tokens = new List<TokenResult>();
             }
 
             /// <summary>
             /// Gets the tokens collected during the attempt.
             /// </summary>
-            public List<string> Tokens
+            public List<TokenResult> Tokens
             {
                 get { return tokens; }
             }
@@ -115,7 +114,7 @@ namespace SQLGeneration.Parsing
                 TokenResult result = tokenSource.GetToken(tokenName);
                 if (result.Value != null)
                 {
-                    tokens.Add(result.Value);
+                    tokens.Add(result);
                 }
                 return result;
             }

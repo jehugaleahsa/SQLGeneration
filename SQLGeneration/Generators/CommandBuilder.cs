@@ -78,8 +78,10 @@ namespace SQLGeneration.Generators
             MatchResult orderBy = result.Matches[SqlGrammar.SelectStatement.OrderBy.Name];
             if (orderBy.IsMatch)
             {
+                scope.Push(builder.Sources);
                 MatchResult orderByList = orderBy.Matches[SqlGrammar.SelectStatement.OrderBy.OrderByList];
                 buildOrderByList(orderByList, builder);
+                scope.Pop();
             }
             return builder;
         }
@@ -90,7 +92,7 @@ namespace SQLGeneration.Generators
             if (wrapped.IsMatch)
             {
                 MatchResult expression = wrapped.Matches[SqlGrammar.SelectExpression.Wrapped.SelectExpression];
-                return buildSelectExpression(result);
+                return buildSelectExpression(expression);
             }
             MatchResult specification = result.Matches[SqlGrammar.SelectExpression.SelectSpecification];
             ISelectBuilder builder = buildSelectSpecification(specification);

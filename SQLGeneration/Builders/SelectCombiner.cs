@@ -56,6 +56,11 @@ namespace SQLGeneration.Builders
             set;
         }
 
+        SourceCollection ISelectBuilder.Sources
+        { 
+            get { return new SourceCollection(); } 
+        }
+
         /// <summary>
         /// Gets the items used to sort the results.
         /// </summary>

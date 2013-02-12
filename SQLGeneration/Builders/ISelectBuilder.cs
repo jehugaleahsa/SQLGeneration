@@ -9,6 +9,11 @@ namespace SQLGeneration.Builders
     public interface ISelectBuilder : ICommand, IRightJoinItem, IProjectionItem, IValueProvider
     {
         /// <summary>
+        /// Gets the source collection for the builder.
+        /// </summary>
+        SourceCollection Sources { get; }
+
+        /// <summary>
         /// Gets the items used to sort the results.
         /// </summary>
         IEnumerable<OrderBy> OrderBy

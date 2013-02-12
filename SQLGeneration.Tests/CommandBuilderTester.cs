@@ -889,5 +889,127 @@ namespace SQLGeneration.Tests
             string expected = "SELECT * FROM Customer WHERE CustomerId = @customerId";
             Assert.AreEqual(expected, actual, "The SELECT statement was not updated as expected.");
         }
+
+        /// <summary>
+        /// This sees whether we can reproduce a statement with leading and trailing whitespace.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_ExtraWhitespace()
+        {
+            string commandText = "   SELECT  *     FROM    Customer    ";
+            CommandBuilder commandBuilder = new CommandBuilder();
+            SelectBuilder select = (SelectBuilder)commandBuilder.GetCommand(commandText);
+
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(select);
+            string expected = "SELECT * FROM Customer";
+            Assert.AreEqual(expected, actual, "The SELECT statement was not updated as expected.");
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a statement with newlines.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Newlines()
+        {
+            string commandText = 
+@"SELECT
+    *
+FROM Table1
+INNER JOIN Table2 ON Table1.Column = Table2.Column
+WHERE Column3 = '123'";
+            CommandBuilder commandBuilder = new CommandBuilder();
+            SelectBuilder select = (SelectBuilder)commandBuilder.GetCommand(commandText);
+
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(select);
+            string expected = "SELECT * FROM Table1 INNER JOIN Table2 ON Table1.Column = Table2.Column WHERE Column3 = '123'";
+            Assert.AreEqual(expected, actual, "The SELECT statement was not updated as expected.");
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an extremely complex statement.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_ComplexCommand()
+        {
+            string commandText =
+@"SELECT
+	r.RouteId,
+    r.RouteNumber,
+	o.CustomerId,
+	o.CustomerKey AS [Outlet#],
+	o.Name AS CustomerName,
+	vm.VendingMachineId,
+	vm.AssetNumber AS [Equipment#],
+	m.ModelType AS Model,
+	rc.FillFrequency,
+	rc.EffectiveDate AS SettlementDate,
+	p.ProductLookupId,
+	p.ProductSKU AS ProductCode,
+	rcvc.FillLevel AS ProductCapacity,
+	st.QuantityDelivered AS FillUnits
+FROM Company b
+INNER JOIN Route r ON b.CompanyId = r.CompanyId
+INNER JOIN RouteSchedule rs ON r.RouteId = rs.RouteId
+INNER JOIN RouteCard rc ON rs.RouteScheduleId = rc.RouteScheduleId
+INNER JOIN
+(
+	SELECT
+		rc.RouteCardId,
+		rcvc.ProductLookupId,
+		SUM(rcvc.FillLevel) AS FillLevel
+	FROM RouteSchedule rs
+	INNER JOIN RouteCard rc ON rs.RouteScheduleId = rc.RouteScheduleId
+	INNER JOIN RouteCardVendColumn rcvc ON rc.RouteCardId = rcvc.RouteCardId
+	WHERE rs.RouteId IN (1, 2, 3) AND rc.EffectiveDate BETWEEN @startDate AND @stopDate
+	GROUP BY rc.RouteCardId, rcvc.ProductLookupId
+) as rcvc ON rc.RouteCardId = rcvc.RouteCardId
+INNER JOIN ProductLookup p ON rcvc.ProductLookupId = p.ProductLookupId
+INNER JOIN VendingMachine vm ON rc.VendingMachineId = vm.VendingMachineId
+INNER JOIN MachineTypeLookup m ON vm.MachineTypeLookupId = m.MachineTypeLookupId
+INNER JOIN Customer o ON vm.CustomerId = o.CustomerId
+INNER JOIN ServiceTransaction svc ON
+	(rc.VendingMachineId = svc.VendingMachineId AND rc.EffectiveDate = svc.ServiceTransactionDate)
+INNER JOIN SettlementTransactionSKU st ON
+	(svc.ServiceTransactionId = st.ServiceTransactionId AND p.ProductLookupId = st.ProductLookupId)
+WHERE rc.EffectiveDate BETWEEN @startDate AND @endDate AND r.RouteId IN (1, 2, 3)
+ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.EffectiveDate DESC";
+            CommandBuilder commandBuilder = new CommandBuilder();
+            SelectBuilder select = (SelectBuilder)commandBuilder.GetCommand(commandText);
+            select.AddWhere(new EqualToFilter(new NumericLiteral(1), new NumericLiteral(1)));
+
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(select);
+            string expected = "SELECT"
+                + " r.RouteId,"
+                + " r.RouteNumber,"
+                + " o.CustomerId,"
+                + " o.CustomerKey AS [Outlet#],"
+                + " o.Name AS CustomerName,"
+                + " vm.VendingMachineId,"
+                + " vm.AssetNumber AS [Equipment#],"
+                + " m.ModelType AS Model,"
+                + " rc.FillFrequency,"
+                + " rc.EffectiveDate AS SettlementDate,"
+                + " p.ProductLookupId,"
+                + " p.ProductSKU AS ProductCode,"
+                + " rcvc.FillLevel AS ProductCapacity,"
+                + " st.QuantityDelivered AS FillUnits"
+                + " FROM Company b"
+                + " INNER JOIN Route r ON b.CompanyId = r.CompanyId"
+                + " INNER JOIN RouteSchedule rs ON r.RouteId = rs.RouteId"
+                + " INNER JOIN RouteCard rc ON rs.RouteScheduleId = rc.RouteScheduleId"
+                + " INNER JOIN (SELECT rc.RouteCardId, rcvc.ProductLookupId, SUM(rcvc.FillLevel) AS FillLevel FROM RouteSchedule rs INNER JOIN RouteCard rc ON rs.RouteScheduleId = rc.RouteScheduleId INNER JOIN RouteCardVendColumn rcvc ON rc.RouteCardId = rcvc.RouteCardId WHERE rs.RouteId IN (1, 2, 3) AND rc.EffectiveDate BETWEEN @startDate AND @stopDate GROUP BY rc.RouteCardId, rcvc.ProductLookupId) rcvc ON rc.RouteCardId = rcvc.RouteCardId"
+                + " INNER JOIN ProductLookup p ON rcvc.ProductLookupId = p.ProductLookupId"
+                + " INNER JOIN VendingMachine vm ON rc.VendingMachineId = vm.VendingMachineId"
+                + " INNER JOIN MachineTypeLookup m ON vm.MachineTypeLookupId = m.MachineTypeLookupId"
+                + " INNER JOIN Customer o ON vm.CustomerId = o.CustomerId"
+                + " INNER JOIN ServiceTransaction svc ON (rc.VendingMachineId = svc.VendingMachineId AND rc.EffectiveDate = svc.ServiceTransactionDate)"
+                + " INNER JOIN SettlementTransactionSKU st ON (svc.ServiceTransactionId = st.ServiceTransactionId AND p.ProductLookupId = st.ProductLookupId)"
+                + " WHERE rc.EffectiveDate BETWEEN @startDate AND @endDate AND r.RouteId IN (1, 2, 3) AND 1 = 1"
+                + " ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.EffectiveDate DESC";
+            Assert.AreEqual(expected, actual, "The SELECT statement was not reproduced as expected.");
+        }
     }
 }
