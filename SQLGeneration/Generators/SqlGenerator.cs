@@ -18,7 +18,7 @@ namespace SQLGeneration.Generators
         {
             if (grammar == null)
             {
-                grammar = new SqlGrammar();
+                grammar = SqlGrammar.Default;
             }
             this.grammar = grammar;
         }

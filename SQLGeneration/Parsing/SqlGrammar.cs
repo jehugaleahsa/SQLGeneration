@@ -7,6 +7,8 @@ namespace SQLGeneration.Parsing
     /// </summary>
     public class SqlGrammar : Grammar
     {
+        private static SqlGrammar instance = new SqlGrammar();
+
         /// <summary>
         /// Initializes a new instance of a SqlGrammar.
         /// </summary>
@@ -53,6 +55,14 @@ namespace SQLGeneration.Parsing
             defineSetter();
             defineDeleteStatement();
             defineMultipartIdentifier();
+        }
+
+        /// <summary>
+        /// Gets the default instance of the SqlGrammar.
+        /// </summary>
+        public static SqlGrammar Default 
+        { 
+            get { return instance; } 
         }
 
         #region Start

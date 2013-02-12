@@ -95,7 +95,7 @@ namespace SQLGeneration.Parsing
             if (regex == null)
             {
                 string pattern = String.Join("|", definitionLookup.Keys.Select(tokenName => getTokenRegex(definitionLookup[tokenName])));
-                regex = new Regex(@"\G" + pattern, RegexOptions.Compiled);
+                regex = new Regex(@"\G" + pattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
             }
             return regex;
         }
