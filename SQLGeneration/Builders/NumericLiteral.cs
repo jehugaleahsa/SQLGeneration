@@ -21,7 +21,7 @@ namespace SQLGeneration.Builders
         /// Initializes a new instance of a NumericLiteral.
         /// </summary>
         /// <param name="value">The value to make the literal.</param>
-        public NumericLiteral(decimal value)
+        public NumericLiteral(double value)
         {
             Value = value;
         }
@@ -29,7 +29,16 @@ namespace SQLGeneration.Builders
         /// <summary>
         /// Gets or sets the numeric value of the literal.
         /// </summary>
-        public decimal Value
+        public double Value
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the format to represent the value with.
+        /// </summary>
+        public string Format
         {
             get;
             set;
@@ -43,7 +52,14 @@ namespace SQLGeneration.Builders
         protected override IEnumerable<string> GetTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.Add(Value.ToString(CultureInfo.InvariantCulture));
+            if (Format == null)
+            {
+                stream.Add(Value.ToString(CultureInfo.InvariantCulture));
+            }
+            else
+            {
+                stream.Add(Value.ToString(Format, CultureInfo.InvariantCulture));
+            }
             return stream;
         }
     }

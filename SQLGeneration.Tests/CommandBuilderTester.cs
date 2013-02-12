@@ -371,6 +371,386 @@ namespace SQLGeneration.Tests
             assertCanReproduce(commandText);
         }
 
+        /// <summary>
+        /// This sees whether we can reproduce a select with a quantifying filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_QuantifyingFilter_Select()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column > ALL (SELECT Column FROM Table2)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a quantifying filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_QuantifyingFilter_ValueList()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column > ALL (1, 2, 3)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a BETWEEN filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_BetweenFilter()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column BETWEEN 1 AND 10";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a LIKE filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_LikeFilter()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column LIKE '%ABC'";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with an IN filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_InFilter_ValueList()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column IN (1, 2, 3)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with an IN filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_InFilter_Select()
+        {
+            string commandText = "SELECT Column FROM Table1 WHERE Column IN (SELECT Column FROM Table2)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with an IN filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_InFilter_FunctionCall()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column IN GetData()";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with an EXISTS filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_ExistsFilter()
+        {
+            string commandText = "SELECT Column FROM Table1 WHERE EXISTS(SELECT 1 FROM Table2 WHERE Table1.Column = Table2.Column)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a quantifying filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_QuantifyingFilter_Any()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column > ANY (SELECT Column FROM Table2)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a quantifying filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_QuantifyingFilter_Some()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column > SOME (SELECT Column FROM Table2)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a quantifying filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_QuantifyingFilter_EqualTo()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column = ALL (SELECT Column FROM Table2)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a quantifying filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_QuantifyingFilter_NotEqualTo()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column <> ALL (SELECT Column FROM Table2)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a quantifying filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_QuantifyingFilter_LessThanEqualTo()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column <= ALL (SELECT Column FROM Table2)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a quantifying filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_QuantifyingFilter_GreaterThanEqualTo()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column >= ALL (SELECT Column FROM Table2)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a quantifying filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_QuantifyingFilter_LessThan()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column < ALL (SELECT Column FROM Table2)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a order comparison filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_OrderFilter_NotEqualTo()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column <> 123";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a order comparison filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_OrderFilter_LessThanEqualTo()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column <= 123";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a order comparison filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_OrderFilter_GreaterThanEqualTo()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column >= 123";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a order comparison filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_OrderFilter_LessThan()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column < 123";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a order comparison filter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_OrderFilter_GreaterThan()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column > 123";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a combiner.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Intersect()
+        {
+            string commandText = "SELECT 1 INTERSECT SELECT 1";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a combiner.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Except()
+        {
+            string commandText = "SELECT 1 EXCEPT SELECT 1";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with a combiner.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Minus()
+        {
+            string commandText = "SELECT 1 MINUS SELECT 1";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select with multiple order bys.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_MultipleOrderBys()
+        {
+            string commandText = "SELECT Column1, Column2, Column3 FROM Table ORDER BY Column1, Column2, Column3";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that orders a column in descending order.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_OrderByDescending()
+        {
+            string commandText = "SELECT Column FROM Table ORDER BY Column DESC";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that orders a column in descending order.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_OrderByAscending()
+        {
+            string commandText = "SELECT Column FROM Table ORDER BY Column ASC";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that orders a column with nulls first.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_OrderByNullsFirst()
+        {
+            string commandText = "SELECT Column FROM Table ORDER BY Column NULLS FIRST";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that orders a column with nulls last.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_OrderByNullsLast()
+        {
+            string commandText = "SELECT Column FROM Table ORDER BY Column NULLS LAST";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that orders a column descending with nulls first.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_OrderByDescendingNullsLast()
+        {
+            string commandText = "SELECT Column FROM Table ORDER BY Column DESC NULLS FIRST";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that adds: 1 + 1.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Addition()
+        {
+            string commandText = "SELECT (1 + 1)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that subtracts: 1 - 1.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Subtraction()
+        {
+            string commandText = "SELECT (1 - 1)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that multiplies: 1 * 1.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Multiplication()
+        {
+            string commandText = "SELECT (1 * 1)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that divides: 1 / 1.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Division()
+        {
+            string commandText = "SELECT (1 / 1)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that has multiple expressions.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_ParenthesesOnLeft()
+        {
+            string commandText = "SELECT (1 + 1) * 1";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that has multiple expressions.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_ParenthesesOnRight()
+        {
+            string commandText = "SELECT 1 * (1 + 1)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that negates an expression.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_NegateExpression()
+        {
+            string commandText = "SELECT -(1 + 1)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that fully-qualifies a column.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FullyQualifiedColumn()
+        {
+            string commandText = "SELECT Server.Database.Owner.Table.Column FROM Server.Database.Owner.Table";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a select that doesn't qualify a column when multiple tables are present.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_UnqualifiedColumn_MultipleSources()
+        {
+            string commandText = "SELECT Column FROM Table1, Table2";
+            assertCanReproduce(commandText);
+        }
+
         private void assertCanReproduce(string commandText)
         {
             CommandBuilder builder = new CommandBuilder();

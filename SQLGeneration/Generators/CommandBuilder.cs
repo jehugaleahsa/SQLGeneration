@@ -67,7 +67,7 @@ namespace SQLGeneration.Generators
             {
                 return buildDeleteStatement(delete);
             }
-            return null;
+            throw new InvalidOperationException();
         }
 
         private ICommand buildSelectStatement(MatchResult result)
@@ -154,7 +154,6 @@ namespace SQLGeneration.Generators
             return builder;
         }
 
-
         private DistinctQualifier buildDistinctQualifier(MatchResult result)
         {
             DistinctQualifierConverter converter = new DistinctQualifierConverter();
@@ -168,7 +167,7 @@ namespace SQLGeneration.Generators
             {
                 return DistinctQualifier.All;
             }
-            return DistinctQualifier.Default;
+            throw new InvalidOperationException();
         }
 
         private Top buildTop(MatchResult result, SelectBuilder builder)
@@ -193,13 +192,16 @@ namespace SQLGeneration.Generators
                 addJoinItem(builder, join);
                 MatchResult remaining = multiple.Matches[SqlGrammar.FromList.Multiple.Remaining];
                 buildFromList(remaining, builder);
+                return;
             }
             MatchResult single = result.Matches[SqlGrammar.FromList.Single];
             if (single.IsMatch)
             {
                 Join join = buildJoin(single, false);
                 addJoinItem(builder, join);
+                return;
             }
+            throw new InvalidOperationException();
         }
 
         private Join buildJoin(MatchResult result, bool wrap)
@@ -229,7 +231,7 @@ namespace SQLGeneration.Generators
                 scope.Pop();
                 return join;
             }
-            return null;
+            throw new InvalidOperationException();
         }
 
         private IRightJoinItem buildJoinItem(MatchResult result, out string alias)
@@ -261,7 +263,7 @@ namespace SQLGeneration.Generators
             {
                 return buildFunctionCall(functionCall);
             }
-            return null;
+            throw new InvalidOperationException();
         }
 
         private Join buildJoinPrime(MatchResult result, Join join)
@@ -301,7 +303,7 @@ namespace SQLGeneration.Generators
             {
                 return join;
             }
-            return null;
+            throw new InvalidOperationException();
         }
 
         private FilteredJoin buildFilteredJoin(MatchResult result, Join join, IRightJoinItem joinItem, string alias)
@@ -326,7 +328,7 @@ namespace SQLGeneration.Generators
             {
                 return join.FullOuterJoin(joinItem, alias);
             }
-            return null;
+            throw new InvalidOperationException();
         }
 
         private void addJoinItem(SelectBuilder builder, Join join)
@@ -348,12 +350,15 @@ namespace SQLGeneration.Generators
             if (select != null)
             {
                 builder.AddSelect(select, source.Alias);
+                return;
             }
             Function functionCall = source.Source as Function;
             if (functionCall != null)
             {
                 builder.AddFunction(functionCall, source.Alias);
+                return;
             }
+            throw new InvalidOperationException();
         }
 
         private void buildProjectionList(MatchResult result, SelectBuilder builder)
@@ -373,6 +378,7 @@ namespace SQLGeneration.Generators
                 buildProjectionItem(single, builder);
                 return;
             }
+            throw new InvalidOperationException();
         }
 
         private void buildProjectionItem(MatchResult result, SelectBuilder builder)
@@ -409,6 +415,7 @@ namespace SQLGeneration.Generators
                 builder.AddProjection(all);
                 return;
             }
+            throw new InvalidOperationException();
         }
 
         private void buildGroupByList(MatchResult result, SelectBuilder builder)
@@ -421,13 +428,16 @@ namespace SQLGeneration.Generators
                 builder.AddGroupBy(first);
                 MatchResult remainingResult = multiple.Matches[SqlGrammar.GroupByList.Multiple.Remaining];
                 buildGroupByList(remainingResult, builder);
+                return;
             }
             MatchResult single = result.Matches[SqlGrammar.GroupByList.Single];
             if (single.IsMatch)
             {
                 IGroupByItem item = (IGroupByItem)buildArithmeticItem(single);
                 builder.AddGroupBy(item);
+                return;
             }
+            throw new InvalidOperationException();
         }
 
         private void buildOrFilter(MatchResult result, FilterGroup filterGroup, Conjunction conjunction)
@@ -447,6 +457,7 @@ namespace SQLGeneration.Generators
                 buildAndFilter(single, filterGroup, conjunction);
                 return;
             }
+            throw new InvalidOperationException();
         }
 
         private void buildAndFilter(MatchResult result, FilterGroup filterGroup, Conjunction conjunction)
@@ -468,6 +479,7 @@ namespace SQLGeneration.Generators
                 filterGroup.AddFilter(filter, conjunction);
                 return;
             }
+            throw new InvalidOperationException();
         }
 
         private IFilter buildFilter(MatchResult result)
@@ -569,6 +581,7 @@ namespace SQLGeneration.Generators
                     MatchResult valueListResult = valuesResult.Matches[SqlGrammar.Filter.In.Values.ValueList];
                     ValueList values = new ValueList();
                     buildValueList(valueListResult, values);
+                    valueProvider = values;
                 }
                 MatchResult selectResult = inResult.Matches[SqlGrammar.Filter.In.Select.Name];
                 if (selectResult.IsMatch)
@@ -594,17 +607,62 @@ namespace SQLGeneration.Generators
                 ExistsFilter filter = new ExistsFilter(builder);
                 return filter;
             }
-            return null;
+            throw new InvalidOperationException();
         }
 
         private Quantifier buildQuantifier(MatchResult result)
         {
-            throw new NotImplementedException();
+            MatchResult all = result.Matches[SqlGrammar.Quantifier.All];
+            if (all.IsMatch)
+            {
+                return Quantifier.All;
+            }
+            MatchResult any = result.Matches[SqlGrammar.Quantifier.Any];
+            if (any.IsMatch)
+            {
+                return Quantifier.Any;
+            }
+            MatchResult some = result.Matches[SqlGrammar.Quantifier.Some];
+            if (some.IsMatch)
+            {
+                return Quantifier.Some;
+            }
+            throw new InvalidOperationException();
         }
 
-        private IFilter buildQuantifierFilter(MatchResult result, IFilterItem filterItem, Quantifier quantifier, IValueProvider valueProvider)
+        private IFilter buildQuantifierFilter(MatchResult result, IFilterItem leftHand, Quantifier quantifier, IValueProvider valueProvider)
         {
-            throw new NotImplementedException();
+            MatchResult equalToResult = result.Matches[SqlGrammar.ComparisonOperator.EqualTo];
+            if (equalToResult.IsMatch)
+            {
+                return new EqualToQuantifierFilter(leftHand, quantifier, valueProvider);
+            }
+            MatchResult notEqualToResult = result.Matches[SqlGrammar.ComparisonOperator.NotEqualTo];
+            if (notEqualToResult.IsMatch)
+            {
+                return new NotEqualToQuantifierFilter(leftHand, quantifier, valueProvider);
+            }
+            MatchResult lessThanEqualToResult = result.Matches[SqlGrammar.ComparisonOperator.LessThanEqualTo];
+            if (lessThanEqualToResult.IsMatch)
+            {
+                return new LessThanEqualToQuantifierFilter(leftHand, quantifier, valueProvider);
+            }
+            MatchResult greaterThanEqualToResult = result.Matches[SqlGrammar.ComparisonOperator.GreaterThanEqualTo];
+            if (greaterThanEqualToResult.IsMatch)
+            {
+                return new GreaterThanEqualToQuantifierFilter(leftHand, quantifier, valueProvider);
+            }
+            MatchResult lessThanResult = result.Matches[SqlGrammar.ComparisonOperator.LessThan];
+            if (lessThanResult.IsMatch)
+            {
+                return new LessThanQuantifierFilter(leftHand, quantifier, valueProvider);
+            }
+            MatchResult greaterThanResult = result.Matches[SqlGrammar.ComparisonOperator.GreaterThan];
+            if (greaterThanResult.IsMatch)
+            {
+                return new GreaterThanQuantifierFilter(leftHand, quantifier, valueProvider);
+            }
+            throw new InvalidOperationException();
         }
 
         private IFilter buildOrderFilter(MatchResult result, IFilterItem left, IFilterItem right)
@@ -639,7 +697,7 @@ namespace SQLGeneration.Generators
             {
                 return new GreaterThanFilter(left, right);
             }
-            return null;
+            throw new InvalidOperationException();
         }
 
         private SelectCombiner buildSelectCombiner(MatchResult result, ISelectBuilder leftHand, ISelectBuilder rightHand)
@@ -650,7 +708,7 @@ namespace SQLGeneration.Generators
                 return new Union(leftHand, rightHand);
             }
             MatchResult intersect = result.Matches[SqlGrammar.SelectCombiner.Intersect];
-            if (union.IsMatch)
+            if (intersect.IsMatch)
             {
                 return new Intersect(leftHand, rightHand);
             }
@@ -664,7 +722,7 @@ namespace SQLGeneration.Generators
             {
                 return new Minus(leftHand, rightHand);
             }
-            return null;
+            throw new InvalidOperationException();
         }
 
         private void buildOrderByList(MatchResult result, ISelectBuilder builder)
@@ -672,16 +730,19 @@ namespace SQLGeneration.Generators
             MatchResult multiple = result.Matches[SqlGrammar.OrderByList.Multiple.Name];
             if (multiple.IsMatch)
             {
-                MatchResult first = result.Matches[SqlGrammar.OrderByList.Multiple.First];
+                MatchResult first = multiple.Matches[SqlGrammar.OrderByList.Multiple.First];
                 buildOrderByItem(first, builder);
-                MatchResult remaining = result.Matches[SqlGrammar.OrderByList.Multiple.Remaining];
+                MatchResult remaining = multiple.Matches[SqlGrammar.OrderByList.Multiple.Remaining];
                 buildOrderByList(remaining, builder);
+                return;
             }
             MatchResult single = result.Matches[SqlGrammar.OrderByList.Single];
             if (single.IsMatch)
             {
                 buildOrderByItem(single, builder);
+                return;
             }
+            throw new InvalidOperationException();
         }
 
         private void buildOrderByItem(MatchResult result, ISelectBuilder builder)
@@ -716,7 +777,7 @@ namespace SQLGeneration.Generators
             {
                 return Order.Ascending;
             }
-            return Order.Default;
+            throw new InvalidOperationException();
         }
 
         private NullPlacement buildNullPlacement(MatchResult result)
@@ -731,7 +792,7 @@ namespace SQLGeneration.Generators
             {
                 return NullPlacement.Last;
             }
-            return NullPlacement.Default;
+            throw new InvalidOperationException();
         }
 
         private ICommand buildInsertStatement(MatchResult result)
@@ -769,77 +830,109 @@ namespace SQLGeneration.Generators
         private object buildArithmeticItem(MatchResult result)
         {
             MatchResult expression = result.Matches[SqlGrammar.ArithmeticItem.ArithmeticExpression];
-            return buildAdditiveExpression(expression);
+            return buildAdditiveExpression(expression, false);
         }
 
-        private object buildAdditiveExpression(MatchResult result)
+        private object buildAdditiveExpression(MatchResult result, bool wrap)
         {
             MatchResult multiple = result.Matches[SqlGrammar.AdditiveExpression.Multiple.Name];
             if (multiple.IsMatch)
             {
                 MatchResult firstResult = multiple.Matches[SqlGrammar.AdditiveExpression.Multiple.First];
-                IProjectionItem first = (IProjectionItem)buildMultiplicitiveExpression(firstResult);
+                IProjectionItem first = (IProjectionItem)buildMultiplicitiveExpression(firstResult, false);
                 MatchResult remainingResult = multiple.Matches[SqlGrammar.AdditiveExpression.Multiple.Remaining];
-                IProjectionItem remaining = (IProjectionItem)buildAdditiveExpression(remainingResult);
+                IProjectionItem remaining = (IProjectionItem)buildAdditiveExpression(remainingResult, false);
                 MatchResult operatorResult = multiple.Matches[SqlGrammar.AdditiveExpression.Multiple.Operator];
-                return buildAdditiveOperator(operatorResult, first, remaining);
+                return buildAdditiveOperator(operatorResult, first, remaining, wrap);
             }
             MatchResult single = result.Matches[SqlGrammar.AdditiveExpression.Single];
             if (single.IsMatch)
             {
-                return buildMultiplicitiveExpression(single);
+                return buildMultiplicitiveExpression(single, wrap);
             }
-            return null;
+            throw new InvalidOperationException();
         }
 
-        private object buildAdditiveOperator(MatchResult result, IProjectionItem leftHand, IProjectionItem rightHand)
+        private object buildAdditiveOperator(MatchResult result, IProjectionItem leftHand, IProjectionItem rightHand, bool wrap)
         {
             MatchResult plusResult = result.Matches[SqlGrammar.AdditiveOperator.PlusOperator];
             if (plusResult.IsMatch)
             {
-                return new Addition(leftHand, rightHand);
+                Addition addition = new Addition(leftHand, rightHand);
+                addition.WrapInParentheses = wrap;
+                return addition;
             }
             MatchResult minusResult = result.Matches[SqlGrammar.AdditiveOperator.MinusOperator];
             if (minusResult.IsMatch)
             {
-                return new Subtraction(leftHand, rightHand);
+                Subtraction subtraction = new Subtraction(leftHand, rightHand);
+                subtraction.WrapInParentheses = wrap;
+                return subtraction;
             }
-            return null;
+            throw new InvalidOperationException();
         }
 
-        private object buildMultiplicitiveExpression(MatchResult result)
+        private object buildMultiplicitiveExpression(MatchResult result, bool wrap)
         {
             MatchResult multiple = result.Matches[SqlGrammar.MultiplicitiveExpression.Multiple.Name];
             if (multiple.IsMatch)
             {
                 MatchResult firstResult = multiple.Matches[SqlGrammar.MultiplicitiveExpression.Multiple.First];
-                IProjectionItem first = (IProjectionItem)buildItem(firstResult);
+                IProjectionItem first = (IProjectionItem)buildWrappedItem(firstResult);
                 MatchResult remainingResult = multiple.Matches[SqlGrammar.MultiplicitiveExpression.Multiple.Remaining];
-                IProjectionItem remaining = (IProjectionItem)buildMultiplicitiveExpression(remainingResult);
+                IProjectionItem remaining = (IProjectionItem)buildMultiplicitiveExpression(remainingResult, false);
                 MatchResult operatorResult = multiple.Matches[SqlGrammar.MultiplicitiveExpression.Multiple.Operator];
-                return buildMultiplicitiveOperator(operatorResult, first, remaining);
+                return buildMultiplicitiveOperator(operatorResult, first, remaining, wrap);
             }
             MatchResult single = result.Matches[SqlGrammar.MultiplicitiveExpression.Single];
             if (single.IsMatch)
             {
-                return buildItem(single);
+                return buildWrappedItem(single);
             }
-            return null;
+            throw new InvalidOperationException();
         }
 
-        private object buildMultiplicitiveOperator(MatchResult result, IProjectionItem leftHand, IProjectionItem rightHand)
+        private object buildMultiplicitiveOperator(MatchResult result, IProjectionItem leftHand, IProjectionItem rightHand, bool wrap)
         {
             MatchResult multiply = result.Matches[SqlGrammar.MultiplicitiveOperator.Multiply];
             if (multiply.IsMatch)
             {
-                return new Multiplication(leftHand, rightHand);
+                Multiplication multiplication = new Multiplication(leftHand, rightHand);
+                multiplication.WrapInParentheses = wrap;
+                return multiplication;
             }
             MatchResult divide = result.Matches[SqlGrammar.MultiplicitiveOperator.Divide];
             if (divide.IsMatch)
             {
-                return new Division(leftHand, rightHand);
+                Division division = new Division(leftHand, rightHand);
+                division.WrapInParentheses = wrap;
+                return division;
             }
-            return null;
+            throw new InvalidOperationException();
+        }
+
+        private object buildWrappedItem(MatchResult result)
+        {
+            MatchResult negatedResult = result.Matches[SqlGrammar.WrappedItem.Negated.Name];
+            if (negatedResult.IsMatch)
+            {
+                MatchResult expressionResult = negatedResult.Matches[SqlGrammar.WrappedItem.Negated.Item];
+                IProjectionItem item = (IProjectionItem)buildWrappedItem(expressionResult);
+                return new Negation(item);
+            }
+            MatchResult wrappedResult = result.Matches[SqlGrammar.WrappedItem.Wrapped.Name];
+            if (wrappedResult.IsMatch)
+            {
+                MatchResult expressionResult = wrappedResult.Matches[SqlGrammar.WrappedItem.Wrapped.AdditiveExpression];
+                object expression = buildAdditiveExpression(expressionResult, true);
+                return expression;
+            }
+            MatchResult itemResult = result.Matches[SqlGrammar.WrappedItem.Item];
+            if (itemResult.IsMatch)
+            {
+                return buildItem(itemResult);
+            }
+            throw new InvalidOperationException();
         }
 
         private object buildItem(MatchResult result)
@@ -849,7 +942,7 @@ namespace SQLGeneration.Generators
             {
                 string numberString = getToken(numberResult);
                 double value = Double.Parse(numberString);
-                return new NumericLiteral((decimal)value);
+                return new NumericLiteral(value);
             }
             MatchResult stringResult = result.Matches[SqlGrammar.Item.String];
             if (stringResult.IsMatch)
@@ -902,7 +995,7 @@ namespace SQLGeneration.Generators
                 MatchResult selectExpressionResult = selectResult.Matches[SqlGrammar.Item.Select.SelectStatement];
                 return buildSelectStatement(selectExpressionResult);
             }
-            return null;
+            throw new NotImplementedException();
         }
 
         private StringLiteral buildStringLiteral(MatchResult result)
@@ -936,20 +1029,24 @@ namespace SQLGeneration.Generators
 
         private void buildValueList(MatchResult result, ValueList values)
         {
-            MatchResult multiple = result.Matches[SqlGrammar.ValueList.Multiple.First];
+            MatchResult multiple = result.Matches[SqlGrammar.ValueList.Multiple.Name];
             if (multiple.IsMatch)
             {
                 MatchResult first = multiple.Matches[SqlGrammar.ValueList.Multiple.First];
                 IProjectionItem value = (IProjectionItem)buildArithmeticItem(first);
+                values.AddValue(value);
                 MatchResult remaining = multiple.Matches[SqlGrammar.ValueList.Multiple.Remaining];
                 buildValueList(remaining, values);
+                return;
             }
             MatchResult single = result.Matches[SqlGrammar.ValueList.Single];
             if (single.IsMatch)
             {
                 IProjectionItem value = (IProjectionItem)buildArithmeticItem(single);
                 values.AddValue(value);
+                return;
             }
+            throw new NotImplementedException();
         }
 
         private Namespace getNamespace(IEnumerable<string> qualifiers)

@@ -84,7 +84,6 @@ namespace SQLGeneration.Builders
 
         private IEnumerable<string> getTokens(CommandOptions options)
         {
-            // <Arithmetic> => [ "(" ] <Left> <Op> <Right> [ ")" ]
             TokenStream stream = new TokenStream();
             if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {

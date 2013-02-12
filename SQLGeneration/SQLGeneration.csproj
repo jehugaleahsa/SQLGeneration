@@ -42,6 +42,7 @@
     <Compile Include="Builders\ArithmeticExpression.cs" />
     <Compile Include="Builders\BetweenFilter.cs" />
     <Compile Include="Builders\Column.cs" />
+    <Compile Include="Builders\Negation.cs" />
     <Compile Include="Builders\NotEqualToQuantifierFilter.cs" />
     <Compile Include="Builders\LessThanQuantifierFilter.cs" />
     <Compile Include="Builders\LessThanEqualToQuantifierFilter.cs" />
