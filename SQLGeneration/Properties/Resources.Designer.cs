@@ -313,7 +313,7 @@ namespace SQLGeneration.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An attempt was made to retrieve an unknown table or select statement..
+        ///   Looks up a localized string similar to An attempt was made to retrieve an column source: {0}..
         /// </summary>
         internal static string UnknownSource {
             get {

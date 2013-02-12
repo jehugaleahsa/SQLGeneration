@@ -202,7 +202,7 @@
     <value>Encountered an unknown quantifier.</value>
   </data>
   <data name="UnknownSource" xml:space="preserve">
-    <value>An attempt was made to retrieve an unknown table or select statement.</value>
+    <value>An attempt was made to retrieve an column source: {0}.</value>
   </data>
   <data name="UnknownTokenType" xml:space="preserve">
     <value>Encountered an unknown token type.</value>

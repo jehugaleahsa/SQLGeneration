@@ -27,7 +27,7 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Restores the given token to the front of the token stream.
         /// </summary>
-        /// <param name="token">The token result containing the token to restore.</param>
+        /// <param name="token">The token to restore.</param>
         void PutBack(string token);
     }
 }

@@ -73,7 +73,8 @@ namespace SQLGeneration.Builders
                 AliasedSource source;
                 if (!sourceLookup.TryGetValue(sourceName, out source))
                 {
-                    throw new SQLGenerationException(Resources.UnknownSource);
+                    string message = String.Format(Resources.UnknownSource, sourceName);
+                    throw new SQLGenerationException(message);
                 }
                 return source;
             }

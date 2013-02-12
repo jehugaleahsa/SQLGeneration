@@ -87,7 +87,7 @@ namespace SQLGeneration.Parsing
         {
             Regex regex = getRegex();
             Match match = regex.Match(token, 0);
-            return match.Success && match.Groups[tokenName].Success;
+            return match.Groups[tokenName].Success;
         }
 
         private Regex getRegex()
@@ -139,12 +139,12 @@ namespace SQLGeneration.Parsing
             return new TokenSource(this, tokenize(commandText));
         }
 
-        private IEnumerable<string> tokenize(string input)
+        private IEnumerable<string> tokenize(string commandText)
         {
             int index = 0;
-            while (index != input.Length)
+            while (index != commandText.Length)
             {
-                string token = GetToken(input, ref index);
+                string token = GetToken(commandText, ref index);
                 if (token == null)
                 {
                     yield break;
@@ -167,7 +167,7 @@ namespace SQLGeneration.Parsing
         {
             private readonly TokenRegistry registry;
             private readonly IEnumerator<string> tokenEnumerator;
-            private readonly LinkedList<string> undoBuffer;
+            private readonly Stack<string> undoBuffer;
 
             /// <summary>
             /// Initializes a new instance of a TokenSource.
@@ -178,7 +178,7 @@ namespace SQLGeneration.Parsing
             {
                 this.registry = registry;
                 tokenEnumerator = tokenStream.GetEnumerator();
-                undoBuffer = new LinkedList<string>();
+                undoBuffer = new Stack<string>();
             }
 
             /// <summary>
@@ -196,15 +196,32 @@ namespace SQLGeneration.Parsing
                 {
                     throw new ArgumentException(Resources.UnknownTokenType, "tokenName");
                 }
-                string token = GetToken();
-                bool isMatch = token == null ? false : registry.Match(tokenName, token);
-                return new TokenResult(tokenName, isMatch, token);
+                if (undoBuffer.Count == 0)
+                {
+                    if (!tokenEnumerator.MoveNext())
+                    {
+                        return new TokenResult(tokenName, false, null);
+                    }
+                    string token = tokenEnumerator.Current;
+                    bool isMatch = token == null ? false : registry.Match(tokenName, token);
+                    return new TokenResult(tokenName, isMatch, token);
+                }
+                else
+                {
+                    string token = undoBuffer.Pop();
+                    bool isMatch = registry.Match(tokenName, token);
+                    return new TokenResult(tokenName, isMatch, token);
+                }
             }
 
             /// <summary>
-            /// Attempts to retrieve the next token.
+            /// Attempts to retrieve a token matching the definition associated
+            /// with the given name.
             /// </summary>
-            /// <returns>The next token -or- null if there are no more tokens.</returns>
+            /// <returns>
+            /// A result object describing whether the match was a success and what value 
+            /// was found.
+            /// </returns>
             public string GetToken()
             {
                 if (undoBuffer.Count == 0)
@@ -213,12 +230,12 @@ namespace SQLGeneration.Parsing
                     {
                         return null;
                     }
-                    return tokenEnumerator.Current;
+                    string token = tokenEnumerator.Current;
+                    return token;
                 }
                 else
                 {
-                    string token = undoBuffer.First.Value;
-                    undoBuffer.RemoveFirst();
+                    string token = undoBuffer.Pop();
                     return token;
                 }
             }
@@ -226,10 +243,10 @@ namespace SQLGeneration.Parsing
             /// <summary>
             /// Restores the given token to the front of the token stream.
             /// </summary>
-            /// <param name="token">The token result containing the token to restore.</param>
-            public void PutBack(string token)
+            /// <param name="result">The token to restore.</param>
+            public void PutBack(string result)
             {
-                undoBuffer.AddFirst(token);
+                undoBuffer.Push(result);
             }
         }
     }

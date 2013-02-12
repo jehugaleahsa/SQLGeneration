@@ -751,6 +751,116 @@ namespace SQLGeneration.Tests
             assertCanReproduce(commandText);
         }
 
+        /// <summary>
+        /// This sees whether we can reproduce a simple insert statement.
+        /// </summary>
+        [TestMethod]
+        public void TestInsert_NoColumns_NoValues()
+        {
+            string commandText = "INSERT INTO Table VALUES()";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an insert statement where the table is aliased.
+        /// </summary>
+        [TestMethod]
+        public void TestInsert_AliasedTable()
+        {
+            string commandText = "INSERT INTO Table t VALUES()";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an insert statement with columns and values listed.
+        /// </summary>
+        [TestMethod]
+        public void TestInsert_ColumnsAndValues()
+        {
+            string commandText = "INSERT INTO Table (Column1, Column2, Column3) VALUES(123, 'hello', NULL)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an insert statement whose values comes from a select statement.
+        /// </summary>
+        [TestMethod]
+        public void TestInsert_ColumnsAndSelect()
+        {
+            string commandText = "INSERT INTO Table (Column1, Column2, Column3) (SELECT 123, 'hello', NULL)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a simple update statement.
+        /// </summary>
+        [TestMethod]
+        public void TestUpdate()
+        {
+            string commandText = "UPDATE Table SET Column = 123";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an update statement with an aliased table.
+        /// </summary>
+        [TestMethod]
+        public void TestUpdate_AliasedTable()
+        {
+            string commandText = "UPDATE Table t SET Column = 123";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an update statement with a where clause.
+        /// </summary>
+        [TestMethod]
+        public void TestUpdate_WhereClause()
+        {
+            string commandText = "UPDATE Table SET Column2 = 'hello' WHERE Column1 = 123";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an update statement with multiple setters.
+        /// </summary>
+        [TestMethod]
+        public void TestUpdate_MultipleSetters()
+        {
+            string commandText = "UPDATE Table SET Column2 = 'hello', Column3 = NULL WHERE Column1 = 123";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a simple delete statement.
+        /// </summary>
+        [TestMethod]
+        public void TestDelete()
+        {
+            string commandText = "DELETE FROM Table";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a delete statement with an aliased table.
+        /// </summary>
+        [TestMethod]
+        public void TestDelete_AliasedTable()
+        {
+            string commandText = "DELETE FROM Table t";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a delete statement with where clause.
+        /// </summary>
+        [TestMethod]
+        public void TestDelete_WhereClause()
+        {
+            string commandText = "DELETE FROM Table WHERE Column = 123";
+            assertCanReproduce(commandText);
+        }
+
         private void assertCanReproduce(string commandText)
         {
             CommandBuilder builder = new CommandBuilder();
@@ -758,6 +868,26 @@ namespace SQLGeneration.Tests
             Formatter formatter = new Formatter();
             string actual = formatter.GetCommandText(command);
             Assert.AreEqual(commandText, actual, "The command builder did not generate the original command text.");
+        }
+
+        /// <summary>
+        /// This sees whether we can create a SelectBuilder and add to the where clause.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_AddFilter()
+        {
+            const string commandText = "SELECT * FROM Customer";
+            CommandBuilder commandBuilder = new CommandBuilder();
+            SelectBuilder select = (SelectBuilder)commandBuilder.GetCommand(commandText);
+            Column customerId = select.Sources["Customer"].Column("CustomerId");
+            customerId.Qualify = false;
+            Placeholder parameter = new Placeholder("@customerId");
+            select.AddWhere(new EqualToFilter(customerId, parameter));
+            
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(select);
+            string expected = "SELECT * FROM Customer WHERE CustomerId = @customerId";
+            Assert.AreEqual(expected, actual, "The SELECT statement was not updated as expected.");
         }
     }
 }

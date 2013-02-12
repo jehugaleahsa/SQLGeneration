@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SQLGeneration.Builders;
 using SQLGeneration.Parsing;
+using SQLGeneration.Properties;
 
 namespace SQLGeneration.Generators
 {
@@ -246,11 +247,7 @@ namespace SQLGeneration.Generators
             MatchResult tableResult = result.Matches[SqlGrammar.JoinItem.Table];
             if (tableResult.IsMatch)
             {
-                List<string> parts = new List<string>();
-                buildMultipartIdentifier(tableResult, parts);
-                Namespace qualifier = getNamespace(parts.Take(parts.Count - 1));
-                string tableName = parts[parts.Count - 1];
-                Table table = new Table(qualifier, tableName);
+                Table table = buildTable(tableResult);
                 return table;
             }
             MatchResult select = result.Matches[SqlGrammar.JoinItem.SelectExpression];
@@ -797,17 +794,152 @@ namespace SQLGeneration.Generators
 
         private ICommand buildInsertStatement(MatchResult result)
         {
-            throw new NotImplementedException();
+            MatchResult tableResult = result.Matches[SqlGrammar.InsertStatement.Table];
+            Table table = buildTable(tableResult);
+            IValueProvider valueProvider = null;
+            MatchResult valuesResult = result.Matches[SqlGrammar.InsertStatement.Values.Name];
+            if (valuesResult.IsMatch)
+            {
+                ValueList values = new ValueList();
+                MatchResult valueListResult = valuesResult.Matches[SqlGrammar.InsertStatement.Values.ValueList];
+                if (valueListResult.IsMatch)
+                {
+                    buildValueList(valueListResult, values);
+                }
+                valueProvider = values;
+            }
+            MatchResult selectResult = result.Matches[SqlGrammar.InsertStatement.Select.Name];
+            if (selectResult.IsMatch)
+            {
+                MatchResult selectExpressionResult = selectResult.Matches[SqlGrammar.InsertStatement.Select.SelectExpression];
+                ISelectBuilder selectBuilder = buildSelectExpression(selectExpressionResult);
+                valueProvider = selectBuilder;
+            }
+            string alias = null;
+            MatchResult aliasExpressionResult = result.Matches[SqlGrammar.InsertStatement.AliasExpression.Name];
+            if (aliasExpressionResult.IsMatch)
+            {
+                MatchResult aliasResult = aliasExpressionResult.Matches[SqlGrammar.InsertStatement.AliasExpression.Alias];
+                alias = getToken(aliasResult);
+            }
+            InsertBuilder builder = new InsertBuilder(table, valueProvider, alias);
+            SourceCollection collection = new SourceCollection();
+            collection.AddSource(builder.Table.GetSourceName(), builder.Table);
+            scope.Push(collection);
+            MatchResult columnsResult = result.Matches[SqlGrammar.InsertStatement.Columns.Name];
+            if (columnsResult.IsMatch)
+            {
+                MatchResult columnListResult = columnsResult.Matches[SqlGrammar.InsertStatement.Columns.ColumnList];
+                buildColumnsList(columnListResult, builder);
+            }
+            scope.Pop();
+            return builder;
+        }
+
+        private void buildColumnsList(MatchResult result, InsertBuilder builder)
+        {
+            MatchResult multiple = result.Matches[SqlGrammar.ColumnList.Multiple.Name];
+            if (multiple.IsMatch)
+            {
+                MatchResult first = multiple.Matches[SqlGrammar.ColumnList.Multiple.First];
+                Column column = buildColumn(first);
+                builder.AddColumn(column);
+                MatchResult remaining = multiple.Matches[SqlGrammar.ColumnList.Multiple.Remaining];
+                buildColumnsList(remaining, builder);
+                return;
+            }
+            MatchResult single = result.Matches[SqlGrammar.ColumnList.Single];
+            if (single.IsMatch)
+            {
+                Column column = buildColumn(single);
+                builder.AddColumn(column);
+                return;
+            }
+            throw new InvalidOperationException();
         }
 
         private ICommand buildUpdateStatement(MatchResult result)
         {
-            throw new NotImplementedException();
+            MatchResult tableResult = result.Matches[SqlGrammar.UpdateStatement.Table];
+            Table table = buildTable(tableResult);
+            string alias = null;
+            MatchResult aliasExpressionResult = result.Matches[SqlGrammar.UpdateStatement.AliasExpression.Name];
+            if (aliasExpressionResult.IsMatch)
+            {
+                MatchResult aliasResult = aliasExpressionResult.Matches[SqlGrammar.UpdateStatement.AliasExpression.Alias];
+                alias = getToken(aliasResult);
+            }
+            UpdateBuilder builder = new UpdateBuilder(table, alias);
+            SourceCollection collection = new SourceCollection();
+            collection.AddSource(builder.Table.GetSourceName(), builder.Table);
+            scope.Push(collection);
+            MatchResult setterListResult = result.Matches[SqlGrammar.UpdateStatement.SetterList];
+            buildSetterList(setterListResult, builder);
+            MatchResult whereResult = result.Matches[SqlGrammar.UpdateStatement.Where.Name];
+            if (whereResult.IsMatch)
+            {
+                MatchResult filterListResult = whereResult.Matches[SqlGrammar.UpdateStatement.Where.FilterList];
+                buildOrFilter(filterListResult, builder.WhereFilterGroup, Conjunction.And);
+            }
+            scope.Pop();
+            return builder;
+        }
+
+        private void buildSetterList(MatchResult result, UpdateBuilder builder)
+        {
+            MatchResult multiple = result.Matches[SqlGrammar.SetterList.Multiple.Name];
+            if (multiple.IsMatch)
+            {
+                MatchResult first = multiple.Matches[SqlGrammar.SetterList.Multiple.First];
+                Setter setter = buildSetter(first);
+                builder.AddSetter(setter);
+                MatchResult remaining = multiple.Matches[SqlGrammar.SetterList.Multiple.Remaining];
+                buildSetterList(remaining, builder);
+                return;
+            }
+            MatchResult single = result.Matches[SqlGrammar.SetterList.Single];
+            if (single.IsMatch)
+            {
+                Setter setter = buildSetter(single);
+                builder.AddSetter(setter);
+                return;
+            }
+            throw new InvalidOperationException();
+        }
+
+        private Setter buildSetter(MatchResult result)
+        {
+            MatchResult columnResult = result.Matches[SqlGrammar.Setter.Column];
+            Column column = buildColumn(columnResult);
+            MatchResult valueResult = result.Matches[SqlGrammar.Setter.Value];
+            IProjectionItem value = (IProjectionItem)buildArithmeticItem(valueResult);
+            Setter setter = new Setter(column, value);
+            return setter;
         }
 
         private ICommand buildDeleteStatement(MatchResult result)
         {
-            throw new NotImplementedException();
+            MatchResult tableResult = result.Matches[SqlGrammar.DeleteStatement.Table];
+            Table table = buildTable(tableResult);
+            string alias = null;
+            MatchResult aliasExpressionResult = result.Matches[SqlGrammar.DeleteStatement.AliasExpression.Name];
+            if (aliasExpressionResult.IsMatch)
+            {
+                MatchResult aliasResult = aliasExpressionResult.Matches[SqlGrammar.DeleteStatement.AliasExpression.Alias];
+                alias = getToken(aliasResult);
+            }
+            DeleteBuilder builder = new DeleteBuilder(table, alias);
+            SourceCollection collection = new SourceCollection();
+            collection.AddSource(builder.Table.GetSourceName(), builder.Table);
+            scope.Push(collection);
+            MatchResult whereResult = result.Matches[SqlGrammar.DeleteStatement.Where.Name];
+            if (whereResult.IsMatch)
+            {
+                MatchResult filterListResult = whereResult.Matches[SqlGrammar.DeleteStatement.Where.FilterList];
+                buildOrFilter(filterListResult, builder.WhereFilterGroup, Conjunction.And);
+            }
+            scope.Pop();
+            return builder;
         }
 
         private void buildMultipartIdentifier(MatchResult result, List<string> parts)
@@ -819,12 +951,15 @@ namespace SQLGeneration.Generators
                 parts.Add(getToken(first));
                 MatchResult remaining = multiple.Matches[SqlGrammar.MultipartIdentifier.Multiple.Remaining];
                 buildMultipartIdentifier(remaining, parts);
+                return;
             }
             MatchResult single = result.Matches[SqlGrammar.MultipartIdentifier.Single];
             if (single.IsMatch)
             {
                 parts.Add(getToken(single));
+                return;
             }
+            throw new InvalidOperationException();
         }
 
         private object buildArithmeticItem(MatchResult result)
@@ -962,32 +1097,7 @@ namespace SQLGeneration.Generators
             MatchResult columnResult = result.Matches[SqlGrammar.Item.Column];
             if (columnResult.IsMatch)
             {
-                List<string> parts = new List<string>();
-                buildMultipartIdentifier(columnResult, parts);
-                if (parts.Count > 1)
-                {
-                    Namespace qualifier = getNamespace(parts.Take(parts.Count - 2));
-                    string tableName = parts[parts.Count - 2];
-                    AliasedSource source = scope.GetSource(tableName);
-                    string columnName = parts[parts.Count - 1];
-                    return source.Column(columnName);
-                }
-                else
-                {
-                    string columnName = parts[0];
-                    Column column;
-                    AliasedSource source;
-                    if (scope.HasSingleSource(out source))
-                    {
-                        column = source.Column(columnName);
-                        column.Qualify = false;
-                    }
-                    else
-                    {
-                        column = new Column(columnName);
-                    }
-                    return column;
-                }
+                return buildColumn(columnResult);
             }
             MatchResult selectResult = result.Matches[SqlGrammar.Item.Select.Name];
             if (selectResult.IsMatch)
@@ -996,6 +1106,36 @@ namespace SQLGeneration.Generators
                 return buildSelectStatement(selectExpressionResult);
             }
             throw new NotImplementedException();
+        }
+
+        private Column buildColumn(MatchResult columnResult)
+        {
+            List<string> parts = new List<string>();
+            buildMultipartIdentifier(columnResult, parts);
+            if (parts.Count > 1)
+            {
+                Namespace qualifier = getNamespace(parts.Take(parts.Count - 2));
+                string tableName = parts[parts.Count - 2];
+                AliasedSource source = scope.GetSource(tableName);
+                string columnName = parts[parts.Count - 1];
+                return source.Column(columnName);
+            }
+            else
+            {
+                string columnName = parts[0];
+                Column column;
+                AliasedSource source;
+                if (scope.HasSingleSource(out source))
+                {
+                    column = source.Column(columnName);
+                    column.Qualify = false;
+                }
+                else
+                {
+                    column = new Column(columnName);
+                }
+                return column;
+            }
         }
 
         private StringLiteral buildStringLiteral(MatchResult result)
@@ -1047,6 +1187,16 @@ namespace SQLGeneration.Generators
                 return;
             }
             throw new NotImplementedException();
+        }
+
+        private Table buildTable(MatchResult tableResult)
+        {
+            List<string> parts = new List<string>();
+            buildMultipartIdentifier(tableResult, parts);
+            Namespace qualifier = getNamespace(parts.Take(parts.Count - 1));
+            string tableName = parts[parts.Count - 1];
+            Table table = new Table(qualifier, tableName);
+            return table;
         }
 
         private Namespace getNamespace(IEnumerable<string> qualifiers)
@@ -1105,7 +1255,8 @@ namespace SQLGeneration.Generators
                         return collection[sourceName];
                     }
                 }
-                return null;
+                string message = String.Format(Resources.UnknownSource, sourceName);
+                throw new SQLGenerationException(message);
             }
 
             public bool HasSingleSource(out AliasedSource source)
