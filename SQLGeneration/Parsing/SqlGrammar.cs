@@ -1078,9 +1078,30 @@ namespace SQLGeneration.Parsing
             public const string FunctionCall = "function_call";
 
             /// <summary>
-            /// Gets the identifier indicating that the join item is a SELECT expression.
+            /// Describes the structure of a select statement as a table source.
             /// </summary>
-            public const string SelectExpression = "select_expression";
+            public static class Select
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the table source is a select statement.
+                /// </summary>
+                public const string Name = "Select";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Gets the identifier for the select statement.
+                /// </summary>
+                public const string SelectStatement = "select_statement";
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
 
             /// <summary>
             /// Describes the structure of the join item alias.
@@ -1110,7 +1131,10 @@ namespace SQLGeneration.Parsing
                 .Add(true, Options()
                     .Add(JoinItem.FunctionCall, Expression(FunctionCall.Name))
                     .Add(JoinItem.Table, Expression(MultipartIdentifier.Name))
-                    .Add(JoinItem.SelectExpression, Expression(SelectExpression.Name)))
+                    .Add(JoinItem.Select.Name, Define()
+                        .Add(JoinItem.Select.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
+                        .Add(JoinItem.Select.SelectStatement, true, Expression(SelectStatement.Name))
+                        .Add(JoinItem.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))))
                 .Add(JoinItem.AliasExpression.Name, false, Define()
                     .Add(JoinItem.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
                     .Add(JoinItem.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)));
@@ -1656,7 +1680,7 @@ namespace SQLGeneration.Parsing
                     /// <summary>
                     /// Gets the identifier indicating that the values come from a SELECT expression.
                     /// </summary>
-                    public const string SelectExpression = "select_expression";
+                    public const string SelectStatement = "select_statement";
 
                     /// <summary>
                     /// Gets the identifier for the right parenthesis.
@@ -1693,7 +1717,7 @@ namespace SQLGeneration.Parsing
                 /// <summary>
                 /// Gets the identifier for the SELECT expression.
                 /// </summary>
-                public const string SelectExpression = "select_expression";
+                public const string SelectStatement = "select_statement";
 
                 /// <summary>
                 /// Gets the identifier for the right parenthesis.
@@ -1734,7 +1758,7 @@ namespace SQLGeneration.Parsing
                 /// <summary>
                 /// Gets the identifier for the select expression.
                 /// </summary>
-                public const string SelectExpression = "select_expression";
+                public const string SelectStatement = "select_statement";
 
                 /// <summary>
                 /// Gets the identifier for the value list.
@@ -1765,7 +1789,7 @@ namespace SQLGeneration.Parsing
                         .Add(Filter.Quantify.Quantifier, true, Expression(SqlGrammar.Quantifier.Name))
                         .Add(Filter.Quantify.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(true, Options()
-                            .Add(Filter.Quantify.SelectExpression, Expression(SelectExpression.Name))
+                            .Add(Filter.Quantify.SelectStatement, Expression(SelectStatement.Name))
                             .Add(Filter.Quantify.ValueList, Expression(ValueList.Name)))
                         .Add(Filter.Quantify.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(Filter.Order.Name, Define()
@@ -1800,13 +1824,13 @@ namespace SQLGeneration.Parsing
                                 .Add(Filter.In.Values.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                             .Add(Filter.In.Select.Name, Define()
                                 .Add(Filter.In.Select.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
-                                .Add(Filter.In.Select.SelectExpression, true, Expression(SelectExpression.Name))
+                                .Add(Filter.In.Select.SelectStatement, true, Expression(SelectStatement.Name))
                                 .Add(Filter.In.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                             .Add(Filter.In.FunctionCall, Expression(FunctionCall.Name))))
                     .Add(Filter.Exists.Name, Define()
                         .Add(Filter.Exists.ExistsKeyword, true, Token(SqlTokenRegistry.Exists))
                         .Add(Filter.Exists.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
-                        .Add(Filter.Exists.SelectExpression, true, Expression(SqlGrammar.SelectExpression.Name))
+                        .Add(Filter.Exists.SelectStatement, true, Expression(SqlGrammar.SelectStatement.Name))
                         .Add(Filter.Exists.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))));
         }
 
@@ -2507,9 +2531,9 @@ namespace SQLGeneration.Parsing
                 public const string LeftParenthesis = "left_parenthesis";
 
                 /// <summary>
-                /// Gets the identifier for the select expression.
+                /// Gets the identifier for the select statement.
                 /// </summary>
-                public const string SelectExpression = "select_expression";
+                public const string SelectStatement = "select_statement";
 
                 /// <summary>
                 /// Gets the identifier for the right parenthesis.
@@ -2539,7 +2563,7 @@ namespace SQLGeneration.Parsing
                         .Add(SqlGrammar.InsertStatement.Values.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
                     .Add(SqlGrammar.InsertStatement.Select.Name, Define()
                         .Add(SqlGrammar.InsertStatement.Select.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
-                        .Add(SqlGrammar.InsertStatement.Select.SelectExpression, true, Expression(SelectExpression.Name))
+                        .Add(SqlGrammar.InsertStatement.Select.SelectStatement, true, Expression(SelectStatement.Name))
                         .Add(SqlGrammar.InsertStatement.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))));
 
         }

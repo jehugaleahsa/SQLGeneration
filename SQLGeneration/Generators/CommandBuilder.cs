@@ -71,7 +71,7 @@ namespace SQLGeneration.Generators
             throw new InvalidOperationException();
         }
 
-        private ICommand buildSelectStatement(MatchResult result)
+        private ISelectBuilder buildSelectStatement(MatchResult result)
         {
             MatchResult selectExpression = result.Matches[SqlGrammar.SelectStatement.SelectExpression];
             ISelectBuilder builder = buildSelectExpression(selectExpression);
@@ -252,10 +252,11 @@ namespace SQLGeneration.Generators
                 Table table = buildTable(tableResult);
                 return table;
             }
-            MatchResult select = result.Matches[SqlGrammar.JoinItem.SelectExpression];
+            MatchResult select = result.Matches[SqlGrammar.JoinItem.Select.Name];
             if (select.IsMatch)
             {
-                return buildSelectExpression(select);
+                MatchResult selectStatement = select.Matches[SqlGrammar.JoinItem.Select.SelectStatement];
+                return buildSelectStatement(selectStatement);
             }
             MatchResult functionCall = result.Matches[SqlGrammar.JoinItem.FunctionCall];
             if (functionCall.IsMatch)
@@ -507,10 +508,10 @@ namespace SQLGeneration.Generators
                 MatchResult quantifierResult = quantifyResult.Matches[SqlGrammar.Filter.Quantify.Quantifier];
                 Quantifier quantifier = buildQuantifier(quantifierResult);
                 IValueProvider valueProvider = null;
-                MatchResult selectResult = quantifyResult.Matches[SqlGrammar.Filter.Quantify.SelectExpression];
+                MatchResult selectResult = quantifyResult.Matches[SqlGrammar.Filter.Quantify.SelectStatement];
                 if (selectResult.IsMatch)
                 {
-                    valueProvider = buildSelectExpression(selectResult);
+                    valueProvider = buildSelectStatement(selectResult);
                 }
                 MatchResult valueListResult = quantifyResult.Matches[SqlGrammar.Filter.Quantify.ValueList];
                 if (valueListResult.IsMatch)
@@ -585,8 +586,8 @@ namespace SQLGeneration.Generators
                 MatchResult selectResult = inResult.Matches[SqlGrammar.Filter.In.Select.Name];
                 if (selectResult.IsMatch)
                 {
-                    MatchResult selectExpressionResult = selectResult.Matches[SqlGrammar.Filter.In.Select.SelectExpression];
-                    valueProvider = buildSelectExpression(selectExpressionResult);
+                    MatchResult selectStatementResult = selectResult.Matches[SqlGrammar.Filter.In.Select.SelectStatement];
+                    valueProvider = buildSelectStatement(selectStatementResult);
                 }
                 MatchResult functionCall = inResult.Matches[SqlGrammar.Filter.In.FunctionCall];
                 if (functionCall.IsMatch)
@@ -601,8 +602,8 @@ namespace SQLGeneration.Generators
             MatchResult existsResult = result.Matches[SqlGrammar.Filter.Exists.Name];
             if (existsResult.IsMatch)
             {
-                MatchResult selectExpressionResult = existsResult.Matches[SqlGrammar.Filter.Exists.SelectExpression];
-                ISelectBuilder builder = buildSelectExpression(selectExpressionResult);
+                MatchResult selectExpressionResult = existsResult.Matches[SqlGrammar.Filter.Exists.SelectStatement];
+                ISelectBuilder builder = buildSelectStatement(selectExpressionResult);
                 ExistsFilter filter = new ExistsFilter(builder);
                 return filter;
             }
@@ -813,8 +814,8 @@ namespace SQLGeneration.Generators
             MatchResult selectResult = result.Matches[SqlGrammar.InsertStatement.Select.Name];
             if (selectResult.IsMatch)
             {
-                MatchResult selectExpressionResult = selectResult.Matches[SqlGrammar.InsertStatement.Select.SelectExpression];
-                ISelectBuilder selectBuilder = buildSelectExpression(selectExpressionResult);
+                MatchResult selectStatementResult = selectResult.Matches[SqlGrammar.InsertStatement.Select.SelectStatement];
+                ISelectBuilder selectBuilder = buildSelectStatement(selectStatementResult);
                 valueProvider = selectBuilder;
             }
             string alias = null;

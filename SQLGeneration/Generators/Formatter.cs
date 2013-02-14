@@ -342,10 +342,15 @@ namespace SQLGeneration.Generators
             {
                 buildMultipartIdentifier(table, writer);
             }
-            MatchResult select = result.Matches[SqlGrammar.JoinItem.SelectExpression];
+            MatchResult select = result.Matches[SqlGrammar.JoinItem.Select.Name];
             if (select.IsMatch)
             {
-                buildSelectExpression(select, writer);
+                MatchResult leftParenthesis = select.Matches[SqlGrammar.JoinItem.Select.LeftParenthesis];
+                writeToken(leftParenthesis, writer);
+                MatchResult selectStatement = select.Matches[SqlGrammar.JoinItem.Select.SelectStatement];
+                buildSelectStatement(selectStatement, writer);
+                MatchResult rightParenthesis = select.Matches[SqlGrammar.JoinItem.Select.RightParenthesis];
+                writeToken(rightParenthesis, writer);
             }
             MatchResult aliasExpression = result.Matches[SqlGrammar.JoinItem.AliasExpression.Name];
             if (aliasExpression.IsMatch)
@@ -604,8 +609,8 @@ namespace SQLGeneration.Generators
             {
                 MatchResult leftParenthesis = select.Matches[SqlGrammar.InsertStatement.Select.LeftParenthesis];
                 writeToken(leftParenthesis, writer);
-                MatchResult selectExpression = select.Matches[SqlGrammar.InsertStatement.Select.SelectExpression];
-                buildSelectExpression(selectExpression, writer);
+                MatchResult selectStatement = select.Matches[SqlGrammar.InsertStatement.Select.SelectStatement];
+                buildSelectStatement(selectStatement, writer);
                 MatchResult rightParenthesis = select.Matches[SqlGrammar.InsertStatement.Select.RightParenthesis];
                 writeToken(rightParenthesis, writer);
             }
@@ -831,10 +836,10 @@ namespace SQLGeneration.Generators
                 {
                     buildValueList(valueList, writer);
                 }
-                MatchResult select = quantify.Matches[SqlGrammar.Filter.Quantify.SelectExpression];
+                MatchResult select = quantify.Matches[SqlGrammar.Filter.Quantify.SelectStatement];
                 if (select.IsMatch)
                 {
-                    buildSelectExpression(select, writer);
+                    buildSelectStatement(select, writer);
                 }
                 MatchResult rightParenthesis = quantify.Matches[SqlGrammar.Filter.Quantify.RightParenthesis];
                 writeToken(rightParenthesis, writer);
@@ -949,8 +954,8 @@ namespace SQLGeneration.Generators
                 {
                     MatchResult leftParenthesis = select.Matches[SqlGrammar.Filter.In.Select.LeftParenthesis];
                     writeToken(leftParenthesis, writer);
-                    MatchResult selectExpression = select.Matches[SqlGrammar.Filter.In.Select.SelectExpression];
-                    buildSelectExpression(selectExpression, writer);
+                    MatchResult selectStatement = select.Matches[SqlGrammar.Filter.In.Select.SelectStatement];
+                    buildSelectStatement(selectStatement, writer);
                     MatchResult rightParenthesis = select.Matches[SqlGrammar.Filter.In.Select.RightParenthesis];
                     writeToken(rightParenthesis, writer);
                 }
@@ -968,8 +973,8 @@ namespace SQLGeneration.Generators
                 writeToken(existsKeyword, writer);
                 MatchResult leftParenthesis = exists.Matches[SqlGrammar.Filter.Exists.LeftParenthesis];
                 writeToken(leftParenthesis, writer);
-                MatchResult selectExpression = exists.Matches[SqlGrammar.Filter.Exists.SelectExpression];
-                buildSelectExpression(selectExpression, writer);
+                MatchResult selectStatement = exists.Matches[SqlGrammar.Filter.Exists.SelectStatement];
+                buildSelectStatement(selectStatement, writer);
                 MatchResult rightParenthesis = exists.Matches[SqlGrammar.Filter.Exists.RightParenthesis];
                 writeToken(rightParenthesis, writer);
                 return;
