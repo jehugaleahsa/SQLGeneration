@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -60,16 +59,15 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IEnumerable<string> GetInnerFilterTokens(CommandOptions options)
+        protected override TokenStream GetInnerFilterTokens(CommandOptions options)
         {
-            // <InFilter> => <Left> [ "NOT" ] "IN" <ValueList>
             TokenStream stream = new TokenStream();
             stream.AddRange(LeftHand.GetFilterTokens(options));
             if (Not)
             {
-                stream.Add("NOT");
+                stream.Add(new TokenResult(SqlTokenRegistry.Not, "NOT"));
             }
-            stream.Add("IN");
+            stream.Add(new TokenResult(SqlTokenRegistry.In, "IN"));
             stream.AddRange(Values.GetFilterTokens(options));
             return stream;
         }

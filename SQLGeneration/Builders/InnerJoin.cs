@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
 {
@@ -23,16 +24,15 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The name of the join type.</returns>
-        protected override string GetJoinType(CommandOptions options)
+        protected override TokenResult GetJoinType(CommandOptions options)
         {
-            // { "JOIN" | "INNER JOIN" }
             StringBuilder result = new StringBuilder();
             if (options.VerboseInnerJoin)
             {
                 result.Append("INNER ");
             }
             result.Append("JOIN");
-            return result.ToString();
+            return new TokenResult(SqlTokenRegistry.InnerJoin, result.ToString());
         }
     }
 }

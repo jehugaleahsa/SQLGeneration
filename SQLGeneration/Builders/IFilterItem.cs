@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
 {
@@ -13,6 +13,6 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The generated text.</returns>
-        IEnumerable<string> GetFilterTokens(CommandOptions options);
+        TokenStream GetFilterTokens(CommandOptions options);
     }
 }

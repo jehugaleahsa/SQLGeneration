@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using SQLGeneration.Parsing;
 
@@ -49,16 +48,16 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The generated text.</returns>
-        protected override IEnumerable<string> GetTokens(CommandOptions options)
+        protected override TokenStream GetTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             if (Format == null)
             {
-                stream.Add(Value.ToString(CultureInfo.InvariantCulture));
+                stream.Add(new TokenResult(SqlTokenRegistry.Number, Value.ToString(CultureInfo.InvariantCulture)));
             }
             else
             {
-                stream.Add(Value.ToString(Format, CultureInfo.InvariantCulture));
+                stream.Add(new TokenResult(SqlTokenRegistry.Number, Value.ToString(Format, CultureInfo.InvariantCulture)));
             }
             return stream;
         }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -16,19 +15,19 @@ namespace SQLGeneration.Builders
         {
         }
 
-        IEnumerable<string> IPrecedingFrame.GetFrameTokens(CommandOptions options)
+        TokenStream IPrecedingFrame.GetFrameTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.Add("UNBOUNDED");
-            stream.Add("PRECEDING");
+            stream.Add(new TokenResult(SqlTokenRegistry.Unbounded, "UNBOUNDED"));
+            stream.Add(new TokenResult(SqlTokenRegistry.Preceding, "PRECEDING"));
             return stream;
         }
 
-        IEnumerable<string> IFollowingFrame.GetFrameTokens(CommandOptions options)
+        TokenStream IFollowingFrame.GetFrameTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.Add("UNBOUNDED");
-            stream.Add("FOLLOWING");
+            stream.Add(new TokenResult(SqlTokenRegistry.Unbounded, "UNBOUNDED"));
+            stream.Add(new TokenResult(SqlTokenRegistry.Following, "FOLLOWING"));
             return stream;
         }
     }

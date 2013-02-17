@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Parsing;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration.Builders
@@ -39,15 +40,15 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="value">The type of the frame.</param>
         /// <returns>The string representing the given frame type.</returns>
-        public string ToToken(FrameType value)
+        public TokenResult ToToken(FrameType value)
         {
             switch (value)
             {
                 case FrameType.Default:
                 case FrameType.Row:
-                    return "ROWS";
+                    return new TokenResult(SqlTokenRegistry.Rows, "ROWS");
                 case FrameType.Range:
-                    return "RANGE";
+                    return new TokenResult(SqlTokenRegistry.Range, "RANGE");
                 default:
                     throw new ArgumentException(Resources.UnknownFrameType, "value");
             }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -29,15 +28,15 @@ namespace SQLGeneration.Builders
             this.source = source;
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
+        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             if (source != null)
             {
                 stream.AddRange(source.GetReferenceTokens(options));
-                stream.Add(".");
+                stream.Add(new TokenResult(SqlTokenRegistry.Dot, "."));
             }
-            stream.Add("*");
+            stream.Add(new TokenResult(SqlTokenRegistry.MultiplicationOperator, "*"));
             return stream;
         }
 

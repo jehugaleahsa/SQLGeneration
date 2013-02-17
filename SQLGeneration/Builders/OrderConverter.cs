@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Parsing;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration.Builders
@@ -39,14 +40,14 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="order">The value of the enum.</param>
         /// <returns>The string representation.</returns>
-        public string ToToken(Order order)
+        public TokenResult ToToken(Order order)
         {
             switch (order)
             {
                 case Order.Ascending:
-                    return "ASC";
+                    return new TokenResult(SqlTokenRegistry.Ascending, "ASC");
                 case Order.Descending:
-                    return "DESC";
+                    return new TokenResult(SqlTokenRegistry.Descending, "DESC");
                 default:
                     throw new ArgumentException(Resources.UnknownOrder, "order");
             }

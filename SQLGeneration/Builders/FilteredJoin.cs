@@ -81,11 +81,10 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration settings to use.</param>
         /// <returns>The generated text.</returns>
-        protected override IEnumerable<string> GetOnTokens(CommandOptions options)
+        protected override TokenStream GetOnTokens(CommandOptions options)
         {
-            // "ON" <Filter>
             TokenStream stream = new TokenStream();
-            stream.Add("ON");
+            stream.Add(new TokenResult(SqlTokenRegistry.On, "ON"));
             stream.AddRange(((IFilter)on).GetFilterTokens(options));
             return stream;
         }

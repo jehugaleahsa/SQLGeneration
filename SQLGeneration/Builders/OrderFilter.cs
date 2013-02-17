@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -52,9 +51,8 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IEnumerable<string> GetInnerFilterTokens(CommandOptions options)
+        protected override TokenStream GetInnerFilterTokens(CommandOptions options)
         {
-            // <Binary> => <Left> <Op> <Right>
             TokenStream stream = new TokenStream();
             stream.AddRange(_leftHand.GetFilterTokens(options));
             stream.Add(GetComparisonOperator(options));
@@ -67,6 +65,6 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string containing the name of the operation that compares the left and right hand sides.</returns>
-        protected abstract string GetComparisonOperator(CommandOptions options);
+        protected abstract TokenResult GetComparisonOperator(CommandOptions options);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
 {
@@ -22,10 +23,9 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The text used to combine two queries.</returns>
-        protected override string GetCombinationType(CommandOptions options)
+        protected override TokenResult GetCombinationType(CommandOptions options)
         {
-            // "EXCEPT"
-            return "EXCEPT";
+            return new TokenResult(SqlTokenRegistry.Except, "EXCEPT");
         }
     }
 }

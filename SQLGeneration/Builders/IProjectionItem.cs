@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
 {
@@ -13,7 +13,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The generated text.</returns>
-        IEnumerable<string> GetProjectionTokens(CommandOptions options);
+        TokenStream GetProjectionTokens(CommandOptions options);
 
         /// <summary>
         /// Gets the name that a projection will be referred to with.

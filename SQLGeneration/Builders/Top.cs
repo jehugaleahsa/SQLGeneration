@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -59,18 +58,18 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The generated text.</returns>
-        internal IEnumerable<string> GetTopTokens(CommandOptions options)
+        internal TokenStream GetTopTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.Add("TOP");
+            stream.Add(new TokenResult(SqlTokenRegistry.Top, "TOP"));
             stream.AddRange(_expression.GetProjectionTokens(options));
             if (IsPercent)
             {
-                stream.Add("PERCENT");
+                stream.Add(new TokenResult(SqlTokenRegistry.Percent, "PERCENT"));
             }
             if (WithTies)
             {
-                stream.Add("WITH TIES");
+                stream.Add(new TokenResult(SqlTokenRegistry.WithTies, "WITH TIES"));
             }
             return stream;
         }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using SQLGeneration.Parsing;
 
@@ -43,7 +42,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         public IEnumerable<IProjectionItem> Values
         {
-            get { return new ReadOnlyCollection<IProjectionItem>(_values); }
+            get { return _values; }
         }
 
         /// <summary>
@@ -73,23 +72,22 @@ namespace SQLGeneration.Builders
             return _values.Remove(item);
         }
 
-        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
+        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
         {
-            // <ValueList> => "(" [ <ProjectionReference> [ "," <ValueList> ] ] ")"
             using (IEnumerator<IProjectionItem> enumerator = _values.GetEnumerator())
             {
                 TokenStream stream = new TokenStream();
-                stream.Add("(");
+                stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
                 if (enumerator.MoveNext())
                 {
                     stream.AddRange(enumerator.Current.GetProjectionTokens(options));
                     while (enumerator.MoveNext())
                     {
-                        stream.Add(",");
+                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
                         stream.AddRange(enumerator.Current.GetProjectionTokens(options));
                     }
                 }
-                stream.Add(")");
+                stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
                 return stream;
             }
         }

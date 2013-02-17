@@ -76,7 +76,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The command text.</returns>
-        IEnumerable<string> ICommand.GetCommandTokens(CommandOptions options)
+        TokenStream ICommand.GetCommandTokens(CommandOptions options)
         {
             if (options == null)
             {
@@ -90,18 +90,18 @@ namespace SQLGeneration.Builders
             return getCommandTokens(options);
         }
 
-        private IEnumerable<string> getCommandTokens(CommandOptions options)
+        private TokenStream getCommandTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.Add("DELETE");
+            stream.Add(new TokenResult(SqlTokenRegistry.Delete, "DELETE"));
             if (options.VerboseDeleteStatement)
             {
-                stream.Add("FROM");
+                stream.Add(new TokenResult(SqlTokenRegistry.From, "FROM"));
             }
             stream.AddRange(((IJoinItem)_table).GetDeclarationTokens(options));
             if (_where.HasFilters)
             {
-                stream.Add("WHERE");
+                stream.Add(new TokenResult(SqlTokenRegistry.Where, "WHERE"));
                 stream.AddRange(((IFilter)_where).GetFilterTokens(options));
             }
             return stream;

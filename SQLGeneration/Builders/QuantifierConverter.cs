@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using SQLGeneration.Parsing;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration.Builders
@@ -42,16 +40,16 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="quantifier">The valeu to convert to a string.</param>
         /// <returns>The token representing the quantifier.</returns>
-        public string ToToken(Quantifier quantifier)
+        public TokenResult ToToken(Quantifier quantifier)
         {
             switch (quantifier)
             {
                 case Quantifier.All:
-                    return "ALL";
+                    return new TokenResult(SqlTokenRegistry.All, "ALL");
                 case Quantifier.Any:
-                    return "ANY";
+                    return new TokenResult(SqlTokenRegistry.Any, "ANY");
                 case Quantifier.Some:
-                    return "SOME";
+                    return new TokenResult(SqlTokenRegistry.Some, "SOME");
                 default:
                     throw new ArgumentException(Resources.UnknownQuantifier, "quantifier");
             }

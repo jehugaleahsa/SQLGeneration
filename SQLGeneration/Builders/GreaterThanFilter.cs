@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
 {
@@ -22,10 +23,9 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string containing the name of the operation that compares the left and right hand sides.</returns>
-        protected override string GetComparisonOperator(CommandOptions options)
+        protected override TokenResult GetComparisonOperator(CommandOptions options)
         {
-            // <left> ">" <Right>
-            return ">";
+            return new TokenResult(SqlTokenRegistry.GreaterThan, ">");
         }
     }
 }

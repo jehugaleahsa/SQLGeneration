@@ -10,7 +10,7 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Gets the identifier for alias indicators (AS).
         /// </summary>
-        public const string AliasIndicator = "AliasIndicator";
+        public const string As = "AliasIndicator";
 
         /// <summary>
         /// Gets the identifier for the addition operator.
@@ -393,7 +393,7 @@ namespace SQLGeneration.Parsing
             Define(Minus, @"MINUS\b", true);
             Define(Set, @"SET\b", true);
             Define(On, @"ON\b", true);
-            Define(AliasIndicator, @"AS\b", true);
+            Define(As, @"AS\b", true);
             Define(Exists, @"EXISTS\b", true);
             Define(Over, @"OVER\b", true);
             Define(PartitionBy, @"PARTITION\s+BY\b", true);

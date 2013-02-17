@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -36,10 +35,10 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IEnumerable<string> GetInnerFilterTokens(CommandOptions options)
+        protected override TokenStream GetInnerFilterTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.Add("EXISTS");
+            stream.Add(new TokenResult(SqlTokenRegistry.Exists, "EXISTS"));
             stream.AddRange(Select.GetFilterTokens(options));
             return stream;
         }

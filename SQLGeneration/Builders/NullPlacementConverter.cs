@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Parsing;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration.Builders
@@ -39,16 +40,14 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="placement">The null placement to convert to a string.</param>
         /// <returns>The string representation.</returns>
-        public string ToToken(NullPlacement placement)
+        public TokenResult ToToken(NullPlacement placement)
         {
             switch (placement)
             {
-                case NullPlacement.Default:
-                    return String.Empty;
                 case NullPlacement.First:
-                    return "NULLS FIRST";
+                    return new TokenResult(SqlTokenRegistry.NullsFirst, "NULLS FIRST");
                 case NullPlacement.Last:
-                    return "NULLS LAST";
+                    return new TokenResult(SqlTokenRegistry.NullsLast, "NULLS LAST");
                 default:
                     throw new ArgumentException(Resources.UnknownNullPlacement, "placement");
             }

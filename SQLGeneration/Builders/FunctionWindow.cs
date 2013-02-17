@@ -129,33 +129,33 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration settings to use when generating tokens.</param>
         /// <returns>The tokens making up the function window.</returns>
-        internal IEnumerable<string> GetDeclarationTokens(CommandOptions options)
+        internal TokenStream GetDeclarationTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.Add("OVER");
-            stream.Add("(");
+            stream.Add(new TokenResult(SqlTokenRegistry.Over, "OVER"));
+            stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
             stream.AddRange(buildPartitionList(options));
             stream.AddRange(buildOrderByList(options));
             if (Frame != null)
             {
                 stream.AddRange(Frame.GetDeclarationTokens(options));
             }
-            stream.Add(")");
+            stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
             return stream;
         }
 
-        private IEnumerable<string> buildPartitionList(CommandOptions options)
+        private TokenStream buildPartitionList(CommandOptions options)
         {
             using (IEnumerator<AliasedProjection> enumerator = partitionItems.GetEnumerator())
             {
                 TokenStream stream = new TokenStream();
                 if (enumerator.MoveNext())
                 {
-                    stream.Add("PARTITION BY");
+                    stream.Add(new TokenResult(SqlTokenRegistry.PartitionBy, "PARTITION BY"));
                     stream.AddRange(enumerator.Current.GetReferenceTokens(options));
                     while (enumerator.MoveNext())
                     {
-                        stream.Add(",");
+                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
                         stream.AddRange(enumerator.Current.GetReferenceTokens(options));
                     }
                 }
@@ -163,18 +163,18 @@ namespace SQLGeneration.Builders
             }
         }
 
-        private IEnumerable<string> buildOrderByList(CommandOptions options)
+        private TokenStream buildOrderByList(CommandOptions options)
         {
             using (IEnumerator<OrderBy> enumerator = orderByItems.GetEnumerator())
             {
                 TokenStream stream = new TokenStream();
                 if (enumerator.MoveNext())
                 {
-                    stream.Add("ORDER BY");
+                    stream.Add(new TokenResult(SqlTokenRegistry.OrderBy, "ORDER BY"));
                     stream.AddRange(enumerator.Current.GetOrderByTokens(options));
                     while (enumerator.MoveNext())
                     {
-                        stream.Add(",");
+                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
                         stream.AddRange(enumerator.Current.GetOrderByTokens(options));
                     }
                 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -81,7 +80,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The order by text.</returns>
-        internal IEnumerable<string> GetOrderByTokens(CommandOptions options)
+        internal TokenStream GetOrderByTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             stream.AddRange(Projection.GetReferenceTokens(options));

@@ -9,7 +9,7 @@
     <projectUrl>http://github.com/jehugaleahsa/sqlgeneration</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Simplified token recognition.</releaseNotes>
+    <releaseNotes>Record Token Type When Building Commands</releaseNotes>
     <copyright>Copyright 2013</copyright>
     <tags>SQL generation builder building command select insert update delete</tags>
   </metadata>

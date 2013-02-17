@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 using SQLGeneration.Properties;
 
@@ -52,15 +51,15 @@ namespace SQLGeneration.Builders
             private set;
         }
 
-        IEnumerable<string> IJoinItem.GetDeclarationTokens(CommandOptions options)
+        TokenStream IJoinItem.GetDeclarationTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             if (Qualifier != null)
             {
                 stream.AddRange(Qualifier.GetNamespaceTokens(options));
-                stream.Add(".");
+                stream.Add(new TokenResult(SqlTokenRegistry.Dot, "."));
             }
-            stream.Add(Name);
+            stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Name));
             return stream;
         }
 

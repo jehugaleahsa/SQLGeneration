@@ -89,9 +89,8 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IEnumerable<string> GetInnerFilterTokens(CommandOptions options)
+        protected override TokenStream GetInnerFilterTokens(CommandOptions options)
         {
-            // <FilterList> => <Filter> [ {"AND"|"OR"} <FilterList> ]
             using (IEnumerator<Tuple<IFilter, Conjunction>> enumerator = _filters.GetEnumerator())
             {
                 if (!enumerator.MoveNext())

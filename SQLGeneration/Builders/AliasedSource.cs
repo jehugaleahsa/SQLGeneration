@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 using SQLGeneration.Properties;
 
@@ -58,7 +57,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration settings to use to generate the tokens.</param>
         /// <returns>The tokens comprising a reference to the source.</returns>
-        IEnumerable<string> IJoinItem.GetDeclarationTokens(CommandOptions options)
+        TokenStream IJoinItem.GetDeclarationTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             stream.AddRange(Source.GetDeclarationTokens(options));
@@ -66,9 +65,9 @@ namespace SQLGeneration.Builders
             {
                 if (options.AliasColumnSourcesUsingAs)
                 {
-                    stream.Add("AS");
+                    stream.Add(new TokenResult(SqlTokenRegistry.As, "AS"));
                 }
-                stream.Add(Alias);
+                stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Alias));
             }
             return stream;
         }
@@ -78,7 +77,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration settings to use to generate the tokens.</param>
         /// <returns>The tokens comprising a reference to the source..</returns>
-        internal IEnumerable<string> GetReferenceTokens(CommandOptions options)
+        internal TokenStream GetReferenceTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             if (String.IsNullOrWhiteSpace(Alias))
@@ -91,7 +90,7 @@ namespace SQLGeneration.Builders
             }
             else
             {
-                stream.Add(Alias);
+                stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Alias));
             }
             return stream;
         }

@@ -106,7 +106,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The expression making up the command.</returns>
-        IEnumerable<string> ICommand.GetCommandTokens(CommandOptions options)
+        TokenStream ICommand.GetCommandTokens(CommandOptions options)
         {
             if (options == null)
             {
@@ -120,33 +120,33 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The text used to combine two queries.</returns>
-        protected abstract string GetCombinationType(CommandOptions options);
+        protected abstract TokenResult GetCombinationType(CommandOptions options);
 
-        IEnumerable<string> IJoinItem.GetDeclarationTokens(CommandOptions options)
+        TokenStream IJoinItem.GetDeclarationTokens(CommandOptions options)
         {
             return getWrappedCommandTokens(options);
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
+        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
             return getWrappedCommandTokens(options);
         }
 
-        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
+        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
         {
             return getWrappedCommandTokens(options);
         }
 
-        private IEnumerable<string> getWrappedCommandTokens(CommandOptions options)
+        private TokenStream getWrappedCommandTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.Add("(");
+            stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
             stream.AddRange(getCommandTokens(options));
-            stream.Add(")");
+            stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
             return stream;
         }
 
-        private IEnumerable<string> getCommandTokens(CommandOptions options)
+        private TokenStream getCommandTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             stream.AddRange(leftHand.GetCommandTokens(options));
@@ -161,18 +161,18 @@ namespace SQLGeneration.Builders
             return stream;
         }
 
-        private IEnumerable<string> buildOrderBy(CommandOptions options)
+        private TokenStream buildOrderBy(CommandOptions options)
         {
             using (IEnumerator<OrderBy> enumerator = orderBy.GetEnumerator())
             {
                 TokenStream stream = new TokenStream();
                 if (enumerator.MoveNext())
                 {
-                    stream.Add("ORDER BY");
+                    stream.Add(new TokenResult(SqlTokenRegistry.OrderBy, "ORDER BY"));
                     stream.AddRange(enumerator.Current.GetOrderByTokens(options));
                     while (enumerator.MoveNext())
                     {
-                        stream.Add(",");
+                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
                         stream.AddRange(enumerator.Current.GetOrderByTokens(options));
                     }
                 }

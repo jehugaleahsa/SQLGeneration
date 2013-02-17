@@ -3,7 +3,7 @@
 namespace SQLGeneration.Parsing
 {
     /// <summary>
-    /// Extracts tokens from a source.
+    /// Retrieves tokens and provides the ability to return them if they can't be used.
     /// </summary>
     public interface ITokenSource
     {

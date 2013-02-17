@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -26,7 +25,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration settings to use when generating tokens.</param>
         /// <returns>The tokens making up the window frame.</returns>
-        internal IEnumerable<string> GetDeclarationTokens(CommandOptions options)
+        internal TokenStream GetDeclarationTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             FrameTypeConverter converter = new FrameTypeConverter();
@@ -40,6 +39,6 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration settings to use when generating tokens.</param>
         /// <returns>The tokens making up the window frame.</returns>
-        protected abstract IEnumerable<string> GetWindowFrameTokens(CommandOptions options);
+        protected abstract TokenStream GetWindowFrameTokens(CommandOptions options);
     }
 }

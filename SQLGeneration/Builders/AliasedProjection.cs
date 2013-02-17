@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -43,7 +42,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration settings to use when generating the tokens.</param>
         /// <returns>The tokens comprising a declaration of the projection.</returns>
-        internal IEnumerable<string> GetDeclarationTokens(CommandOptions options)
+        internal TokenStream GetDeclarationTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             stream.AddRange(ProjectionItem.GetProjectionTokens(options));
@@ -51,9 +50,9 @@ namespace SQLGeneration.Builders
             {
                 if (options.AliasProjectionsUsingAs)
                 {
-                    stream.Add("AS");
+                    stream.Add(new TokenResult(SqlTokenRegistry.As, "AS"));
                 }
-                stream.Add(Alias);
+                stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Alias));
             }
             return stream;
         }
@@ -63,7 +62,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration settings to use when generating the tokens.</param>
         /// <returns>The tokens comprising a reference to the projection.</returns>
-        internal IEnumerable<string> GetReferenceTokens(CommandOptions options)
+        internal TokenStream GetReferenceTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             if (String.IsNullOrWhiteSpace(Alias))
@@ -72,7 +71,7 @@ namespace SQLGeneration.Builders
             }
             else
             {
-                stream.Add(Alias);
+                stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Alias));
             }
             return stream;
         }

@@ -98,6 +98,7 @@
     <Compile Include="Parsing\Token.cs" />
     <Compile Include="Parsing\TokenRegistry.cs" />
     <Compile Include="Parsing\TokenResult.cs" />
+    <Compile Include="Parsing\TokenSource.cs" />
     <Compile Include="Parsing\TokenStream.cs" />
     <Compile Include="Builders\Placeholder.cs" />
     <Compile Include="Builders\SourceCollection.cs" />

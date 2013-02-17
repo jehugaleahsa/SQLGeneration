@@ -112,30 +112,30 @@ namespace SQLGeneration.Builders
             set;
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
+        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
             return getFunctionTokens(options);
         }
 
-        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
+        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
         {
             return getFunctionTokens(options);
         }
 
-        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
+        TokenStream IGroupByItem.GetGroupByTokens(CommandOptions options)
         {
             return getFunctionTokens(options);
         }
 
-        private IEnumerable<string> getFunctionTokens(CommandOptions options)
+        private TokenStream getFunctionTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             if (qualifier != null)
             {
                 stream.AddRange(qualifier.GetNamespaceTokens(options));
-                stream.Add(".");
+                stream.Add(new TokenResult(SqlTokenRegistry.Dot, "."));
             }
-            stream.Add(Name);
+            stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Name));
             stream.AddRange(((IFilterItem)arguments).GetFilterTokens(options));
             if (FunctionWindow != null)
             {
@@ -159,7 +159,7 @@ namespace SQLGeneration.Builders
             return null;
         }
 
-        IEnumerable<string> IJoinItem.GetDeclarationTokens(CommandOptions options)
+        TokenStream IJoinItem.GetDeclarationTokens(CommandOptions options)
         {
             return getFunctionTokens(options);
         }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -27,25 +26,25 @@ namespace SQLGeneration.Builders
             private set;
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
+        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
             return getPlaceholderToken();
         }
 
-        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
+        TokenStream IGroupByItem.GetGroupByTokens(CommandOptions options)
         {
             return getPlaceholderToken();
         }
 
-        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
+        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
         {
             return getPlaceholderToken();
         }
 
-        private IEnumerable<string> getPlaceholderToken()
+        private TokenStream getPlaceholderToken()
         {
             TokenStream stream = new TokenStream();
-            stream.Add(Value);
+            stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Value));
             return stream;
         }
 

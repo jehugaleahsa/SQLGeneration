@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
 {
@@ -15,7 +15,7 @@ namespace SQLGeneration.Builders
         {
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
+        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
             return GetTokens(options);
         }
@@ -25,19 +25,19 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The generated text.</returns>
-        protected abstract IEnumerable<string> GetTokens(CommandOptions options);
+        protected abstract TokenStream GetTokens(CommandOptions options);
 
         string IProjectionItem.GetProjectionName()
         {
             return null;
         }
 
-        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
+        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
         {
             return GetTokens(options);
         }
 
-        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
+        TokenStream IGroupByItem.GetGroupByTokens(CommandOptions options)
         {
             return GetTokens(options);
         }

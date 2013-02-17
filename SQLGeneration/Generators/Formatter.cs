@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using SQLGeneration.Builders;
@@ -40,12 +39,11 @@ namespace SQLGeneration.Generators
             {
                 options = new CommandOptions();
             }
-            IEnumerable<string> tokenStream = command.GetCommandTokens(options);
-            ITokenSource tokenSource = Grammar.TokenRegistry.CreateTokenSource(tokenStream);
             StringBuilder builder = new StringBuilder();
             using (StringWriter writer = new StringWriter(builder))
             {
-                MatchResult result = GetResult(tokenSource);
+                TokenStream tokenStream = command.GetCommandTokens(options);
+                MatchResult result = GetResult(tokenStream.CreateTokenSource());
                 buildStart(result, writer);
             }
             return builder.ToString();

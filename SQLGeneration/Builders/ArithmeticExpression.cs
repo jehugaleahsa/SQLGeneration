@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -62,7 +61,7 @@ namespace SQLGeneration.Builders
             }
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
+        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
             return getTokens(options);
         }
@@ -72,29 +71,29 @@ namespace SQLGeneration.Builders
             return null;
         }
 
-        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
+        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
         {
             return getTokens(options);
         }
 
-        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
+        TokenStream IGroupByItem.GetGroupByTokens(CommandOptions options)
         {
             return getTokens(options);
         }
 
-        private IEnumerable<string> getTokens(CommandOptions options)
+        private TokenStream getTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {
-                stream.Add("(");
+                stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
             }
             stream.AddRange(_leftHand.GetProjectionTokens(options));
             stream.Add(GetOperator(options));
             stream.AddRange(_rightHand.GetProjectionTokens(options));
             if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
             {
-                stream.Add(")");
+                stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
             }
             return stream;
         }
@@ -104,6 +103,6 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The token representing the arithmetic operator.</returns>
-        protected abstract string GetOperator(CommandOptions options);
+        protected abstract TokenResult GetOperator(CommandOptions options);
     }
 }

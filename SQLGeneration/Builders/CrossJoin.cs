@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
 {
@@ -23,9 +23,9 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration settings to use.</param>
         /// <returns>The generated text.</returns>
-        protected override IEnumerable<string> GetOnTokens(CommandOptions options)
+        protected override TokenStream GetOnTokens(CommandOptions options)
         {
-            yield break;
+            return new TokenStream();
         }
 
         /// <summary>
@@ -33,9 +33,9 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The name of the join type.</returns>
-        protected override string GetJoinType(CommandOptions options)
+        protected override TokenResult GetJoinType(CommandOptions options)
         {
-            return "CROSS JOIN";
+            return new TokenResult(SqlTokenRegistry.CrossJoin, "CROSS JOIN");
         }
     }
 }

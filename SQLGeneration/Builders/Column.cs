@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -57,22 +56,22 @@ namespace SQLGeneration.Builders
             private set;
         }
 
-        IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
+        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
             return getColumnTokens(options);
         }
 
-        IEnumerable<string> IFilterItem.GetFilterTokens(CommandOptions options)
+        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
         {
             return getColumnTokens(options);
         }
 
-        IEnumerable<string> IGroupByItem.GetGroupByTokens(CommandOptions options)
+        TokenStream IGroupByItem.GetGroupByTokens(CommandOptions options)
         {
             return getColumnTokens(options);
         }
 
-        private IEnumerable<string> getColumnTokens(CommandOptions options)
+        private TokenStream getColumnTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             bool qualify = Source != null 
@@ -83,9 +82,9 @@ namespace SQLGeneration.Builders
             if (qualify)
             {
                 stream.AddRange(Source.GetReferenceTokens(options));
-                stream.Add(".");
+                stream.Add(new TokenResult(SqlTokenRegistry.Dot, "."));
             }
-            stream.Add(Name);
+            stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Name));
             return stream;
         }
 

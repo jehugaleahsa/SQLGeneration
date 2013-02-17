@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 using SQLGeneration.Properties;
 
@@ -32,19 +31,19 @@ namespace SQLGeneration.Builders
             private set;
         }
 
-        IEnumerable<string> IPrecedingFrame.GetFrameTokens(CommandOptions options)
+        TokenStream IPrecedingFrame.GetFrameTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             getTokens(stream, options);
-            stream.Add("PRECEDING");
+            stream.Add(new TokenResult(SqlTokenRegistry.Preceding, "PRECEDING"));
             return stream;
         }
 
-        IEnumerable<string> IFollowingFrame.GetFrameTokens(CommandOptions options)
+        TokenStream IFollowingFrame.GetFrameTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             getTokens(stream, options);
-            stream.Add("FOLLOWING");
+            stream.Add(new TokenResult(SqlTokenRegistry.Following, "FOLLOWING"));
             return stream;
         }
 

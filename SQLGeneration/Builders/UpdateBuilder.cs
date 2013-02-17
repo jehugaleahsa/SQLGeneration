@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using SQLGeneration.Parsing;
 using SQLGeneration.Properties;
 
@@ -44,7 +43,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         public IEnumerable<Setter> Setters
         {
-            get { return new ReadOnlyCollection<Setter>(_setters); }
+            get { return _setters; }
         }
 
         /// <summary>
@@ -114,7 +113,7 @@ namespace SQLGeneration.Builders
         /// Gets the command text.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        IEnumerable<string> ICommand.GetCommandTokens(CommandOptions options)
+        TokenStream ICommand.GetCommandTokens(CommandOptions options)
         {
             if (options == null)
             {
@@ -128,22 +127,22 @@ namespace SQLGeneration.Builders
             return getCommandTokens(options);
         }
 
-        private IEnumerable<string> getCommandTokens(CommandOptions options)
+        private TokenStream getCommandTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.Add("UPDATE");
+            stream.Add(new TokenResult(SqlTokenRegistry.Update, "UPDATE"));
             stream.AddRange(((IJoinItem)_table).GetDeclarationTokens(options));
-            stream.Add("SET");
+            stream.Add(new TokenResult(SqlTokenRegistry.Set, "SET"));
             stream.AddRange(buildSetterList(options));
             if (_where.HasFilters)
             {
-                stream.Add("WHERE");
+                stream.Add(new TokenResult(SqlTokenRegistry.Where, "WHERE"));
                 stream.AddRange(((IFilter)_where).GetFilterTokens(options));
             }
             return stream;
         }
 
-        private IEnumerable<string> buildSetterList(CommandOptions options)
+        private TokenStream buildSetterList(CommandOptions options)
         {
             using (IEnumerator<Setter> enumerator = _setters.GetEnumerator())
             {
@@ -155,7 +154,7 @@ namespace SQLGeneration.Builders
                 stream.AddRange(enumerator.Current.GetSetterTokens(options));
                 while (enumerator.MoveNext())
                 {
-                    stream.Add(",");
+                    stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
                     stream.AddRange(enumerator.Current.GetSetterTokens(options));
                 }
                 return stream;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using SQLGeneration.Parsing;
 
@@ -41,7 +40,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The generated text.</returns>
-        protected override IEnumerable<string> GetTokens(CommandOptions options)
+        protected override TokenStream GetTokens(CommandOptions options)
         {
             StringBuilder result = new StringBuilder();
             result.Append("'");
@@ -51,7 +50,7 @@ namespace SQLGeneration.Builders
             }
             result.Append("'");
             TokenStream stream = new TokenStream();
-            stream.Add(result.ToString());
+            stream.Add(new TokenResult(SqlTokenRegistry.String, result.ToString()));
             return stream;
         }
     }

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
 {
@@ -33,7 +33,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string declaring the item.</returns>
-        internal override IEnumerable<string> GetDeclarationTokens(CommandOptions options)
+        internal override TokenStream GetDeclarationTokens(CommandOptions options)
         {
             return ((IJoinItem)source).GetDeclarationTokens(options);
         }

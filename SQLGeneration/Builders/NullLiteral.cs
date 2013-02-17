@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -21,10 +20,10 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The generated text.</returns>
-        protected override IEnumerable<string> GetTokens(CommandOptions options)
+        protected override TokenStream GetTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.Add("NULL");
+            stream.Add(new TokenResult(SqlTokenRegistry.Null, "NULL"));
             return stream;            
         }
     }

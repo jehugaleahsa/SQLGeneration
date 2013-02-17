@@ -89,7 +89,7 @@ namespace SQLGeneration.Builders
         /// Gets the SQL for the insert statement.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
-        IEnumerable<string> ICommand.GetCommandTokens(CommandOptions options)
+        TokenStream ICommand.GetCommandTokens(CommandOptions options)
         {
             if (options == null)
             {
@@ -103,36 +103,36 @@ namespace SQLGeneration.Builders
             return getCommandToken(options);
         }
 
-        private IEnumerable<string> getCommandToken(CommandOptions options)
+        private TokenStream getCommandToken(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.Add("INSERT");
-            stream.Add("INTO");
+            stream.Add(new TokenResult(SqlTokenRegistry.Insert, "INSERT"));
+            stream.Add(new TokenResult(SqlTokenRegistry.Into, "INTO"));
             stream.AddRange(((IJoinItem)_table).GetDeclarationTokens(options));
             stream.AddRange(buildColumnList(options));
             if (_values.IsValueList)
             {
-                stream.Add("VALUES");
+                stream.Add(new TokenResult(SqlTokenRegistry.Values, "VALUES"));
             }
             stream.AddRange(_values.GetFilterTokens(options));
             return stream;
         }
 
-        private IEnumerable<string> buildColumnList(CommandOptions options)
+        private TokenStream buildColumnList(CommandOptions options)
         {
             using (IEnumerator<Column> enumerator = _columns.GetEnumerator())
             {
                 TokenStream stream = new TokenStream();
                 if (enumerator.MoveNext())
                 {
-                    stream.Add("(");
+                    stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
                     stream.AddRange(((IProjectionItem)enumerator.Current).GetProjectionTokens(options));
                     while (enumerator.MoveNext())
                     {
-                        stream.Add(",");
+                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
                         stream.AddRange(((IProjectionItem)enumerator.Current).GetProjectionTokens(options));
                     }
-                    stream.Add(")");
+                    stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
                 }
                 return stream;
             }

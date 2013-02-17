@@ -995,7 +995,7 @@ namespace SQLGeneration.Parsing
                     .Add(ProjectionItem.Expression.Name, Define()
                         .Add(ProjectionItem.Expression.Item, true, Expression(ArithmeticItem.Name))
                         .Add(ProjectionItem.Expression.AliasExpression.Name, false, Define()
-                            .Add(ProjectionItem.Expression.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
+                            .Add(ProjectionItem.Expression.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.As))
                             .Add(ProjectionItem.Expression.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)))));
         }
 
@@ -1139,7 +1139,7 @@ namespace SQLGeneration.Parsing
                         .Add(JoinItem.Select.SelectStatement, true, Expression(SelectStatement.Name))
                         .Add(JoinItem.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))))
                 .Add(JoinItem.AliasExpression.Name, false, Define()
-                    .Add(JoinItem.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
+                    .Add(JoinItem.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.As))
                     .Add(JoinItem.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)));
         }
 
@@ -2876,7 +2876,7 @@ namespace SQLGeneration.Parsing
                 .Add(SqlGrammar.InsertStatement.IntoKeyword, false, Token(SqlTokenRegistry.Into))
                 .Add(SqlGrammar.InsertStatement.Table, true, Expression(MultipartIdentifier.Name))
                 .Add(SqlGrammar.InsertStatement.AliasExpression.Name, false, Define()
-                    .Add(SqlGrammar.InsertStatement.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
+                    .Add(SqlGrammar.InsertStatement.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.As))
                     .Add(SqlGrammar.InsertStatement.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)))
                 .Add(SqlGrammar.InsertStatement.Columns.Name, false, Define()
                     .Add(SqlGrammar.InsertStatement.Columns.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
@@ -3035,7 +3035,7 @@ namespace SQLGeneration.Parsing
                 .Add(UpdateStatement.UpdateKeyword, true, Token(SqlTokenRegistry.Update))
                 .Add(UpdateStatement.Table, true, Expression(MultipartIdentifier.Name))
                 .Add(UpdateStatement.AliasExpression.Name, false, Define()
-                    .Add(UpdateStatement.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
+                    .Add(UpdateStatement.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.As))
                     .Add(UpdateStatement.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)))
                 .Add(UpdateStatement.SetKeyword, true, Token(SqlTokenRegistry.Set))
                 .Add(UpdateStatement.SetterList, true, Expression(SetterList.Name))
@@ -3218,7 +3218,7 @@ namespace SQLGeneration.Parsing
                 .Add(DeleteStatement.FromKeyword, false, Token(SqlTokenRegistry.From))
                 .Add(DeleteStatement.Table, true, Expression(MultipartIdentifier.Name))
                 .Add(DeleteStatement.AliasExpression.Name, false, Define()
-                    .Add(DeleteStatement.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.AliasIndicator))
+                    .Add(DeleteStatement.AliasExpression.AliasIndicator, false, Token(SqlTokenRegistry.As))
                     .Add(DeleteStatement.AliasExpression.Alias, true, Token(SqlTokenRegistry.Identifier)))
                 .Add(DeleteStatement.Where.Name, false, Define()
                     .Add(DeleteStatement.Where.WhereKeyword, true, Token(SqlTokenRegistry.Where))

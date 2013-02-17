@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
 {
@@ -13,6 +13,6 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration settings to use when generating tokens.</param>
         /// <returns>The tokens making up the window frame.</returns>
-        IEnumerable<string> GetFrameTokens(CommandOptions options);
+        TokenStream GetFrameTokens(CommandOptions options);
     }
 }

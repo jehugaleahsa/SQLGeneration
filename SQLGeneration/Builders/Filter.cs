@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -25,18 +24,18 @@ namespace SQLGeneration.Builders
             set;
         }
 
-        IEnumerable<string> IFilter.GetFilterTokens(CommandOptions options)
+        TokenStream IFilter.GetFilterTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             bool wrapInParentheses = ShouldWrapInParentheses(options);
             if (wrapInParentheses)
             {
-                stream.Add("(");
+                stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
             }
             stream.AddRange(GetInnerFilterTokens(options));
             if (wrapInParentheses)
             {
-                stream.Add(")");
+                stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
             }
             return stream;
         }
@@ -46,7 +45,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected abstract IEnumerable<string> GetInnerFilterTokens(CommandOptions options);
+        protected abstract TokenStream GetInnerFilterTokens(CommandOptions options);
 
         /// <summary>
         /// Determines whether the filter should be surrounded by parentheses.

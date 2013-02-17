@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Parsing;
 using SQLGeneration.Properties;
 
 namespace SQLGeneration.Builders
@@ -39,15 +40,15 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="qualifier">The qualifier to convert to a string.</param>
         /// <returns>The string representation.</returns>
-        public string ToToken(DistinctQualifier qualifier)
+        public TokenResult ToToken(DistinctQualifier qualifier)
         {
             switch (qualifier)
             {
                 case DistinctQualifier.All:
                 case DistinctQualifier.Default:
-                    return "ALL";
+                    return new TokenResult(SqlTokenRegistry.All, "ALL");
                 case DistinctQualifier.Distinct:
-                    return "DISTINCT";
+                    return new TokenResult(SqlTokenRegistry.Distinct, "DISTINCT");
                 default:
                     throw new ArgumentException(Resources.UnknownDistinctQualifier, "qualifier");
             }

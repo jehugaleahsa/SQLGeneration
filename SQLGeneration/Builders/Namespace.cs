@@ -55,7 +55,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration settings to use when generating tokens.</param>
         /// <returns>The tokens making up the namespace.</returns>
-        internal IEnumerable<string> GetNamespaceTokens(CommandOptions options)
+        internal TokenStream GetNamespaceTokens(CommandOptions options)
         {
             using (IEnumerator<string> enumerator = qualifiers.GetEnumerator())
             {
@@ -64,11 +64,11 @@ namespace SQLGeneration.Builders
                     throw new SQLGenerationException(Resources.EmptyNamespace);
                 }
                 TokenStream stream = new TokenStream();
-                stream.Add(enumerator.Current);
+                stream.Add(new TokenResult(SqlTokenRegistry.Identifier, enumerator.Current));
                 while (enumerator.MoveNext())
                 {
-                    stream.Add(".");
-                    stream.Add(enumerator.Current);
+                    stream.Add(new TokenResult(SqlTokenRegistry.Dot, "."));
+                    stream.Add(new TokenResult(SqlTokenRegistry.Identifier, enumerator.Current));
                 }
                 return stream;
             }

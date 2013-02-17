@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
 {
@@ -22,9 +23,9 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The token representing the arithmetic operator.</returns>
-        protected override string GetOperator(CommandOptions options)
+        protected override TokenResult GetOperator(CommandOptions options)
         {
-            return "*";
+            return new TokenResult(SqlTokenRegistry.MultiplicationOperator, "*");
         }
     }
 }

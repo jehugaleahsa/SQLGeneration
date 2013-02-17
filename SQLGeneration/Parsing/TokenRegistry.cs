@@ -152,42 +152,6 @@ namespace SQLGeneration.Parsing
             return new Tokenizer(this, commandText);
         }
 
-        /// <summary>
-        /// Creates a stream of tokens that are verified against the token definitions.
-        /// </summary>
-        /// <param name="tokenStream">The stream of tokens.</param>
-        /// <returns>The new token source.</returns>
-        public ITokenSource CreateTokenSource(IEnumerable<string> tokenStream)
-        {
-            return new TokenTypeImbuer(this, tokenStream);
-        }
-
-        private abstract class TokenSource : ITokenSource
-        {
-            private readonly Stack<TokenResult> undo;
-
-            protected TokenSource()
-            {
-                undo = new Stack<TokenResult>();
-            }
-
-            public TokenResult GetToken()
-            {
-                if (undo.Count == 0)
-                {
-                    return GetNextToken();
-                }
-                return undo.Pop();
-            }
-
-            protected abstract TokenResult GetNextToken();
-
-            public void PutBack(TokenResult result)
-            {
-                undo.Push(result);
-            }
-        }
-
         private sealed class Tokenizer : TokenSource
         {
             private readonly TokenRegistry registry;
@@ -212,33 +176,6 @@ namespace SQLGeneration.Parsing
                     throw new SQLGenerationException(Resources.UnknownTokenType);
                 }
                 return result;
-            }
-        }
-
-        private sealed class TokenTypeImbuer : TokenSource
-        {
-            private readonly TokenRegistry registry;
-            private readonly IEnumerator<string> enumerator;
-
-            public TokenTypeImbuer(TokenRegistry registry, IEnumerable<string> tokenStream)
-            {
-                this.registry = registry;
-                this.enumerator = tokenStream.GetEnumerator();
-            }
-
-            protected override TokenResult GetNextToken()
-            {
-                if (!enumerator.MoveNext())
-                {
-                    return null;
-                }
-                string token = enumerator.Current;
-                string tokenType = registry.GetTokenType(token);
-                if (tokenType == null)
-                {
-                    throw new SQLGenerationException(Resources.UnknownTokenType);
-                }
-                return new TokenResult(tokenType, token);
             }
         }
     }

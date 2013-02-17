@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -52,11 +51,11 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The setter expression.</returns>
-        internal IEnumerable<string> GetSetterTokens(CommandOptions options)
+        internal TokenStream GetSetterTokens(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
             stream.AddRange(((IProjectionItem)_column).GetProjectionTokens(options));
-            stream.Add("=");
+            stream.Add(new TokenResult(SqlTokenRegistry.EqualTo, "="));
             stream.AddRange(_value.GetProjectionTokens(options));
             return stream;
         }

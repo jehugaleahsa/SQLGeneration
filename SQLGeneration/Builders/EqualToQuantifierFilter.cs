@@ -1,4 +1,5 @@
 ﻿using System;
+using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
 {
@@ -23,9 +24,9 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration settings to use when building the command.</param>
         /// <returns>The token representing the comparison operator.</returns>
-        protected override string GetComparisonOperator(CommandOptions options)
+        protected override TokenResult GetComparisonOperator(CommandOptions options)
         {
-            return "=";
+            return new TokenResult(SqlTokenRegistry.EqualTo, "=");
         }
     }
 }

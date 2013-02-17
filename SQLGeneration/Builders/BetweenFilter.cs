@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SQLGeneration.Parsing;
 
 namespace SQLGeneration.Builders
@@ -76,18 +75,17 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string representing the filter.</returns>
-        protected override IEnumerable<string> GetInnerFilterTokens(CommandOptions options)
+        protected override TokenStream GetInnerFilterTokens(CommandOptions options)
         {
-            // <Between> => <Value> [ "NOT" ] "BETWEEN" <Lower> "AND" <Upper>
             TokenStream stream = new TokenStream();
             stream.AddRange(_value.GetFilterTokens(options));
             if (Not)
             {
-                stream.Add("NOT");
+                stream.Add(new TokenResult(SqlTokenRegistry.Not, "NOT"));
             }
-            stream.Add("BETWEEN");
+            stream.Add(new TokenResult(SqlTokenRegistry.Between, "BETWEEN"));
             stream.AddRange(_lowerBound.GetFilterTokens(options));
-            stream.Add("AND");
+            stream.Add(new TokenResult(SqlTokenRegistry.And, "AND"));
             stream.AddRange(_upperBound.GetFilterTokens(options));
             return stream;
         }
