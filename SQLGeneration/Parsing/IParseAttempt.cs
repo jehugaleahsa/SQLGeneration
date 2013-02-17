@@ -16,9 +16,8 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Attempts to get a token of the given type.
         /// </summary>
-        /// <param name="tokenName">The type of the token to attempt to retrieve.</param>
         /// <returns>The result of the search.</returns>
-        TokenResult GetToken(string tokenName);
+        TokenResult GetToken();
 
         /// <summary>
         /// Creates an attempt to parse a child expression.

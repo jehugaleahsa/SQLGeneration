@@ -68,7 +68,7 @@ namespace SQLGeneration.Parsing
         /// <param name="input">The input string to get the next token from.</param>
         /// <param name="index">The index into the string to start searching for a token.</param>
         /// <returns>The extracted token -or- null if no token is found.</returns>
-        private string GetToken(string input, ref int index)
+        internal TokenResult ExtractToken(string input, ref int index)
         {
             Dictionary<string, Regex> checks = getRegex();
             foreach (string tokenName in tokenNames)
@@ -78,14 +78,14 @@ namespace SQLGeneration.Parsing
                 if (match.Success)
                 {
                     index = match.Index + match.Length;
-                    return match.Groups["Token"].Value;
+                    string value = match.Groups["Token"].Value;
+                    return new TokenResult(tokenName, value);
                 }
             }
-            index = input.Length;
             return null;
         }
 
-        private bool Match(string token, out string tokenName)
+        private string GetTokenType(string token)
         {
             Dictionary<string, Regex> checks = getRegex();
             foreach (string name in tokenNames)
@@ -94,12 +94,10 @@ namespace SQLGeneration.Parsing
                 Match match = regex.Match(token, 0);
                 if (match.Success)
                 {
-                    tokenName = name;
-                    return true;
+                    return name;
                 }
             }
-            tokenName = null;
-            return false;
+            return null;
         }
 
         private Dictionary<string, Regex> getRegex()
@@ -151,21 +149,7 @@ namespace SQLGeneration.Parsing
         /// <returns>The new token source.</returns>
         public ITokenSource CreateTokenSource(string commandText)
         {
-            return new TokenSource(this, tokenize(commandText));
-        }
-
-        private IEnumerable<string> tokenize(string commandText)
-        {
-            int index = 0;
-            while (index != commandText.Length)
-            {
-                string token = GetToken(commandText, ref index);
-                if (token == null)
-                {
-                    yield break;
-                }
-                yield return token;
-            }
+            return new Tokenizer(this, commandText);
         }
 
         /// <summary>
@@ -175,93 +159,86 @@ namespace SQLGeneration.Parsing
         /// <returns>The new token source.</returns>
         public ITokenSource CreateTokenSource(IEnumerable<string> tokenStream)
         {
-            return new TokenSource(this, tokenStream);
+            return new TokenTypeImbuer(this, tokenStream);
         }
 
-        private sealed class TokenSource : ITokenSource
+        private abstract class TokenSource : ITokenSource
         {
-            private readonly TokenRegistry registry;
-            private readonly IEnumerator<string> tokenEnumerator;
-            private readonly Stack<TokenResult> undoBuffer;
+            private readonly Stack<TokenResult> undo;
 
-            /// <summary>
-            /// Initializes a new instance of a TokenSource.
-            /// </summary>
-            /// <param name="registry">The registry containing the token definitions.</param>
-            /// <param name="tokenStream">A stream of tokens.</param>
-            public TokenSource(TokenRegistry registry, IEnumerable<string> tokenStream)
+            protected TokenSource()
             {
-                this.registry = registry;
-                tokenEnumerator = tokenStream.GetEnumerator();
-                undoBuffer = new Stack<TokenResult>();
+                undo = new Stack<TokenResult>();
             }
 
-            /// <summary>
-            /// Attempts to retrieve a token matching the definition associated
-            /// with the given name.
-            /// </summary>
-            /// <param name="tokenName">The name of the token to try to retrieve.</param>
-            /// <returns>
-            /// A result object describing whether the match was a success and what value 
-            /// was found.
-            /// </returns>
-            public TokenResult GetToken(string tokenName)
+            public TokenResult GetToken()
             {
-                if (!registry.IsRegistered(tokenName))
+                if (undo.Count == 0)
                 {
-                    throw new ArgumentException(Resources.UnknownTokenType, "tokenName");
+                    return GetNextToken();
                 }
-                if (undoBuffer.Count == 0)
-                {
-                    if (!tokenEnumerator.MoveNext())
-                    {
-                        return new TokenResult(null, false, null);
-                    }
-                    string token = tokenEnumerator.Current;
-                    string name;
-                    bool isMatch = registry.Match(token, out name);
-                    isMatch &= tokenName == name;
-                    return new TokenResult(name, isMatch, token);
-                }
-                else
-                {
-                    TokenResult tokenResult = undoBuffer.Pop();
-                    bool isMatch = tokenResult.Name == tokenName;
-                    return new TokenResult(tokenResult.Name, isMatch, tokenResult.Value);
-                }
+                return undo.Pop();
             }
 
-            /// <summary>
-            /// Gets whether the token source has more items.
-            /// </summary>
-            public bool HasMore
-            {
-                get
-                {
-                    if (undoBuffer.Count > 0)
-                    {
-                        return true;
-                    }
-                    if (tokenEnumerator.MoveNext())
-                    {
-                        string token = tokenEnumerator.Current;
-                        string name;
-                        bool isMatch = registry.Match(token, out name);
-                        TokenResult result = new TokenResult(name, isMatch, token);
-                        undoBuffer.Push(result);
-                        return true;
-                    }
-                    return false;
-                }
-            }
+            protected abstract TokenResult GetNextToken();
 
-            /// <summary>
-            /// Restores the given token to the front of the token stream.
-            /// </summary>
-            /// <param name="result">The token to restore.</param>
             public void PutBack(TokenResult result)
             {
-                undoBuffer.Push(result);
+                undo.Push(result);
+            }
+        }
+
+        private sealed class Tokenizer : TokenSource
+        {
+            private readonly TokenRegistry registry;
+            private readonly string commandText;
+            private int index;
+
+            public Tokenizer(TokenRegistry registry, string commandText)
+            {
+                this.registry = registry;
+                this.commandText = commandText;
+            }
+
+            protected override TokenResult GetNextToken()
+            {
+                if (index >= commandText.Length)
+                {
+                    return null;
+                }
+                TokenResult result = registry.ExtractToken(commandText, ref index);
+                if (result == null && !String.IsNullOrWhiteSpace(commandText.Substring(index)))
+                {
+                    throw new SQLGenerationException(Resources.UnknownTokenType);
+                }
+                return result;
+            }
+        }
+
+        private sealed class TokenTypeImbuer : TokenSource
+        {
+            private readonly TokenRegistry registry;
+            private readonly IEnumerator<string> enumerator;
+
+            public TokenTypeImbuer(TokenRegistry registry, IEnumerable<string> tokenStream)
+            {
+                this.registry = registry;
+                this.enumerator = tokenStream.GetEnumerator();
+            }
+
+            protected override TokenResult GetNextToken()
+            {
+                if (!enumerator.MoveNext())
+                {
+                    return null;
+                }
+                string token = enumerator.Current;
+                string tokenType = registry.GetTokenType(token);
+                if (tokenType == null)
+                {
+                    throw new SQLGenerationException(Resources.UnknownTokenType);
+                }
+                return new TokenResult(tokenType, token);
             }
         }
     }

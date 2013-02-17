@@ -71,7 +71,8 @@ namespace SQLGeneration.Parsing
             Expression expression = grammar.Expression(expressionType);
             ParseAttempt attempt = new ParseAttempt(this, tokenSource);
             MatchResult result = expression.Match(attempt, String.Empty);
-            if (tokenSource.HasMore)
+            TokenResult tokenResult = attempt.GetToken();
+            if (tokenResult != null)
             {
                 result.IsMatch = false;
             }
@@ -107,12 +108,11 @@ namespace SQLGeneration.Parsing
             /// <summary>
             /// Attempts to get a token of the given type.
             /// </summary>
-            /// <param name="tokenName">The type of the token to attempt to retrieve.</param>
             /// <returns>The result of the search.</returns>
-            public TokenResult GetToken(string tokenName)
+            public TokenResult GetToken()
             {
-                TokenResult result = tokenSource.GetToken(tokenName);
-                if (result.Value != null)
+                TokenResult result = tokenSource.GetToken();
+                if (result != null)
                 {
                     tokens.Add(result);
                 }

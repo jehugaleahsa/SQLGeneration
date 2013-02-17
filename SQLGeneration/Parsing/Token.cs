@@ -53,11 +53,12 @@ namespace SQLGeneration.Parsing
         /// <returns>The results of the match.</returns>
         public MatchResult Match(IParseAttempt attempt, string itemName)
         {
-            TokenResult tokenResult = attempt.GetToken(TokenType);
+            TokenResult tokenResult = attempt.GetToken();
+            bool isMatch = tokenResult != null && tokenResult.Name == TokenType;
             MatchResult result = new MatchResult() 
             { 
                 ItemName = itemName, 
-                IsMatch = tokenResult.IsMatch,
+                IsMatch = isMatch,
                 Context = tokenResult,
             };
             return result;

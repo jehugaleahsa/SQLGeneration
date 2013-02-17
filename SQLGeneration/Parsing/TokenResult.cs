@@ -10,10 +10,9 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Initializes a new instance of a TokenResult.
         /// </summary>
-        internal TokenResult(string name, bool isMatch, string value)
+        internal TokenResult(string name, string value)
         {
             Name = name;
-            IsMatch = isMatch;
             Value = value;
         }
 
@@ -21,15 +20,6 @@ namespace SQLGeneration.Parsing
         /// Gets the name of the token type that was requested.
         /// </summary>
         public string Name
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Gets whether the requested token was found.
-        /// </summary>
-        public bool IsMatch
         {
             get;
             private set;

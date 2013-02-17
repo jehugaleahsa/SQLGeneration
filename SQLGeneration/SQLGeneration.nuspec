@@ -9,7 +9,7 @@
     <projectUrl>http://github.com/jehugaleahsa/sqlgeneration</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>NuGet deployment issues.</releaseNotes>
+    <releaseNotes>Simplified token recognition.</releaseNotes>
     <copyright>Copyright 2013</copyright>
     <tags>SQL generation builder building command select insert update delete</tags>
   </metadata>
