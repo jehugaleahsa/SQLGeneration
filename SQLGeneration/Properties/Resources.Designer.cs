@@ -205,6 +205,15 @@ namespace SQLGeneration.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The row count cannot be negative when defining a bound function window frame..
+        /// </summary>
+        internal static string NegativeRowCount {
+            get {
+                return ResourceManager.GetString("NegativeRowCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An attempt was made to build a select command without any projections..
         /// </summary>
         internal static string NoProjections {
@@ -282,6 +291,15 @@ namespace SQLGeneration.Properties {
         internal static string UnknownDistinctQualifier {
             get {
                 return ResourceManager.GetString("UnknownDistinctQualifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encountered an unknown windowed function frame type..
+        /// </summary>
+        internal static string UnknownFrameType {
+            get {
+                return ResourceManager.GetString("UnknownFrameType", resourceCulture);
             }
         }
         

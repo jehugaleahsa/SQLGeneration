@@ -999,6 +999,141 @@ namespace SQLGeneration.Tests
             Assert.AreEqual(expected, commandText, "The wrong SQL was generated.");
         }
 
+        /// <summary>
+        /// We should be able to build a function that applies ROW_NUMBER to each row to
+        /// return a window.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FunctionWithOrderingWindow()
+        {
+            SelectBuilder innerBuilder = new SelectBuilder();
+
+            AliasedSource table = innerBuilder.AddTable(new Table("Table"));
+
+            Column column1 = table.Column("Column1");
+            Column column2 = table.Column("Column2");
+            Column column3 = table.Column("Column3");
+            innerBuilder.AddProjection(column1, "c1");
+
+            Function function = new Function("ROW_NUMBER");
+            FunctionWindow window = new FunctionWindow();
+            window.AddOrderBy(new OrderBy(column2));
+            window.AddOrderBy(new OrderBy(column3));
+            function.FunctionWindow = window;
+            innerBuilder.AddProjection(function, "rn");
+
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource inner = builder.AddSelect(innerBuilder, "inner");
+            builder.AddProjection(inner.Column("c1"));
+            builder.AddWhere(new BetweenFilter(inner.Column("rn"), new NumericLiteral(11), new NumericLiteral(20)));
+
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT inner.c1 FROM (SELECT Table.Column1 AS c1, ROW_NUMBER() OVER (ORDER BY Table.Column2, Table.Column3) AS rn FROM Table) inner WHERE inner.rn BETWEEN 11 AND 20";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// We should be able to apply a function to a partition.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FunctionWithPartitioning()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource table = builder.AddTable(new Table("Employee"));
+            AliasedProjection employeeType = builder.AddProjection(table.Column("Type"), "Type");
+
+            Function function = new Function("COUNT", new NumericLiteral(1));
+            FunctionWindow window = new FunctionWindow();
+            window.AddPartition(employeeType);
+            function.FunctionWindow = window;
+            builder.AddProjection(function, "Count");
+
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT Employee.Type AS Type, COUNT(1) OVER (PARTITION BY Type) AS Count FROM Employee";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// We should be able to apply a function to a partitioned, ordered frame.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FunctionWithBetweenFraming()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource sale = builder.AddTable(new Table("sale"));
+            AliasedProjection productId = builder.AddProjection(sale.Column("prod_id"));
+            AliasedProjection monthNumber = builder.AddProjection(sale.Column("month_num"));
+            AliasedProjection sales = builder.AddProjection(sale.Column("sales"));
+
+            Function function = new Function("SUM", sales.ProjectionItem);
+            FunctionWindow window = new FunctionWindow();
+            window.AddPartition(productId);
+            window.AddOrderBy(new OrderBy(monthNumber));
+            window.Frame = new BetweenWindowFrame(new UnboundFrame(), new UnboundFrame());
+            function.FunctionWindow = window;
+            builder.AddProjection(function);
+
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT sale.prod_id, sale.month_num, sale.sales, SUM(sale.sales) OVER (PARTITION BY sale.prod_id ORDER BY sale.month_num ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM sale";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// We should be able to apply a function to a partitioned, ordered frame.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FunctionWithStartFraming()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource sale = builder.AddTable(new Table("sale"));
+            AliasedProjection productId = builder.AddProjection(sale.Column("prod_id"));
+            AliasedProjection monthNumber = builder.AddProjection(sale.Column("month_num"));
+            AliasedProjection sales = builder.AddProjection(sale.Column("sales"));
+
+            Function function = new Function("SUM", sales.ProjectionItem);
+            FunctionWindow window = new FunctionWindow();
+            window.AddPartition(productId);
+            window.AddOrderBy(new OrderBy(monthNumber));
+            window.Frame = new PrecedingOnlyWindowFrame(new BoundFrame(12));
+            function.FunctionWindow = window;
+            builder.AddProjection(function);
+
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT sale.prod_id, sale.month_num, sale.sales, SUM(sale.sales) OVER (PARTITION BY sale.prod_id ORDER BY sale.month_num ROWS 12 PRECEDING) FROM sale";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// We should be able to specify that a frame window starts and stops with the current row.
+        /// This is pointless, but nonetheless possible.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FunctionWithBetweenFramingCurrentRow()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource sale = builder.AddTable(new Table("sale"));
+            AliasedProjection productId = builder.AddProjection(sale.Column("prod_id"));
+            AliasedProjection monthNumber = builder.AddProjection(sale.Column("month_num"));
+            AliasedProjection sales = builder.AddProjection(sale.Column("sales"));
+
+            Function function = new Function("SUM", sales.ProjectionItem);
+            FunctionWindow window = new FunctionWindow();
+            window.AddPartition(productId);
+            window.AddOrderBy(new OrderBy(monthNumber));
+            window.Frame = new BetweenWindowFrame(new CurrentRowFrame(), new CurrentRowFrame());
+            function.FunctionWindow = window;
+            builder.AddProjection(function);
+
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT sale.prod_id, sale.month_num, sale.sales, SUM(sale.sales) OVER (PARTITION BY sale.prod_id ORDER BY sale.month_num ROWS BETWEEN CURRENT ROW AND CURRENT ROW) FROM sale";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
         #endregion
 
         #region Insert

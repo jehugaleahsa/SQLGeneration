@@ -103,6 +103,15 @@ namespace SQLGeneration.Builders
             return arguments.RemoveValue(item);
         }
 
+        /// <summary>
+        /// Gets or sets the window to apply the function over.
+        /// </summary>
+        public FunctionWindow FunctionWindow
+        {
+            get;
+            set;
+        }
+
         IEnumerable<string> IProjectionItem.GetProjectionTokens(CommandOptions options)
         {
             return getFunctionTokens(options);
@@ -123,11 +132,15 @@ namespace SQLGeneration.Builders
             TokenStream stream = new TokenStream();
             if (qualifier != null)
             {
-                stream.AddRange(qualifier.GetNamespaceTokens());
+                stream.AddRange(qualifier.GetNamespaceTokens(options));
                 stream.Add(".");
             }
             stream.Add(Name);
             stream.AddRange(((IFilterItem)arguments).GetFilterTokens(options));
+            if (FunctionWindow != null)
+            {
+                stream.AddRange(FunctionWindow.GetDeclarationTokens(options));
+            }
             return stream;
         }
 

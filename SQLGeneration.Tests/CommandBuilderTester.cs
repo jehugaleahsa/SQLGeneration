@@ -11,6 +11,8 @@ namespace SQLGeneration.Tests
     [TestClass]
     public class CommandBuilderTester
     {
+        #region SELECT
+
         /// <summary>
         /// Tests that we can reproduce a simple select statement.
         /// </summary>
@@ -752,6 +754,72 @@ namespace SQLGeneration.Tests
         }
 
         /// <summary>
+        /// We should be able to build a function that applies ROW_NUMBER to each row to
+        /// return a window.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FunctionWithOrderingWindow()
+        {
+            string commandText = "SELECT inner.c1 FROM (SELECT Table.Column1 AS c1, ROW_NUMBER() OVER (ORDER BY Table.Column2, Table.Column3) AS rn FROM Table) inner WHERE inner.rn BETWEEN 11 AND 20";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// We should be able to apply a function to a partition.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FunctionWithPartitioning()
+        {
+            string commandText = "SELECT Employee.Type AS Type, COUNT(1) OVER (PARTITION BY Type) AS Count FROM Employee";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// We should be able to apply a function to a partitioned, ordered frame.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FunctionWithBetweenFraming()
+        {
+            string commandText = "SELECT sale.prod_id, sale.month_num, sale.sales, SUM(sale.sales) OVER (PARTITION BY sale.prod_id ORDER BY sale.month_num ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM sale";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// We should be able to apply a function to a partitioned, ordered frame.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FunctionWithStartFraming()
+        {            
+            string commandText = "SELECT sale.prod_id, sale.month_num, sale.sales, SUM(sale.sales) OVER (PARTITION BY sale.prod_id ORDER BY sale.month_num ROWS 12 PRECEDING) FROM sale";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// We should be able to apply a function to a partitioned, ordered frame.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FunctionWithBoundBetweenFraming()
+        {
+            string commandText = "SELECT sale.prod_id, sale.month_num, sale.sales, SUM(sale.sales) OVER (PARTITION BY sale.prod_id ORDER BY sale.month_num RANGE BETWEEN 12 PRECEDING AND 12 FOLLOWING) FROM sale";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// We should be able to specify that a frame window starts and stops with the current row.
+        /// This is pointless, but nonetheless possible.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FunctionWithBetweenFramingCurrentRow()
+        {
+            string commandText = "SELECT sale.prod_id, sale.month_num, sale.sales, SUM(sale.sales) OVER (PARTITION BY sale.prod_id ORDER BY sale.month_num ROWS BETWEEN CURRENT ROW AND CURRENT ROW) FROM sale";
+            assertCanReproduce(commandText);
+        }
+
+        #endregion
+
+        #region Insert
+
+        /// <summary>
         /// This sees whether we can reproduce a simple insert statement.
         /// </summary>
         [TestMethod]
@@ -790,6 +858,10 @@ namespace SQLGeneration.Tests
             string commandText = "INSERT INTO Table (Column1, Column2, Column3) (SELECT 123, 'hello', NULL)";
             assertCanReproduce(commandText);
         }
+
+        #endregion
+
+        #region Update
 
         /// <summary>
         /// This sees whether we can reproduce a simple update statement.
@@ -831,6 +903,10 @@ namespace SQLGeneration.Tests
             assertCanReproduce(commandText);
         }
 
+        #endregion
+
+        #region Delete
+
         /// <summary>
         /// This sees whether we can reproduce a simple delete statement.
         /// </summary>
@@ -861,6 +937,8 @@ namespace SQLGeneration.Tests
             assertCanReproduce(commandText);
         }
 
+        #endregion
+
         private void assertCanReproduce(string commandText)
         {
             CommandBuilder builder = new CommandBuilder();
@@ -869,6 +947,8 @@ namespace SQLGeneration.Tests
             string actual = formatter.GetCommandText(command);
             Assert.AreEqual(commandText, actual, "The command builder did not generate the original command text.");
         }
+
+        #region Real World Examples
 
         /// <summary>
         /// This sees whether we can create a SelectBuilder and add to the where clause.
@@ -1011,5 +1091,7 @@ ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.Effe
                 + " ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.EffectiveDate DESC";
             Assert.AreEqual(expected, actual, "The SELECT statement was not reproduced as expected.");
         }
+
+        #endregion
     }
 }

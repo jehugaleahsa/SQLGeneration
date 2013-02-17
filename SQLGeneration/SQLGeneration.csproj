@@ -41,7 +41,16 @@
     <Compile Include="Builders\AliasedSource.cs" />
     <Compile Include="Builders\ArithmeticExpression.cs" />
     <Compile Include="Builders\BetweenFilter.cs" />
+    <Compile Include="Builders\BetweenWindowFrame.cs" />
     <Compile Include="Builders\Column.cs" />
+    <Compile Include="Builders\CurrentRowFrame.cs" />
+    <Compile Include="Builders\FrameTypeConverter.cs" />
+    <Compile Include="Builders\FunctionWindow.cs" />
+    <Compile Include="Builders\IFollowingFrame.cs" />
+    <Compile Include="Builders\BoundFrame.cs" />
+    <Compile Include="Builders\UnboundFrame.cs" />
+    <Compile Include="Builders\WindowFrame.cs" />
+    <Compile Include="Builders\IPreceedingFrame.cs" />
     <Compile Include="Builders\Negation.cs" />
     <Compile Include="Builders\NotEqualToQuantifierFilter.cs" />
     <Compile Include="Builders\LessThanQuantifierFilter.cs" />
@@ -52,6 +61,7 @@
     <Compile Include="Builders\EqualToQuantifierFilter.cs" />
     <Compile Include="Builders\ExistsFilter.cs" />
     <Compile Include="Builders\Literal.cs" />
+    <Compile Include="Builders\PreceedingOnlyWindowFrame.cs" />
     <Compile Include="Builders\QuantifierFilter.cs" />
     <Compile Include="Builders\QuantifierConverter.cs" />
     <Compile Include="Generators\CommandBuilder.cs" />

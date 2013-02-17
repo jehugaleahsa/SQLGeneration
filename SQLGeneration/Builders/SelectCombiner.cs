@@ -61,6 +61,11 @@ namespace SQLGeneration.Builders
             get { return new SourceCollection(); } 
         }
 
+        List<OrderBy> ISelectBuilder.OrderByList
+        {
+            get { return orderBy; }
+        }
+
         /// <summary>
         /// Gets the items used to sort the results.
         /// </summary>

@@ -22,6 +22,14 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// Gets the order by items.
+        /// </summary>
+        List<OrderBy> OrderByList
+        {
+            get;
+        }
+
+        /// <summary>
         /// Adds a sort criteria to the query.
         /// </summary>
         /// <param name="item">The sort criteria to add.</param>

@@ -308,6 +308,46 @@ namespace SQLGeneration.Parsing
         public const string Exists = "exists";
 
         /// <summary>
+        /// Gets the identifier for the OVER keyword.
+        /// </summary>
+        public const string Over = "over";
+
+        /// <summary>
+        /// Gets the identifier for the PARTITION BY keyword.
+        /// </summary>
+        public const string PartitionBy = "partition_by";
+
+        /// <summary>
+        /// Gets the identifier for the ROWS keyword.
+        /// </summary>
+        public const string Rows = "rows";
+
+        /// <summary>
+        /// Gets the identifier for the RANGE keyword.
+        /// </summary>
+        public const string Range = "range";
+
+        /// <summary>
+        /// Gets the identifier for the UNBOUNDED keyword.
+        /// </summary>
+        public const string Unbounded = "unbounded";
+
+        /// <summary>
+        /// Gets the identifier for the PRECEECING keyword.
+        /// </summary>
+        public const string Preceding = "preceding";
+
+        /// <summary>
+        /// Gets the identifier for the FOLLOWING keyword.
+        /// </summary>
+        public const string Following = "following";
+
+        /// <summary>
+        /// Gets the identifier for the CURRENT ROW keyword.
+        /// </summary>
+        public const string CurrentRow = "current_row";
+
+        /// <summary>
         /// Initializes a new instance of a SqlTokenizer.
         /// </summary>
         public SqlTokenRegistry()
@@ -355,6 +395,14 @@ namespace SQLGeneration.Parsing
             Define(On, @"ON\b", true);
             Define(AliasIndicator, @"AS\b", true);
             Define(Exists, @"EXISTS\b", true);
+            Define(Over, @"OVER\b", true);
+            Define(PartitionBy, @"PARTITION\s+BY\b", true);
+            Define(Rows, @"ROWS\b", true);
+            Define(Range, @"RANGE\b", true);
+            Define(Unbounded, @"UNBOUNDED\b", true);
+            Define(Preceding, @"PRECEDING\b", true);
+            Define(Following, @"FOLLOWING\b", true);
+            Define(CurrentRow, @"CURRENT\s+ROW\b", true);
 
             Define(Identifier, @"([\p{L}:?@#_][\p{L}\p{N}@#$_]*)|(""(\.|"""")+"")|(\[[^\]]+\])");
 

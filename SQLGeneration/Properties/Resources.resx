@@ -165,6 +165,9 @@
   <data name="MissingHandlers" xml:space="preserve">
     <value>Not all expression types have a handler assigned to them.</value>
   </data>
+  <data name="NegativeRowCount" xml:space="preserve">
+    <value>The row count cannot be negative when defining a bound function window frame.</value>
+  </data>
   <data name="NoProjections" xml:space="preserve">
     <value>An attempt was made to build a select command without any projections.</value>
   </data>
@@ -191,6 +194,9 @@
   </data>
   <data name="UnknownDistinctQualifier" xml:space="preserve">
     <value>Encountered an unknown distinct qualifier.</value>
+  </data>
+  <data name="UnknownFrameType" xml:space="preserve">
+    <value>Encountered an unknown windowed function frame type.</value>
   </data>
   <data name="UnknownNullPlacement" xml:space="preserve">
     <value>Encountered an unknown null placement.</value>

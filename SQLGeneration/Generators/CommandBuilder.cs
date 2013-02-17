@@ -80,7 +80,7 @@ namespace SQLGeneration.Generators
             {
                 scope.Push(builder.Sources);
                 MatchResult orderByList = orderBy.Matches[SqlGrammar.SelectStatement.OrderBy.OrderByList];
-                buildOrderByList(orderByList, builder);
+                buildOrderByList(orderByList, builder.OrderByList);
                 scope.Pop();
             }
             return builder;
@@ -725,27 +725,27 @@ namespace SQLGeneration.Generators
             throw new InvalidOperationException();
         }
 
-        private void buildOrderByList(MatchResult result, ISelectBuilder builder)
+        private void buildOrderByList(MatchResult result, List<OrderBy> orderByList)
         {
             MatchResult multiple = result.Matches[SqlGrammar.OrderByList.Multiple.Name];
             if (multiple.IsMatch)
             {
                 MatchResult first = multiple.Matches[SqlGrammar.OrderByList.Multiple.First];
-                buildOrderByItem(first, builder);
+                buildOrderByItem(first, orderByList);
                 MatchResult remaining = multiple.Matches[SqlGrammar.OrderByList.Multiple.Remaining];
-                buildOrderByList(remaining, builder);
+                buildOrderByList(remaining, orderByList);
                 return;
             }
             MatchResult single = result.Matches[SqlGrammar.OrderByList.Single];
             if (single.IsMatch)
             {
-                buildOrderByItem(single, builder);
+                buildOrderByItem(single, orderByList);
                 return;
             }
             throw new InvalidOperationException();
         }
 
-        private void buildOrderByItem(MatchResult result, ISelectBuilder builder)
+        private void buildOrderByItem(MatchResult result, List<OrderBy> orderByList)
         {
             MatchResult expressionResult = result.Matches[SqlGrammar.OrderByItem.Expression];
             IProjectionItem expression = (IProjectionItem)buildArithmeticItem(expressionResult);
@@ -762,7 +762,7 @@ namespace SQLGeneration.Generators
                 placement = buildNullPlacement(placementResult);
             }
             OrderBy orderBy = new OrderBy(expression, order, placement);
-            builder.AddOrderBy(orderBy);
+            orderByList.Add(orderBy);
         }
 
         private Order buildOrderDirection(MatchResult result)
@@ -1078,9 +1078,7 @@ namespace SQLGeneration.Generators
             MatchResult numberResult = result.Matches[SqlGrammar.Item.Number];
             if (numberResult.IsMatch)
             {
-                string numberString = getToken(numberResult);
-                double value = Double.Parse(numberString);
-                return new NumericLiteral(value);
+                return buildNumericLiteral(numberResult);
             }
             MatchResult stringResult = result.Matches[SqlGrammar.Item.String];
             if (stringResult.IsMatch)
@@ -1109,6 +1107,13 @@ namespace SQLGeneration.Generators
                 return buildSelectStatement(selectExpressionResult);
             }
             throw new NotImplementedException();
+        }
+
+        private NumericLiteral buildNumericLiteral(MatchResult numberResult)
+        {
+            string numberString = getToken(numberResult);
+            double value = Double.Parse(numberString);
+            return new NumericLiteral(value);
         }
 
         private Column buildColumn(MatchResult columnResult)
@@ -1167,7 +1172,110 @@ namespace SQLGeneration.Generators
                     function.AddArgument(value);
                 }
             }
+            MatchResult windowResult = result.Matches[SqlGrammar.FunctionCall.Window.Name];
+            if (windowResult.IsMatch)
+            {
+                FunctionWindow window = new FunctionWindow();
+                MatchResult partitioning = windowResult.Matches[SqlGrammar.FunctionCall.Window.Partitioning.Name];
+                if (partitioning.IsMatch)
+                {
+                    MatchResult valueListResult = partitioning.Matches[SqlGrammar.FunctionCall.Window.Partitioning.ValueList];
+                    ValueList valueList = new ValueList();
+                    buildValueList(valueListResult, valueList);
+                    foreach (IProjectionItem value in valueList.Values)
+                    {
+                        window.AddPartition(value);
+                    }
+                }
+                MatchResult ordering = windowResult.Matches[SqlGrammar.FunctionCall.Window.Ordering.Name];
+                if (ordering.IsMatch)
+                {
+                    MatchResult orderByListResult = ordering.Matches[SqlGrammar.FunctionCall.Window.Ordering.OrderByList];
+                    buildOrderByList(orderByListResult, window.OrderByList);
+                }
+                MatchResult framing = windowResult.Matches[SqlGrammar.FunctionCall.Window.Framing.Name];
+                if (framing.IsMatch)
+                {
+                    MatchResult precedingOnlyFrameResult = framing.Matches[SqlGrammar.FunctionCall.Window.Framing.PrecedingFrame];
+                    if (precedingOnlyFrameResult.IsMatch)
+                    {
+                        IPrecedingFrame precedingFrame = buildPrecedingFrame(precedingOnlyFrameResult);
+                        window.Frame = new PrecedingOnlyWindowFrame(precedingFrame);
+                    }
+                    MatchResult betweenFrameResult = framing.Matches[SqlGrammar.FunctionCall.Window.Framing.BetweenFrame.Name];
+                    if (betweenFrameResult.IsMatch)
+                    {
+                        MatchResult precedingFrameResult = betweenFrameResult.Matches[SqlGrammar.FunctionCall.Window.Framing.BetweenFrame.PrecedingFrame];
+                        IPrecedingFrame precedingFrame = buildPrecedingFrame(precedingFrameResult);
+                        MatchResult followingFrameResult = betweenFrameResult.Matches[SqlGrammar.FunctionCall.Window.Framing.BetweenFrame.FollowingFrame];
+                        IFollowingFrame followingFrame = buildFollowingFrame(followingFrameResult);
+                        window.Frame = new BetweenWindowFrame(precedingFrame, followingFrame);
+                    }
+                    MatchResult frameTypeResult = framing.Matches[SqlGrammar.FunctionCall.Window.Framing.FrameType];
+                    window.Frame.FrameType = buildFrameType(frameTypeResult);
+                }
+                function.FunctionWindow = window;
+            }
             return function;
+        }
+
+        private FrameType buildFrameType(MatchResult result)
+        {
+            MatchResult rows = result.Matches[SqlGrammar.FrameType.Rows];
+            if (rows.IsMatch)
+            {
+                return FrameType.Row;
+            }
+            MatchResult range = result.Matches[SqlGrammar.FrameType.Range];
+            if (range.IsMatch)
+            {
+                return FrameType.Range;
+            }
+            throw new InvalidOperationException();
+        }
+
+        private IPrecedingFrame buildPrecedingFrame(MatchResult result)
+        {
+            MatchResult unbound = result.Matches[SqlGrammar.PrecedingFrame.UnboundedPreceding.Name];
+            if (unbound.IsMatch)
+            {
+                return new UnboundFrame();
+            }
+            MatchResult bound = result.Matches[SqlGrammar.PrecedingFrame.BoundedPreceding.Name];
+            if (bound.IsMatch)
+            {
+                MatchResult rowCountResult = bound.Matches[SqlGrammar.PrecedingFrame.BoundedPreceding.Number];
+                NumericLiteral rowCount = buildNumericLiteral(rowCountResult);
+                return new BoundFrame((int)rowCount.Value);
+            }
+            MatchResult currentRow = result.Matches[SqlGrammar.PrecedingFrame.CurrentRow];
+            if (currentRow.IsMatch)
+            {
+                return new CurrentRowFrame();
+            }
+            throw new InvalidOperationException();
+        }
+
+        private IFollowingFrame buildFollowingFrame(MatchResult result)
+        {
+            MatchResult unbound = result.Matches[SqlGrammar.FollowingFrame.UnboundedFollowing.Name];
+            if (unbound.IsMatch)
+            {
+                return new UnboundFrame();
+            }
+            MatchResult bound = result.Matches[SqlGrammar.FollowingFrame.BoundedFollowing.Name];
+            if (bound.IsMatch)
+            {
+                MatchResult rowCountResult = bound.Matches[SqlGrammar.FollowingFrame.BoundedFollowing.Number];
+                NumericLiteral rowCount = buildNumericLiteral(rowCountResult);
+                return new BoundFrame((int)rowCount.Value);
+            }
+            MatchResult currentRow = result.Matches[SqlGrammar.FollowingFrame.CurrentRow];
+            if (currentRow.IsMatch)
+            {
+                return new CurrentRowFrame();
+            }
+            throw new InvalidOperationException();
         }
 
         private void buildValueList(MatchResult result, ValueList values)

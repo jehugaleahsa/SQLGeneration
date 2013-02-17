@@ -57,7 +57,7 @@ namespace SQLGeneration.Builders
             TokenStream stream = new TokenStream();
             if (Qualifier != null)
             {
-                stream.AddRange(Qualifier.GetNamespaceTokens());
+                stream.AddRange(Qualifier.GetNamespaceTokens(options));
                 stream.Add(".");
             }
             stream.Add(Name);

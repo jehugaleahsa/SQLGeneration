@@ -35,6 +35,9 @@ namespace SQLGeneration.Parsing
             defineFromList();
             defineJoinItem();
             defineFunctionCall();
+            defineFrameType();
+            definePrecedingFrame();
+            defineFollowingFrame();
             defineJoin();
             defineJoinPrime();
             defineFilteredJoinType();
@@ -1173,6 +1176,126 @@ namespace SQLGeneration.Parsing
             /// Gets the identifier for the right parenthesis.
             /// </summary>
             public const string RightParenthesis = "right_parenthesis";
+
+            /// <summary>
+            /// Describes the structure of an analytical function window specification.
+            /// </summary>
+            public static class Window
+            {
+                /// <summary>
+                /// Gets the identifier indicating that function has windowing applied to it.
+                /// </summary>
+                public const string Name = "Window";
+
+                /// <summary>
+                /// Gets the identifier for the OVER keyword.
+                /// </summary>
+                public const string Over = "over";
+
+                /// <summary>
+                /// Gets the identifier for the left parenthesis surrounding the window specification.
+                /// </summary>
+                public const string LeftParenthesis = "left_parenthesis";
+
+                /// <summary>
+                /// Describes the structure of a partitioned window.
+                /// </summary>
+                public static class Partitioning
+                {
+                    /// <summary>
+                    /// Gets the identifier indicating that the window is partitioned.
+                    /// </summary>
+                    public const string Name = "Partitioning";
+
+                    /// <summary>
+                    /// Gets the identifier for the PARTITION BY keyword.
+                    /// </summary>
+                    public const string PartitionBy = "partition_by";
+
+                    /// <summary>
+                    /// Gets the identifier for the value list.
+                    /// </summary>
+                    public const string ValueList = "value_list";
+                }
+
+                /// <summary>
+                /// Describes the structure of an ordered window.
+                /// </summary>
+                public static class Ordering
+                {
+                    /// <summary>
+                    /// Gets the identifier indicating that the window is ordered.
+                    /// </summary>
+                    public const string Name = "Ordering";
+
+                    /// <summary>
+                    /// Gets the identifier for the ORDER BY keyword.
+                    /// </summary>
+                    public const string OrderByKeyword = "order_by";
+
+                    /// <summary>
+                    /// Gets the identifier for the ORDER BY list.
+                    /// </summary>
+                    public const string OrderByList = "order_by_list";
+                }
+
+                /// <summary>
+                /// Describes the structure of a window that frames its partitions.
+                /// </summary>
+                public static class Framing
+                {
+                    /// <summary>
+                    /// Gets the identifier indicating that the window uses framed.
+                    /// </summary>
+                    public const string Name = "Framing";
+
+                    /// <summary>
+                    /// Gets the identifier for the frame type.
+                    /// </summary>
+                    public const string FrameType = "frame_type";
+
+                    /// <summary>
+                    /// Gets the identifier indicating that the frame is determined by preceding items only.
+                    /// </summary>
+                    public const string PrecedingFrame = "preceding_frame";
+
+                    /// <summary>
+                    /// Describes the structure of a window frame that exists within a range of rows.
+                    /// </summary>
+                    public static class BetweenFrame
+                    {
+                        /// <summary>
+                        /// Gets the identifier indicating that the frame exists within a range of rows.
+                        /// </summary>
+                        public const string Name = "BetweenFrame";
+
+                        /// <summary>
+                        /// The identifier for the BETWEEN keyword.
+                        /// </summary>
+                        public const string BetweenKeyword = "between";
+
+                        /// <summary>
+                        /// Gets the identifier for the preceding frame.
+                        /// </summary>
+                        public const string PrecedingFrame = "preceding_frame";
+
+                        /// <summary>
+                        /// Gets the identifier for the AND keyword.
+                        /// </summary>
+                        public const string AndKeyword = "and";
+
+                        /// <summary>
+                        /// Gets the keyword for the following frame."
+                        /// </summary>
+                        public const string FollowingFrame = "following_frame";
+                    }
+                }
+
+                /// <summary>
+                /// Gets the identifier for the right parenthesis surrounding the window specification.
+                /// </summary>
+                public const string RightParenthesis = "right_parenthesis";
+            }
         }
 
         private void defineFunctionCall()
@@ -1181,7 +1304,211 @@ namespace SQLGeneration.Parsing
                 .Add(FunctionCall.FunctionName, true, Expression(MultipartIdentifier.Name))
                 .Add(FunctionCall.LeftParethesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                 .Add(FunctionCall.Arguments, false, Expression(ValueList.Name))
-                .Add(FunctionCall.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis));
+                .Add(FunctionCall.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))
+                .Add(FunctionCall.Window.Name, false, Define()
+                    .Add(FunctionCall.Window.Over, true, Token(SqlTokenRegistry.Over))
+                    .Add(FunctionCall.Window.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
+                    .Add(FunctionCall.Window.Partitioning.Name, false, Define()
+                        .Add(FunctionCall.Window.Partitioning.PartitionBy, true, Token(SqlTokenRegistry.PartitionBy))
+                        .Add(FunctionCall.Window.Partitioning.ValueList, true, Expression(ValueList.Name)))
+                    .Add(FunctionCall.Window.Ordering.Name, false, Define()
+                        .Add(FunctionCall.Window.Ordering.OrderByKeyword, true, Token(SqlTokenRegistry.OrderBy))
+                        .Add(FunctionCall.Window.Ordering.OrderByList, true, Expression(OrderByList.Name)))
+                    .Add(FunctionCall.Window.Framing.Name, false, Define()
+                        .Add(FunctionCall.Window.Framing.FrameType, true, Expression(FrameType.Name))
+                        .Add(true, Options()
+                            .Add(FunctionCall.Window.Framing.PrecedingFrame, Expression(PrecedingFrame.Name))
+                            .Add(FunctionCall.Window.Framing.BetweenFrame.Name, Define()
+                                .Add(FunctionCall.Window.Framing.BetweenFrame.BetweenKeyword, true, Token(SqlTokenRegistry.Between))
+                                .Add(FunctionCall.Window.Framing.BetweenFrame.PrecedingFrame, true, Expression(PrecedingFrame.Name))
+                                .Add(FunctionCall.Window.Framing.BetweenFrame.AndKeyword, true, Token(SqlTokenRegistry.And))
+                                .Add(FunctionCall.Window.Framing.BetweenFrame.FollowingFrame, true, Expression(FollowingFrame.Name)))))
+                    .Add(FunctionCall.Window.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)));
+        }
+
+        #endregion
+
+        #region FrameType
+
+        /// <summary>
+        /// Describes the options for a frame type.
+        /// </summary>
+        public static class FrameType
+        {
+            /// <summary>
+            /// Gets the identifier for the frame type.
+            /// </summary>
+            public const string Name = "FrameType";
+
+            /// <summary>
+            /// Gets the identifier for the ROWS keyword.
+            /// </summary>
+            public const string Rows = "rows";
+
+            /// <summary>
+            /// Gets the identifier for the RANGE keyword.
+            /// </summary>
+            public const string Range = "range";
+        }
+
+        private void defineFrameType()
+        {
+            Define(FrameType.Name)
+                .Add(true, Options()
+                    .Add(FrameType.Rows, Token(SqlTokenRegistry.Rows))
+                    .Add(FrameType.Range, Token(SqlTokenRegistry.Range)));
+        }
+
+        #endregion
+
+        #region PrecedingFrame
+
+        /// <summary>
+        /// Describes the structure of a preceding frame in a windowed function.
+        /// </summary>
+        public static class PrecedingFrame
+        {
+            /// <summary>
+            /// Gets the identifier indicating there's a preceding frame.
+            /// </summary>
+            public const string Name = "PrecedingFrame";
+
+            /// <summary>
+            /// Describes the structure of a preceding window without a bound.
+            /// </summary>
+            public static class UnboundedPreceding
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the preceding window is unbounded.
+                /// </summary>
+                public const string Name = "UnboundedPreceding";
+
+                /// <summary>
+                /// Gets the identifier for the UNBOUNDED keyword.
+                /// </summary>
+                public const string UnboundedKeyword = "unbounded";
+
+                /// <summary>
+                /// Gets the identifier for the PRECEDING keyword.
+                /// </summary>
+                public const string PrecedingKeyword = "preceding";
+            }
+
+            /// <summary>
+            /// Describes the structure of a preceding window with a bound.
+            /// </summary>
+            public static class BoundedPreceding
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the preceding window is bounded.
+                /// </summary>
+                public const string Name = "BoundedPreceding";
+
+                /// <summary>
+                /// Gets the identifier for the number of items in the preceding window.
+                /// </summary>
+                public const string Number = "number";
+
+                /// <summary>
+                /// Gets the identifier for the PRECEDING keyword.
+                /// </summary>
+                public const string PrecedingKeyword = "preceding";
+            }
+
+            /// <summary>
+            /// Gets the identifier indicating that the windowed function should apply to a range
+            /// starting with the current row.
+            /// </summary>
+            public const string CurrentRow = "current_row";
+        }
+
+        private void definePrecedingFrame()
+        {
+            Define(PrecedingFrame.Name)
+                .Add(true, Options()
+                    .Add(PrecedingFrame.UnboundedPreceding.Name, Define()
+                        .Add(PrecedingFrame.UnboundedPreceding.UnboundedKeyword, true, Token(SqlTokenRegistry.Unbounded))
+                        .Add(PrecedingFrame.UnboundedPreceding.PrecedingKeyword, true, Token(SqlTokenRegistry.Preceding)))
+                    .Add(PrecedingFrame.BoundedPreceding.Name, Define()
+                        .Add(PrecedingFrame.BoundedPreceding.Number, true, Token(SqlTokenRegistry.Number))
+                        .Add(PrecedingFrame.BoundedPreceding.PrecedingKeyword, true, Token(SqlTokenRegistry.Preceding)))
+                    .Add(PrecedingFrame.CurrentRow, Token(SqlTokenRegistry.CurrentRow)));
+        }
+
+        #endregion
+
+        #region FollowingFrame
+
+        /// <summary>
+        /// Describes the structure of a following frame in a windowed function.
+        /// </summary>
+        public static class FollowingFrame
+        {
+            /// <summary>
+            /// Gets the identifier indicating there's a following frame.
+            /// </summary>
+            public const string Name = "FollowingFrame";
+
+            /// <summary>
+            /// Describes the structure of a following window without a bound.
+            /// </summary>
+            public static class UnboundedFollowing
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the following window is unbounded.
+                /// </summary>
+                public const string Name = "UnboundedFollowing";
+
+                /// <summary>
+                /// Gets the identifier for the UNBOUNDED keyword.
+                /// </summary>
+                public const string UnboundedKeyword = "unbounded";
+
+                /// <summary>
+                /// Gets the identifier for the FOLLOWING keyword.
+                /// </summary>
+                public const string FollowingKeyword = "following";
+            }
+
+            /// <summary>
+            /// Describes the structure of a following window with a bound.
+            /// </summary>
+            public static class BoundedFollowing
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the following window is bounded.
+                /// </summary>
+                public const string Name = "BoundedFollowing";
+
+                /// <summary>
+                /// Gets the identifier for the number of items in the following window.
+                /// </summary>
+                public const string Number = "number";
+
+                /// <summary>
+                /// Gets the identifier for the FOLLOWING keyword.
+                /// </summary>
+                public const string FollowingKeyword = "following";
+            }
+
+            /// <summary>
+            /// Gets the identifier indicating that the windowed function should apply to a range
+            /// stoping with the current row.
+            /// </summary>
+            public const string CurrentRow = "current_row";
+        }
+
+        private void defineFollowingFrame()
+        {
+            Define(FollowingFrame.Name)
+                .Add(true, Options()
+                    .Add(FollowingFrame.UnboundedFollowing.Name, Define()
+                        .Add(FollowingFrame.UnboundedFollowing.UnboundedKeyword, true, Token(SqlTokenRegistry.Unbounded))
+                        .Add(FollowingFrame.UnboundedFollowing.FollowingKeyword, true, Token(SqlTokenRegistry.Following)))
+                    .Add(FollowingFrame.BoundedFollowing.Name, Define()
+                        .Add(FollowingFrame.BoundedFollowing.Number, true, Token(SqlTokenRegistry.Number))
+                        .Add(FollowingFrame.BoundedFollowing.FollowingKeyword, true, Token(SqlTokenRegistry.Following)))
+                    .Add(FollowingFrame.CurrentRow, Token(SqlTokenRegistry.CurrentRow)));
         }
 
         #endregion

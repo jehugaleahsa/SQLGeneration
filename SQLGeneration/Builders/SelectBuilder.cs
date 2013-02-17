@@ -221,6 +221,11 @@ namespace SQLGeneration.Builders
             get { return _orderBy; }
         }
 
+        List<OrderBy> ISelectBuilder.OrderByList
+        {
+            get { return _orderBy; }
+        }
+
         /// <summary>
         /// Adds a sort criteria to the query.
         /// </summary>

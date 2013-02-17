@@ -1215,6 +1215,150 @@ namespace SQLGeneration.Generators
             buildValueList(arguments, writer);
             MatchResult rightParenthesis = result.Matches[SqlGrammar.FunctionCall.RightParenthesis];
             writeToken(rightParenthesis, writer);
+            MatchResult window = result.Matches[SqlGrammar.FunctionCall.Window.Name];
+            if (window.IsMatch)
+            {
+                writer.Write(' ');
+                MatchResult over = window.Matches[SqlGrammar.FunctionCall.Window.Over];
+                writeToken(over, writer);
+                writer.Write(' ');
+                MatchResult windowLeftParenthesis = window.Matches[SqlGrammar.FunctionCall.Window.LeftParenthesis];
+                writeToken(windowLeftParenthesis, writer);
+                bool needsSpace = false;
+                MatchResult partitioning = window.Matches[SqlGrammar.FunctionCall.Window.Partitioning.Name];
+                if (partitioning.IsMatch)
+                {
+                    needsSpace = true;
+                    MatchResult partitionBy = partitioning.Matches[SqlGrammar.FunctionCall.Window.Partitioning.PartitionBy];
+                    writeToken(partitionBy, writer);
+                    writer.Write(' ');
+                    MatchResult valueList = partitioning.Matches[SqlGrammar.FunctionCall.Window.Partitioning.ValueList];
+                    buildValueList(valueList, writer);
+                }
+                MatchResult ordering = window.Matches[SqlGrammar.FunctionCall.Window.Ordering.Name];
+                if (ordering.IsMatch)
+                {
+                    if (needsSpace)
+                    {
+                        writer.Write(' ');
+                    }
+                    needsSpace = true;
+                    MatchResult orderBy = ordering.Matches[SqlGrammar.FunctionCall.Window.Ordering.OrderByKeyword];
+                    writeToken(orderBy, writer);
+                    writer.Write(' ');
+                    MatchResult orderByList = ordering.Matches[SqlGrammar.FunctionCall.Window.Ordering.OrderByList];
+                    buildOrderByList(orderByList, writer);
+                }
+                MatchResult framing = window.Matches[SqlGrammar.FunctionCall.Window.Framing.Name];
+                if (framing.IsMatch)
+                {
+                    if (needsSpace)
+                    {
+                        writer.Write(' ');
+                    }
+                    MatchResult frameType = framing.Matches[SqlGrammar.FunctionCall.Window.Framing.FrameType];
+                    buildFrameType(frameType, writer);
+                    writer.Write(' ');
+                    MatchResult start = framing.Matches[SqlGrammar.FunctionCall.Window.Framing.PrecedingFrame];
+                    if (start.IsMatch)
+                    {
+                        buildPrecedingFrame(start, writer);
+                    }
+                    MatchResult between = framing.Matches[SqlGrammar.FunctionCall.Window.Framing.BetweenFrame.Name];
+                    if (between.IsMatch)
+                    {
+                        MatchResult betweenKeyword = between.Matches[SqlGrammar.FunctionCall.Window.Framing.BetweenFrame.BetweenKeyword];
+                        writeToken(betweenKeyword, writer);
+                        writer.Write(' ');
+                        MatchResult precedingFrame = between.Matches[SqlGrammar.FunctionCall.Window.Framing.BetweenFrame.PrecedingFrame];
+                        buildPrecedingFrame(precedingFrame, writer);
+                        writer.Write(' ');
+                        MatchResult andKeyword = between.Matches[SqlGrammar.FunctionCall.Window.Framing.BetweenFrame.AndKeyword];
+                        writeToken(andKeyword, writer);
+                        writer.Write(' ');
+                        MatchResult followingFrame = between.Matches[SqlGrammar.FunctionCall.Window.Framing.BetweenFrame.FollowingFrame];
+                        buildFollowingFrame(followingFrame, writer);
+                    }
+                }
+                MatchResult windowRightParenthesis = window.Matches[SqlGrammar.FunctionCall.Window.RightParenthesis];
+                writeToken(windowRightParenthesis, writer);
+            }
+        }
+
+        private void buildFrameType(MatchResult result, TextWriter writer)
+        {
+            MatchResult rows = result.Matches[SqlGrammar.FrameType.Rows];
+            if (rows.IsMatch)
+            {
+                writeToken(rows, writer);
+                return;
+            }
+            MatchResult range = result.Matches[SqlGrammar.FrameType.Range];
+            if (range.IsMatch)
+            {
+                writeToken(range, writer);
+                return;
+            }
+        }
+
+        private void buildPrecedingFrame(MatchResult result, TextWriter writer)
+        {
+            MatchResult unbounded = result.Matches[SqlGrammar.PrecedingFrame.UnboundedPreceding.Name];
+            if (unbounded.IsMatch)
+            {
+                MatchResult unboundedKeyword = unbounded.Matches[SqlGrammar.PrecedingFrame.UnboundedPreceding.UnboundedKeyword];
+                writeToken(unboundedKeyword, writer);
+                writer.Write(' ');
+                MatchResult precedingKeyword = unbounded.Matches[SqlGrammar.PrecedingFrame.UnboundedPreceding.PrecedingKeyword];
+                writeToken(precedingKeyword, writer);
+                return;
+            }
+            MatchResult bounded = result.Matches[SqlGrammar.PrecedingFrame.BoundedPreceding.Name];
+            if (bounded.IsMatch)
+            {
+                MatchResult number = bounded.Matches[SqlGrammar.PrecedingFrame.BoundedPreceding.Number];
+                writeToken(number, writer);
+                writer.Write(' ');
+                MatchResult precedingKeyword = bounded.Matches[SqlGrammar.PrecedingFrame.BoundedPreceding.PrecedingKeyword];
+                writeToken(precedingKeyword, writer);
+                return;
+            }
+            MatchResult currentRow = result.Matches[SqlGrammar.PrecedingFrame.CurrentRow];
+            if (currentRow.IsMatch)
+            {
+                writeToken(currentRow, writer);
+                return;
+            }
+        }
+
+        private void buildFollowingFrame(MatchResult result, TextWriter writer)
+        {
+            MatchResult unbounded = result.Matches[SqlGrammar.FollowingFrame.UnboundedFollowing.Name];
+            if (unbounded.IsMatch)
+            {
+                MatchResult unboundedKeyword = unbounded.Matches[SqlGrammar.FollowingFrame.UnboundedFollowing.UnboundedKeyword];
+                writeToken(unboundedKeyword, writer);
+                writer.Write(' ');
+                MatchResult followingKeyword = unbounded.Matches[SqlGrammar.FollowingFrame.UnboundedFollowing.FollowingKeyword];
+                writeToken(followingKeyword, writer);
+                return;
+            }
+            MatchResult bounded = result.Matches[SqlGrammar.FollowingFrame.BoundedFollowing.Name];
+            if (bounded.IsMatch)
+            {
+                MatchResult number = bounded.Matches[SqlGrammar.FollowingFrame.BoundedFollowing.Number];
+                writeToken(number, writer);
+                writer.Write(' ');
+                MatchResult followingKeyword = bounded.Matches[SqlGrammar.FollowingFrame.BoundedFollowing.FollowingKeyword];
+                writeToken(followingKeyword, writer);
+                return;
+            }
+            MatchResult currentRow = result.Matches[SqlGrammar.FollowingFrame.CurrentRow];
+            if (currentRow.IsMatch)
+            {
+                writeToken(currentRow, writer);
+                return;
+            }
         }
 
         private void buildValueList(MatchResult result, TextWriter writer)

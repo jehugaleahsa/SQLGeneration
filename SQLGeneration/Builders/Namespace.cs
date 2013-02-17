@@ -53,8 +53,9 @@ namespace SQLGeneration.Builders
         /// <summary>
         /// Gets the tokens making up the namespace.
         /// </summary>
+        /// <param name="options">The configuration settings to use when generating tokens.</param>
         /// <returns>The tokens making up the namespace.</returns>
-        internal IEnumerable<string> GetNamespaceTokens()
+        internal IEnumerable<string> GetNamespaceTokens(CommandOptions options)
         {
             using (IEnumerator<string> enumerator = qualifiers.GetEnumerator())
             {
