@@ -1000,6 +1000,20 @@ namespace SQLGeneration.Tests
         }
 
         /// <summary>
+        /// This sees whether we can select 1 % 1.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Modulus()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            builder.AddProjection(new Modulus(new NumericLiteral(1), new NumericLiteral(1)));
+            Formatter formatter = new Formatter();
+            string commandText = formatter.GetCommandText(builder);
+            string expected = "SELECT (1 % 1)";
+            Assert.AreEqual(expected, commandText, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
         /// We should be able to build a function that applies ROW_NUMBER to each row to
         /// return a window.
         /// </summary>

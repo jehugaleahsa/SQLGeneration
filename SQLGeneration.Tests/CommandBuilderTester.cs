@@ -704,6 +704,16 @@ namespace SQLGeneration.Tests
         }
 
         /// <summary>
+        /// This sees whether we can reproduce a select that performs modulus: 1 % 1.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Modulus()
+        {
+            string commandText = "SELECT (1 % 1)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
         /// This sees whether we can reproduce a select that has multiple expressions.
         /// </summary>
         [TestMethod]

@@ -827,6 +827,11 @@ namespace SQLGeneration.Parsing
             /// Gets the identifier indicating that the operation is division.
             /// </summary>
             public const string Divide = "divide";
+
+            /// <summary>
+            /// Gets the identfier indicating that the operation is modulus.
+            /// </summary>
+            public const string Modulus = "modulus";
         }
 
         private void defineMultiplicitiveOperator()
@@ -834,7 +839,8 @@ namespace SQLGeneration.Parsing
             Define(MultiplicitiveOperator.Name)
                 .Add(true, Options()
                     .Add(MultiplicitiveOperator.Multiply, Token(SqlTokenRegistry.MultiplicationOperator))
-                    .Add(MultiplicitiveOperator.Divide, Token(SqlTokenRegistry.DivisionOperator)));
+                    .Add(MultiplicitiveOperator.Divide, Token(SqlTokenRegistry.DivisionOperator))
+                    .Add(MultiplicitiveOperator.Modulus, Token(SqlTokenRegistry.ModulusOperator)));
         }
 
         #endregion

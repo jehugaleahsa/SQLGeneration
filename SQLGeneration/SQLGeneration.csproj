@@ -43,6 +43,7 @@
     <Compile Include="Builders\BetweenFilter.cs" />
     <Compile Include="Builders\BetweenWindowFrame.cs" />
     <Compile Include="Builders\Column.cs" />
+    <Compile Include="Builders\Modulus.cs" />
     <Compile Include="Builders\CurrentRowFrame.cs" />
     <Compile Include="Builders\FrameTypeConverter.cs" />
     <Compile Include="Builders\FunctionWindow.cs" />

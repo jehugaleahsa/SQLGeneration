@@ -1046,6 +1046,13 @@ namespace SQLGeneration.Generators
                 division.WrapInParentheses = wrap;
                 return division;
             }
+            MatchResult modulo = result.Matches[SqlGrammar.MultiplicitiveOperator.Modulus];
+            if (modulo.IsMatch)
+            {
+                Modulus modulus = new Modulus(leftHand, rightHand);
+                modulus.WrapInParentheses = wrap;
+                return modulus;
+            }
             throw new InvalidOperationException();
         }
 

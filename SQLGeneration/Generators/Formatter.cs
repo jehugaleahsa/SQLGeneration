@@ -1127,6 +1127,12 @@ namespace SQLGeneration.Generators
                 writeToken(division, writer);
                 return;
             }
+            MatchResult modulus = result.Matches[SqlGrammar.MultiplicitiveOperator.Modulus];
+            if (modulus.IsMatch)
+            {
+                writeToken(modulus, writer);
+                return;
+            }
         }
 
         private void buildWrappedItem(MatchResult result, TextWriter writer)

@@ -33,6 +33,11 @@ namespace SQLGeneration.Parsing
         public const string DivisionOperator = "DivideOperator";
 
         /// <summary>
+        /// Gets teh identifier for the modulus operator.
+        /// </summary>
+        public const string ModulusOperator = "ModulusOperator";
+
+        /// <summary>
         /// Gets the identifier for the BETWEEN keyword.
         /// </summary>
         public const string Between = "Between";
@@ -275,22 +280,22 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Gets the identifier for the equality operator.
         /// </summary>
-        public const string EqualTo = "equal_to";
+        public const string EqualTo = "EqualTo";
 
         /// <summary>
         /// Gets the identifier for the inequality operator.
         /// </summary>
-        public const string NotEqualTo = "not_equal_to";
+        public const string NotEqualTo = "NotEqualTo";
 
         /// <summary>
         /// Gets the identifier for the less than or equal to operator.
         /// </summary>
-        public const string LessThanEqualTo = "less_than_equal_to";
+        public const string LessThanEqualTo = "LessThanEqualTo";
 
         /// <summary>
         /// Gets the identifier for the greater than or equal to operator.
         /// </summary>
-        public const string GreaterThanEqualTo = "greater_than_equal_to";
+        public const string GreaterThanEqualTo = "GreaterThanEqualTo";
 
         /// <summary>
         /// Gets the identifier for the less than operator.
@@ -305,47 +310,47 @@ namespace SQLGeneration.Parsing
         /// <summary>
         /// Gets the identifier for the EXISTS keyword.
         /// </summary>
-        public const string Exists = "exists";
+        public const string Exists = "Exists";
 
         /// <summary>
         /// Gets the identifier for the OVER keyword.
         /// </summary>
-        public const string Over = "over";
+        public const string Over = "Over";
 
         /// <summary>
         /// Gets the identifier for the PARTITION BY keyword.
         /// </summary>
-        public const string PartitionBy = "partition_by";
+        public const string PartitionBy = "PartitionBy";
 
         /// <summary>
         /// Gets the identifier for the ROWS keyword.
         /// </summary>
-        public const string Rows = "rows";
+        public const string Rows = "Rows";
 
         /// <summary>
         /// Gets the identifier for the RANGE keyword.
         /// </summary>
-        public const string Range = "range";
+        public const string Range = "Range";
 
         /// <summary>
         /// Gets the identifier for the UNBOUNDED keyword.
         /// </summary>
-        public const string Unbounded = "unbounded";
+        public const string Unbounded = "Unbounded";
 
         /// <summary>
         /// Gets the identifier for the PRECEECING keyword.
         /// </summary>
-        public const string Preceding = "preceding";
+        public const string Preceding = "Preceding";
 
         /// <summary>
         /// Gets the identifier for the FOLLOWING keyword.
         /// </summary>
-        public const string Following = "following";
+        public const string Following = "Following";
 
         /// <summary>
         /// Gets the identifier for the CURRENT ROW keyword.
         /// </summary>
-        public const string CurrentRow = "current_row";
+        public const string CurrentRow = "CurrentRow";
 
         /// <summary>
         /// Initializes a new instance of a SqlTokenizer.
@@ -410,6 +415,7 @@ namespace SQLGeneration.Parsing
             Define(MinusOperator, @"-");
             Define(MultiplicationOperator, @"\*");
             Define(DivisionOperator, @"/");
+            Define(ModulusOperator, @"%");
             Define(Comma, @",");
             Define(EqualTo, @"=");
             Define(NotEqualTo, @"<>");
