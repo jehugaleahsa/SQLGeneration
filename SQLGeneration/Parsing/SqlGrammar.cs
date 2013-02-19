@@ -51,6 +51,10 @@ namespace SQLGeneration.Parsing
             defineArithmeticItem();
             defineWrappedItem();
             defineItem();
+            defineCase();
+            defineMatchList();
+            defineMatchListPrime();
+            defineMatch();
             defineInsertStatement();
             defineColumnList();
             defineUpdateStatement();
@@ -2724,6 +2728,11 @@ namespace SQLGeneration.Parsing
             /// Gets the identifier indicating that the item is a null.
             /// </summary>
             public const string Null = "null";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a case statement.
+            /// </summary>
+            public const string Case = "case";
         }
 
         private void defineItem()
@@ -2738,7 +2747,203 @@ namespace SQLGeneration.Parsing
                     .Add(Item.Select.Name, Define()
                         .Add(Item.Select.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(Item.Select.SelectStatement, true, Expression(SelectStatement.Name))
-                        .Add(Item.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis))));
+                        .Add(Item.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
+                    .Add(Item.Case, Expression(Case.Name)));
+        }
+
+        #endregion
+
+        #region Case
+
+        /// <summary>
+        /// Describes the structure of a CASE expression.
+        /// </summary>
+        public static class Case
+        {
+            /// <summary>
+            /// Gets the identifier indicating that an item is a case statement.
+            /// </summary>
+            public const string Name = "Case";
+
+            /// <summary>
+            /// Gets the identifier for the CASE keyword.
+            /// </summary>
+            public const string CaseKeyword = "case";
+
+            /// <summary>
+            /// Gets the identifier for the expression to match against the options.
+            /// </summary>
+            public const string Expression = "expression";
+
+            /// <summary>
+            /// Gets the identifier for the list of possible matches.
+            /// </summary>
+            public const string MatchList = "match_list";
+
+            /// <summary>
+            /// Gets the identifier for the END keyword.
+            /// </summary>
+            public const string EndKeyword = "end";
+        }
+
+        private void defineCase()
+        {
+            Define(Case.Name)
+                .Add(Case.CaseKeyword, true, Token(SqlTokenRegistry.Case))
+                .Add(Case.Expression, true, Expression(ArithmeticItem.Name))
+                .Add(Case.MatchList, true, Expression(MatchList.Name))
+                .Add(Case.EndKeyword, true, Token(SqlTokenRegistry.End));
+        }
+
+        #endregion
+
+        #region MatchList
+
+        /// <summary>
+        /// Describes the structure of a case's match list.
+        /// </summary>
+        public static class MatchList
+        {
+            /// <summary>
+            /// Gets the identifier indicating that there's a case's match list.
+            /// </summary>
+            public const string Name = "MatchList";
+
+            /// <summary>
+            /// Gets the identifier for the first match.
+            /// </summary>
+            public const string Match = "match";
+
+            /// <summary>
+            /// Gets the identifier for the rest of the matches.
+            /// </summary>
+            public const string MatchListPrime = "match_list_prime";
+        }
+
+        private void defineMatchList()
+        {
+            Define(MatchList.Name)
+                .Add(MatchList.Match, true, Expression(Match.Name))
+                .Add(MatchList.MatchListPrime, true, Expression(MatchListPrime.Name));
+        }
+
+        #endregion
+
+        #region MatchListPrime
+
+        /// <summary>
+        /// Desribes the structure of the remaining matches in a CASE statement.
+        /// </summary>
+        public static class MatchListPrime
+        {
+            /// <summary>
+            /// Gets the identifier indicating that there are potentially more tests.
+            /// </summary>
+            public const string Name = "MatchListPrime";
+
+            /// <summary>
+            /// Describes the structure if there are more matches.
+            /// </summary>
+            public static class Match
+            {
+                /// <summary>
+                /// Gets the identifier indicating that there is a match.
+                /// </summary>
+                public const string Name = "Match";
+
+                /// <summary>
+                /// Gets the identifier for the next match.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the remaining matches.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Describes the structure of the default case.
+            /// </summary>
+            public static class Else
+            {
+                /// <summary>
+                /// Gets the identifier indicating a default case.
+                /// </summary>
+                public const string Name = "Else";
+
+                /// <summary>
+                /// Gets the identifier for the ELSE keyword.
+                /// </summary>
+                public const string ElseKeyword = "else";
+
+                /// <summary>
+                /// Gets the identifier for the default value.
+                /// </summary>
+                public const string Value = "value";
+            }
+
+            /// <summary>
+            /// Gets the identifier indicating that there are no more matches.
+            /// </summary>
+            public const string Empty = "empty";
+        }
+
+        #endregion
+
+        private void defineMatchListPrime()
+        {
+            Define(MatchListPrime.Name)
+                .Add(true, Options()
+                    .Add(MatchListPrime.Match.Name, Define()
+                        .Add(MatchListPrime.Match.First, true, Expression(Match.Name))
+                        .Add(MatchListPrime.Match.Remaining, true, Expression(MatchListPrime.Name)))
+                    .Add(MatchListPrime.Else.Name, Define()
+                        .Add(MatchListPrime.Else.ElseKeyword, true, Token(SqlTokenRegistry.Else))
+                        .Add(MatchListPrime.Else.Value, true, Expression(ArithmeticItem.Name)))
+                    .Add(MatchListPrime.Empty, Define()));
+        }
+
+        #region Match
+
+        /// <summary>
+        /// Describes the structure of a match in a CASE statement.
+        /// </summary>
+        public static class Match
+        {
+            /// <summary>
+            /// Gets the identifier indicating that there is a CASE test.
+            /// </summary>
+            public const string Name = "Match";
+
+            /// <summary>
+            /// Gets the identifier for the WHEN keyword.
+            /// </summary>
+            public const string WhenKeyword = "when";
+
+            /// <summary>
+            /// Gets the identifier for the value being matched against.
+            /// </summary>
+            public const string Expression = "expression";
+
+            /// <summary>
+            /// Gets the identifier for the THEN keyword.
+            /// </summary>
+            public const string ThenKeyword = "then";
+
+            /// <summary>
+            /// Gets the identifier for the value to return if there's a match.
+            /// </summary>
+            public const string Value = "value";
+        }
+
+        private void defineMatch()
+        {
+            Define(Match.Name)
+                .Add(Match.WhenKeyword, true, Token(SqlTokenRegistry.When))
+                .Add(Match.Expression, true, Expression(ArithmeticItem.Name))
+                .Add(Match.ThenKeyword, true, Token(SqlTokenRegistry.Then))
+                .Add(Match.Value, true, Expression(ArithmeticItem.Name));
         }
 
         #endregion

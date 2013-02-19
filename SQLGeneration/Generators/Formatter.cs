@@ -1196,6 +1196,12 @@ namespace SQLGeneration.Generators
                 buildMultipartIdentifier(column, writer);
                 return;
             }
+            MatchResult caseExpression = result.Matches[SqlGrammar.Item.Case];
+            if (caseExpression.IsMatch)
+            {
+                buildCase(caseExpression, writer);
+                return;
+            }
             MatchResult select = result.Matches[SqlGrammar.Item.Select.Name];
             if (select.IsMatch)
             {
@@ -1207,6 +1213,74 @@ namespace SQLGeneration.Generators
                 writeToken(rightParenthesis, writer);
                 return;
             }
+        }
+
+        private void buildCase(MatchResult result, TextWriter writer)
+        {
+            MatchResult caseResult = result.Matches[SqlGrammar.Case.CaseKeyword];
+            writeToken(caseResult, writer);
+            writer.Write(' ');
+            MatchResult expression = result.Matches[SqlGrammar.Case.Expression];
+            buildArithmeticItem(expression, writer);
+            writer.Write(' ');
+            MatchResult matchList = result.Matches[SqlGrammar.Case.MatchList];
+            buildMatchList(matchList, writer);
+            writer.Write(' ');
+            MatchResult end = result.Matches[SqlGrammar.Case.EndKeyword];
+            writeToken(end, writer);
+        }
+
+        private void buildMatchList(MatchResult result, TextWriter writer)
+        {
+            MatchResult match = result.Matches[SqlGrammar.MatchList.Match];
+            buildMatch(match, writer);
+            MatchResult matchListPrime = result.Matches[SqlGrammar.MatchList.MatchListPrime];
+            buildMatchListPrime(matchListPrime, writer);
+        }
+
+        private void buildMatchListPrime(MatchResult result, TextWriter writer)
+        {
+            MatchResult match = result.Matches[SqlGrammar.MatchListPrime.Match.Name];
+            if (match.IsMatch)
+            {
+                writer.Write(' ');
+                MatchResult first = match.Matches[SqlGrammar.MatchListPrime.Match.First];
+                buildMatch(first, writer);
+                MatchResult remaining = match.Matches[SqlGrammar.MatchListPrime.Match.Remaining];
+                buildMatchListPrime(remaining, writer);
+                return;
+            }
+            MatchResult elseResult = result.Matches[SqlGrammar.MatchListPrime.Else.Name];
+            if (elseResult.IsMatch)
+            {
+                writer.Write(' ');
+                MatchResult elseKeyword = elseResult.Matches[SqlGrammar.MatchListPrime.Else.ElseKeyword];
+                writeToken(elseKeyword, writer);
+                writer.Write(' ');
+                MatchResult value = elseResult.Matches[SqlGrammar.MatchListPrime.Else.Value];
+                buildArithmeticItem(value, writer);
+                return;
+            }
+            MatchResult empty = result.Matches[SqlGrammar.MatchListPrime.Empty];
+            if (empty.IsMatch)
+            {
+                return;
+            }
+        }
+
+        private void buildMatch(MatchResult result, TextWriter writer)
+        {
+            MatchResult when = result.Matches[SqlGrammar.Match.WhenKeyword];
+            writeToken(when, writer);
+            writer.Write(' ');
+            MatchResult expression = result.Matches[SqlGrammar.Match.Expression];
+            buildArithmeticItem(expression, writer);
+            writer.Write(' ');
+            MatchResult then = result.Matches[SqlGrammar.Match.ThenKeyword];
+            writeToken(then, writer);
+            writer.Write(' ');
+            MatchResult value = result.Matches[SqlGrammar.Match.Value];
+            buildArithmeticItem(value, writer);
         }
 
         private void buildFunctionCall(MatchResult result, TextWriter writer)

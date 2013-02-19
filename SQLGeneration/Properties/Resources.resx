@@ -153,6 +153,9 @@
   <data name="DuplicateTokenDefinition" xml:space="preserve">
     <value>An attempt was made to define two tokens with the same name: {0}.</value>
   </data>
+  <data name="EmptyCaseExpression" xml:space="preserve">
+    <value>An attempt was made to create a case expression without any cases.</value>
+  </data>
   <data name="EmptyFilterGroup" xml:space="preserve">
     <value>An attempt was made to build an empty filter clause.</value>
   </data>

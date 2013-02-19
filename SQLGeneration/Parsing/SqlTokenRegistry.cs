@@ -353,6 +353,31 @@ namespace SQLGeneration.Parsing
         public const string CurrentRow = "CurrentRow";
 
         /// <summary>
+        /// Gets the identifier for the CASE keyword.
+        /// </summary>
+        public const string Case = "Case";
+
+        /// <summary>
+        /// Gets the identifier for the WHEN keyword.
+        /// </summary>
+        public const string When = "When";
+
+        /// <summary>
+        /// Gets the identfier for the THEN keyword.
+        /// </summary>
+        public const string Then = "Then";
+
+        /// <summary>
+        /// Gets the identifier for the ELSE keyword.
+        /// </summary>
+        public const string Else = "Else";
+
+        /// <summary>
+        /// Gets the identifier for the END keyword.
+        /// </summary>
+        public const string End = "End";
+
+        /// <summary>
         /// Initializes a new instance of a SqlTokenizer.
         /// </summary>
         public SqlTokenRegistry()
@@ -408,6 +433,11 @@ namespace SQLGeneration.Parsing
             Define(Preceding, @"PRECEDING\b", true);
             Define(Following, @"FOLLOWING\b", true);
             Define(CurrentRow, @"CURRENT\s+ROW\b", true);
+            Define(Case, @"CASE\b", true);
+            Define(When, @"WHEN\b", true);
+            Define(Then, @"THEN\b", true);
+            Define(Else, @"ELSE\b", true);
+            Define(End, @"END\b", true);
 
             Define(Identifier, @"([\p{L}:?@#_][\p{L}\p{N}@#$_]*)|(""(\.|"""")+"")|(\[[^\]]+\])");
 

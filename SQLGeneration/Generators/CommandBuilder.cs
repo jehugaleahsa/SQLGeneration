@@ -1107,6 +1107,11 @@ namespace SQLGeneration.Generators
             {
                 return buildColumn(columnResult);
             }
+            MatchResult caseResult = result.Matches[SqlGrammar.Item.Case];
+            if (caseResult.IsMatch)
+            {
+                return buildCase(caseResult);
+            }
             MatchResult selectResult = result.Matches[SqlGrammar.Item.Select.Name];
             if (selectResult.IsMatch)
             {
@@ -1283,6 +1288,59 @@ namespace SQLGeneration.Generators
                 return new CurrentRowFrame();
             }
             throw new InvalidOperationException();
+        }
+
+        private Case buildCase(MatchResult result)
+        {
+            MatchResult expressionResult = result.Matches[SqlGrammar.Case.Expression];
+            IProjectionItem expression = (IProjectionItem)buildArithmeticItem(expressionResult);
+            Case options = new Case(expression);
+            MatchResult matchListResult = result.Matches[SqlGrammar.Case.MatchList];
+            buildMatchList(matchListResult, options);
+            return options;
+        }
+
+        private void buildMatchList(MatchResult result, Case options)
+        {
+            MatchResult match = result.Matches[SqlGrammar.MatchList.Match];
+            buildMatch(match, options);
+            MatchResult matchListPrime = result.Matches[SqlGrammar.MatchList.MatchListPrime];
+            buildMatchListPrime(matchListPrime, options);
+        }
+
+        private void buildMatchListPrime(MatchResult result, Case options)
+        {
+            MatchResult matchResult = result.Matches[SqlGrammar.MatchListPrime.Match.Name];
+            if (matchResult.IsMatch)
+            {
+                MatchResult firstResult = matchResult.Matches[SqlGrammar.MatchListPrime.Match.First];
+                buildMatch(firstResult, options);
+                MatchResult remainingResult = matchResult.Matches[SqlGrammar.MatchListPrime.Match.Remaining];
+                buildMatchListPrime(remainingResult, options);
+                return;
+            }
+            MatchResult elseResult = result.Matches[SqlGrammar.MatchListPrime.Else.Name];
+            if (elseResult.IsMatch)
+            {
+                MatchResult valueResult = elseResult.Matches[SqlGrammar.MatchListPrime.Else.Value];
+                options.Default = (IProjectionItem)buildArithmeticItem(valueResult);
+                return;
+            }
+            MatchResult emptyResult = result.Matches[SqlGrammar.MatchListPrime.Empty];
+            if (emptyResult.IsMatch)
+            {
+                return;
+            }
+            throw new InvalidOperationException();
+        }
+
+        private void buildMatch(MatchResult result, Case options)
+        {
+            MatchResult expressionResult = result.Matches[SqlGrammar.Match.Expression];
+            IProjectionItem expression = (IProjectionItem)buildArithmeticItem(expressionResult);
+            MatchResult valueResult = result.Matches[SqlGrammar.Match.Value];
+            IProjectionItem value = (IProjectionItem)buildArithmeticItem(valueResult);
+            options.AddCaseOption(expression, value);
         }
 
         private void buildValueList(MatchResult result, ValueList values)

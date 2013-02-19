@@ -169,6 +169,15 @@ namespace SQLGeneration.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An attempt was made to create a case expression without any cases..
+        /// </summary>
+        internal static string EmptyCaseExpression {
+            get {
+                return ResourceManager.GetString("EmptyCaseExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An attempt was made to build an empty filter clause..
         /// </summary>
         internal static string EmptyFilterGroup {

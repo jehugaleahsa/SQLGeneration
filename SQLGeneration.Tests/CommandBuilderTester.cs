@@ -825,6 +825,26 @@ namespace SQLGeneration.Tests
             assertCanReproduce(commandText);
         }
 
+        /// <summary>
+        /// We can create a CASE expression with just one case.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Case_MultipleCases()
+        {
+            string commandText = "SELECT CASE Table.Column WHEN 0 THEN 'Sunday' WHEN 1 THEN 'Monday' WHEN 2 THEN 'Tuesday' WHEN 3 THEN 'Wednesday' WHEN 4 THEN 'Thursday' WHEN 5 THEN 'Friday' WHEN 6 THEN 'Saturday' END FROM Table";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// We can create a CASE expression with an ELSE branch.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Case_Else()
+        {
+            string commandText = "SELECT CASE Table.Column WHEN 'Admin' THEN 'Administrator' ELSE 'User' END FROM Table";
+            assertCanReproduce(commandText);
+        }
+
         #endregion
 
         #region Insert

@@ -942,7 +942,6 @@ namespace SQLGeneration.Tests
             Assert.AreEqual(expected, commandText, "The wrong SQL was generated.");
         }
 
-
         /// <summary>
         /// This sees whether we can select 1 + 1.
         /// </summary>
@@ -1145,6 +1144,51 @@ namespace SQLGeneration.Tests
             Formatter formatter = new Formatter();
             string actual = formatter.GetCommandText(builder);
             string expected = "SELECT sale.prod_id, sale.month_num, sale.sales, SUM(sale.sales) OVER (PARTITION BY sale.prod_id ORDER BY sale.month_num ROWS BETWEEN CURRENT ROW AND CURRENT ROW) FROM sale";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// We can create a CASE expression with just one case.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Case_MultipleCases()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource source = builder.AddTable(new Table("Table"));
+            Column column = source.Column("Column");
+            Case options = new Case(column);
+            options.AddCaseOption(new NumericLiteral(0), new StringLiteral("Sunday"));
+            options.AddCaseOption(new NumericLiteral(1), new StringLiteral("Monday"));
+            options.AddCaseOption(new NumericLiteral(2), new StringLiteral("Tuesday"));
+            options.AddCaseOption(new NumericLiteral(3), new StringLiteral("Wednesday"));
+            options.AddCaseOption(new NumericLiteral(4), new StringLiteral("Thursday"));
+            options.AddCaseOption(new NumericLiteral(5), new StringLiteral("Friday"));
+            options.AddCaseOption(new NumericLiteral(6), new StringLiteral("Saturday"));
+            builder.AddProjection(options);
+
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT CASE Table.Column WHEN 0 THEN 'Sunday' WHEN 1 THEN 'Monday' WHEN 2 THEN 'Tuesday' WHEN 3 THEN 'Wednesday' WHEN 4 THEN 'Thursday' WHEN 5 THEN 'Friday' WHEN 6 THEN 'Saturday' END FROM Table";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// We can create a CASE expression with an ELSE branch.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_Case_Else()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource source = builder.AddTable(new Table("Table"));
+            Column column = source.Column("Column");
+            Case options = new Case(column);
+            options.AddCaseOption(new StringLiteral("Admin"), new StringLiteral("Administrator"));
+            options.Default = new StringLiteral("User");
+            builder.AddProjection(options);
+
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT CASE Table.Column WHEN 'Admin' THEN 'Administrator' ELSE 'User' END FROM Table";
             Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
         }
 
