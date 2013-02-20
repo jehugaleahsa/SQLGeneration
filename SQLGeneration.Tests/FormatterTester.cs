@@ -1151,12 +1151,12 @@ namespace SQLGeneration.Tests
         /// We can create a CASE expression with just one case.
         /// </summary>
         [TestMethod]
-        public void TestSelect_Case_MultipleCases()
+        public void TestSelect_MatchCase_MultipleCases()
         {
             SelectBuilder builder = new SelectBuilder();
             AliasedSource source = builder.AddTable(new Table("Table"));
             Column column = source.Column("Column");
-            Case options = new Case(column);
+            MatchCase options = new MatchCase(column);
             options.AddCaseOption(new NumericLiteral(0), new StringLiteral("Sunday"));
             options.AddCaseOption(new NumericLiteral(1), new StringLiteral("Monday"));
             options.AddCaseOption(new NumericLiteral(2), new StringLiteral("Tuesday"));
@@ -1176,12 +1176,12 @@ namespace SQLGeneration.Tests
         /// We can create a CASE expression with an ELSE branch.
         /// </summary>
         [TestMethod]
-        public void TestSelect_Case_Else()
+        public void TestSelect_MatchCase_Else()
         {
             SelectBuilder builder = new SelectBuilder();
             AliasedSource source = builder.AddTable(new Table("Table"));
             Column column = source.Column("Column");
-            Case options = new Case(column);
+            MatchCase options = new MatchCase(column);
             options.AddCaseOption(new StringLiteral("Admin"), new StringLiteral("Administrator"));
             options.Default = new StringLiteral("User");
             builder.AddProjection(options);
@@ -1189,6 +1189,51 @@ namespace SQLGeneration.Tests
             Formatter formatter = new Formatter();
             string actual = formatter.GetCommandText(builder);
             string expected = "SELECT CASE Table.Column WHEN 'Admin' THEN 'Administrator' ELSE 'User' END FROM Table";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// We can create a CASE expression with just one case.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_ConditionalCase_MultipleCases()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource source = builder.AddTable(new Table("Table"));
+            Column column = source.Column("Column");
+            ConditionalCase options = new ConditionalCase();
+            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(0)), new StringLiteral("Sunday"));
+            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(1)), new StringLiteral("Monday"));
+            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(2)), new StringLiteral("Tuesday"));
+            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(3)), new StringLiteral("Wednesday"));
+            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(4)), new StringLiteral("Thursday"));
+            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(5)), new StringLiteral("Friday"));
+            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(6)), new StringLiteral("Saturday"));
+            builder.AddProjection(options);
+
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT CASE WHEN Table.Column = 0 THEN 'Sunday' WHEN Table.Column = 1 THEN 'Monday' WHEN Table.Column = 2 THEN 'Tuesday' WHEN Table.Column = 3 THEN 'Wednesday' WHEN Table.Column = 4 THEN 'Thursday' WHEN Table.Column = 5 THEN 'Friday' WHEN Table.Column = 6 THEN 'Saturday' END FROM Table";
+            Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
+        /// We can create a CASE expression with an ELSE branch.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_ConditionalCase_Else()
+        {
+            SelectBuilder builder = new SelectBuilder();
+            AliasedSource source = builder.AddTable(new Table("Table"));
+            Column column = source.Column("Column");
+            ConditionalCase options = new ConditionalCase();
+            options.AddCaseOption(new EqualToFilter(column, new StringLiteral("Admin")), new StringLiteral("Administrator"));
+            options.Default = new StringLiteral("User");
+            builder.AddProjection(options);
+
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(builder);
+            string expected = "SELECT CASE WHEN Table.Column = 'Admin' THEN 'Administrator' ELSE 'User' END FROM Table";
             Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
         }
 

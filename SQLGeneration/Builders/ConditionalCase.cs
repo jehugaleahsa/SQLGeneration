@@ -9,37 +9,22 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Represents a conditional statement.
     /// </summary>
-    public class Case : IProjectionItem, IFilterItem, IGroupByItem
+    public class ConditionalCase : IProjectionItem, IFilterItem, IGroupByItem
     {
-        private readonly List<Tuple<IProjectionItem, IProjectionItem>> options;
+        private readonly List<Tuple<IFilter, IProjectionItem>> options;
 
         /// <summary>
-        /// Initializes a new instance of a Case.
+        /// Initializes a new instance of a ConditionalCase.
         /// </summary>
-        /// <param name="item">The item that will be matched to the different values.</param>
-        public Case(IProjectionItem item)
+        public ConditionalCase()
         {
-            if (item == null)
-            {
-                throw new ArgumentNullException("item");
-            }
-            Item = item;
-            options = new List<Tuple<IProjectionItem, IProjectionItem>>();
-        }
-
-        /// <summary>
-        /// Gets the item that will be compared to the different values.
-        /// </summary>
-        public IProjectionItem Item 
-        { 
-            get; 
-            private set; 
+            options = new List<Tuple<IFilter, IProjectionItem>>();
         }
 
         /// <summary>
         /// Gets the values that the item will be compared to.
         /// </summary>
-        public IEnumerable<IProjectionItem> Options
+        public IEnumerable<IFilter> Options
         {
             get { return options.Select(pair => pair.Item1); }
         }
@@ -47,33 +32,33 @@ namespace SQLGeneration.Builders
         /// <summary>
         /// Adds the case option to the case expression.
         /// </summary>
-        /// <param name="option">The value that the case item must equal for given the result to be returned.</param>
+        /// <param name="filter">The value that the case item must equal for given the result to be returned.</param>
         /// <param name="result">The value to return when the item equals the option.</param>
-        public void AddCaseOption(IProjectionItem option, IProjectionItem result)
+        public void AddCaseOption(IFilter filter, IProjectionItem result)
         {
-            if (option == null)
+            if (filter == null)
             {
-                throw new ArgumentNullException("option");
+                throw new ArgumentNullException("filter");
             }
             if (result == null)
             {
                 throw new ArgumentNullException("result");
             }
-            options.Add(Tuple.Create(option, result));
+            options.Add(Tuple.Create(filter, result));
         }
 
         /// <summary>
         /// Removes the case option.
         /// </summary>
-        /// <param name="option">The value of the option to be removed.</param>
+        /// <param name="filter">The value of the option to be removed.</param>
         /// <returns>True if a case with the given option was found; otherwise, false.</returns>
-        public bool RemoveCaseOption(IProjectionItem option)
+        public bool RemoveCaseOption(IFilter filter)
         {
-            if (option == null)
+            if (filter == null)
             {
-                throw new ArgumentNullException("option");
+                throw new ArgumentNullException("filter");
             }
-            int index = options.FindIndex(pair => pair.Item1 == option);
+            int index = options.FindIndex(pair => pair.Item1 == filter);
             if (index != -1)
             {
                 options.RemoveAt(index);
@@ -119,13 +104,12 @@ namespace SQLGeneration.Builders
             }
             TokenStream stream = new TokenStream();
             stream.Add(new TokenResult(SqlTokenRegistry.Case, "CASE"));
-            stream.AddRange(Item.GetProjectionTokens(options));
-            foreach (Tuple<IProjectionItem, IProjectionItem> pair in this.options)
+            foreach (Tuple<IFilter, IProjectionItem> pair in this.options)
             {
-                IProjectionItem option = pair.Item1;
+                IFilter option = pair.Item1;
                 IProjectionItem result = pair.Item2;
                 stream.Add(new TokenResult(SqlTokenRegistry.When, "WHEN"));
-                stream.AddRange(option.GetProjectionTokens(options));
+                stream.AddRange(option.GetFilterTokens(options));
                 stream.Add(new TokenResult(SqlTokenRegistry.Then, "THEN"));
                 stream.AddRange(result.GetProjectionTokens(options));
             }

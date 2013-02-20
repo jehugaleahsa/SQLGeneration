@@ -1196,10 +1196,16 @@ namespace SQLGeneration.Generators
                 buildMultipartIdentifier(column, writer);
                 return;
             }
-            MatchResult caseExpression = result.Matches[SqlGrammar.Item.Case];
-            if (caseExpression.IsMatch)
+            MatchResult matchCaseExpression = result.Matches[SqlGrammar.Item.MatchCase];
+            if (matchCaseExpression.IsMatch)
             {
-                buildCase(caseExpression, writer);
+                buildMatchCase(matchCaseExpression, writer);
+                return;
+            }
+            MatchResult conditionCaseExpression = result.Matches[SqlGrammar.Item.ConditionCase];
+            if (conditionCaseExpression.IsMatch)
+            {
+                buildConditionalCase(conditionCaseExpression, writer);
                 return;
             }
             MatchResult select = result.Matches[SqlGrammar.Item.Select.Name];
@@ -1215,18 +1221,18 @@ namespace SQLGeneration.Generators
             }
         }
 
-        private void buildCase(MatchResult result, TextWriter writer)
+        private void buildMatchCase(MatchResult result, TextWriter writer)
         {
-            MatchResult caseResult = result.Matches[SqlGrammar.Case.CaseKeyword];
+            MatchResult caseResult = result.Matches[SqlGrammar.MatchCase.CaseKeyword];
             writeToken(caseResult, writer);
             writer.Write(' ');
-            MatchResult expression = result.Matches[SqlGrammar.Case.Expression];
+            MatchResult expression = result.Matches[SqlGrammar.MatchCase.Expression];
             buildArithmeticItem(expression, writer);
             writer.Write(' ');
-            MatchResult matchList = result.Matches[SqlGrammar.Case.MatchList];
+            MatchResult matchList = result.Matches[SqlGrammar.MatchCase.MatchList];
             buildMatchList(matchList, writer);
             writer.Write(' ');
-            MatchResult end = result.Matches[SqlGrammar.Case.EndKeyword];
+            MatchResult end = result.Matches[SqlGrammar.MatchCase.EndKeyword];
             writeToken(end, writer);
         }
 
@@ -1280,6 +1286,71 @@ namespace SQLGeneration.Generators
             writeToken(then, writer);
             writer.Write(' ');
             MatchResult value = result.Matches[SqlGrammar.Match.Value];
+            buildArithmeticItem(value, writer);
+        }
+
+        private void buildConditionalCase(MatchResult result, TextWriter writer)
+        {
+            MatchResult caseResult = result.Matches[SqlGrammar.ConditionalCase.CaseKeyword];
+            writeToken(caseResult, writer);
+            writer.Write(' ');
+            MatchResult conditionList = result.Matches[SqlGrammar.ConditionalCase.ConditionList];
+            buildConditionList(conditionList, writer);
+            writer.Write(' ');
+            MatchResult end = result.Matches[SqlGrammar.ConditionalCase.EndKeyword];
+            writeToken(end, writer);
+        }
+
+        private void buildConditionList(MatchResult result, TextWriter writer)
+        {
+            MatchResult condition = result.Matches[SqlGrammar.ConditionList.Condition];
+            buildCondition(condition, writer);
+            MatchResult conditionListPrime = result.Matches[SqlGrammar.ConditionList.ConditionListPrime];
+            buildConditionListPrime(conditionListPrime, writer);
+        }
+
+        private void buildConditionListPrime(MatchResult result, TextWriter writer)
+        {
+            MatchResult condition = result.Matches[SqlGrammar.ConditionListPrime.Condition.Name];
+            if (condition.IsMatch)
+            {
+                writer.Write(' ');
+                MatchResult first = condition.Matches[SqlGrammar.ConditionListPrime.Condition.First];
+                buildCondition(first, writer);
+                MatchResult remaining = condition.Matches[SqlGrammar.ConditionListPrime.Condition.Remaining];
+                buildConditionListPrime(remaining, writer);
+                return;
+            }
+            MatchResult elseResult = result.Matches[SqlGrammar.ConditionListPrime.Else.Name];
+            if (elseResult.IsMatch)
+            {
+                writer.Write(' ');
+                MatchResult elseKeyword = elseResult.Matches[SqlGrammar.ConditionListPrime.Else.ElseKeyword];
+                writeToken(elseKeyword, writer);
+                writer.Write(' ');
+                MatchResult value = elseResult.Matches[SqlGrammar.ConditionListPrime.Else.Value];
+                buildArithmeticItem(value, writer);
+                return;
+            }
+            MatchResult empty = result.Matches[SqlGrammar.ConditionListPrime.Empty];
+            if (empty.IsMatch)
+            {
+                return;
+            }
+        }
+
+        private void buildCondition(MatchResult result, TextWriter writer)
+        {
+            MatchResult when = result.Matches[SqlGrammar.Condition.WhenKeyword];
+            writeToken(when, writer);
+            writer.Write(' ');
+            MatchResult filter = result.Matches[SqlGrammar.Condition.Filter];
+            buildOrFilter(filter, writer);
+            writer.Write(' ');
+            MatchResult then = result.Matches[SqlGrammar.Condition.ThenKeyword];
+            writeToken(then, writer);
+            writer.Write(' ');
+            MatchResult value = result.Matches[SqlGrammar.Condition.Value];
             buildArithmeticItem(value, writer);
         }
 

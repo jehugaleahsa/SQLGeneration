@@ -1107,10 +1107,15 @@ namespace SQLGeneration.Generators
             {
                 return buildColumn(columnResult);
             }
-            MatchResult caseResult = result.Matches[SqlGrammar.Item.Case];
-            if (caseResult.IsMatch)
+            MatchResult matchCaseResult = result.Matches[SqlGrammar.Item.MatchCase];
+            if (matchCaseResult.IsMatch)
             {
-                return buildCase(caseResult);
+                return buildMatchCase(matchCaseResult);
+            }
+            MatchResult conditionCaseResult = result.Matches[SqlGrammar.Item.ConditionCase];
+            if (conditionCaseResult.IsMatch)
+            {
+                return buildConditionalCase(conditionCaseResult);
             }
             MatchResult selectResult = result.Matches[SqlGrammar.Item.Select.Name];
             if (selectResult.IsMatch)
@@ -1121,17 +1126,17 @@ namespace SQLGeneration.Generators
             throw new NotImplementedException();
         }
 
-        private NumericLiteral buildNumericLiteral(MatchResult numberResult)
+        private NumericLiteral buildNumericLiteral(MatchResult result)
         {
-            string numberString = getToken(numberResult);
+            string numberString = getToken(result);
             double value = Double.Parse(numberString);
             return new NumericLiteral(value);
         }
 
-        private Column buildColumn(MatchResult columnResult)
+        private Column buildColumn(MatchResult result)
         {
             List<string> parts = new List<string>();
-            buildMultipartIdentifier(columnResult, parts);
+            buildMultipartIdentifier(result, parts);
             if (parts.Count > 1)
             {
                 Namespace qualifier = getNamespace(parts.Take(parts.Count - 2));
@@ -1290,17 +1295,17 @@ namespace SQLGeneration.Generators
             throw new InvalidOperationException();
         }
 
-        private Case buildCase(MatchResult result)
+        private MatchCase buildMatchCase(MatchResult result)
         {
-            MatchResult expressionResult = result.Matches[SqlGrammar.Case.Expression];
+            MatchResult expressionResult = result.Matches[SqlGrammar.MatchCase.Expression];
             IProjectionItem expression = (IProjectionItem)buildArithmeticItem(expressionResult);
-            Case options = new Case(expression);
-            MatchResult matchListResult = result.Matches[SqlGrammar.Case.MatchList];
+            MatchCase options = new MatchCase(expression);
+            MatchResult matchListResult = result.Matches[SqlGrammar.MatchCase.MatchList];
             buildMatchList(matchListResult, options);
             return options;
         }
 
-        private void buildMatchList(MatchResult result, Case options)
+        private void buildMatchList(MatchResult result, MatchCase options)
         {
             MatchResult match = result.Matches[SqlGrammar.MatchList.Match];
             buildMatch(match, options);
@@ -1308,7 +1313,7 @@ namespace SQLGeneration.Generators
             buildMatchListPrime(matchListPrime, options);
         }
 
-        private void buildMatchListPrime(MatchResult result, Case options)
+        private void buildMatchListPrime(MatchResult result, MatchCase options)
         {
             MatchResult matchResult = result.Matches[SqlGrammar.MatchListPrime.Match.Name];
             if (matchResult.IsMatch)
@@ -1334,13 +1339,65 @@ namespace SQLGeneration.Generators
             throw new InvalidOperationException();
         }
 
-        private void buildMatch(MatchResult result, Case options)
+        private void buildMatch(MatchResult result, MatchCase options)
         {
             MatchResult expressionResult = result.Matches[SqlGrammar.Match.Expression];
             IProjectionItem expression = (IProjectionItem)buildArithmeticItem(expressionResult);
             MatchResult valueResult = result.Matches[SqlGrammar.Match.Value];
             IProjectionItem value = (IProjectionItem)buildArithmeticItem(valueResult);
             options.AddCaseOption(expression, value);
+        }
+
+        private ConditionalCase buildConditionalCase(MatchResult result)
+        {
+            ConditionalCase options = new ConditionalCase();
+            MatchResult conditionListResult = result.Matches[SqlGrammar.ConditionalCase.ConditionList];
+            buildConditionList(conditionListResult, options);
+            return options;
+        }
+
+        private void buildConditionList(MatchResult result, ConditionalCase options)
+        {
+            MatchResult condition = result.Matches[SqlGrammar.ConditionList.Condition];
+            buildCondition(condition, options);
+            MatchResult conditionListPrime = result.Matches[SqlGrammar.ConditionList.ConditionListPrime];
+            buildConditionListPrime(conditionListPrime, options);
+        }
+
+        private void buildConditionListPrime(MatchResult result, ConditionalCase options)
+        {
+            MatchResult conditionResult = result.Matches[SqlGrammar.ConditionListPrime.Condition.Name];
+            if (conditionResult.IsMatch)
+            {
+                MatchResult firstResult = conditionResult.Matches[SqlGrammar.ConditionListPrime.Condition.First];
+                buildCondition(firstResult, options);
+                MatchResult remainingResult = conditionResult.Matches[SqlGrammar.ConditionListPrime.Condition.Remaining];
+                buildConditionListPrime(remainingResult, options);
+                return;
+            }
+            MatchResult elseResult = result.Matches[SqlGrammar.ConditionListPrime.Else.Name];
+            if (elseResult.IsMatch)
+            {
+                MatchResult valueResult = elseResult.Matches[SqlGrammar.ConditionListPrime.Else.Value];
+                options.Default = (IProjectionItem)buildArithmeticItem(valueResult);
+                return;
+            }
+            MatchResult emptyResult = result.Matches[SqlGrammar.ConditionListPrime.Empty];
+            if (emptyResult.IsMatch)
+            {
+                return;
+            }
+            throw new InvalidOperationException();
+        }
+
+        private void buildCondition(MatchResult result, ConditionalCase options)
+        {
+            MatchResult expressionResult = result.Matches[SqlGrammar.Condition.Filter];
+            FilterGroup filterGroup = new FilterGroup();
+            buildOrFilter(expressionResult, filterGroup, Conjunction.And);
+            MatchResult valueResult = result.Matches[SqlGrammar.Condition.Value];
+            IProjectionItem value = (IProjectionItem)buildArithmeticItem(valueResult);
+            options.AddCaseOption(filterGroup, value);
         }
 
         private void buildValueList(MatchResult result, ValueList values)

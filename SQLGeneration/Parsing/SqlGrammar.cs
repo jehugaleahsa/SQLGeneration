@@ -51,10 +51,14 @@ namespace SQLGeneration.Parsing
             defineArithmeticItem();
             defineWrappedItem();
             defineItem();
-            defineCase();
+            defineMatchCase();
             defineMatchList();
             defineMatchListPrime();
             defineMatch();
+            defineConditionalCase();
+            defineConditionList();
+            defineConditionListPrime();
+            defineCondition();
             defineInsertStatement();
             defineColumnList();
             defineUpdateStatement();
@@ -2730,9 +2734,14 @@ namespace SQLGeneration.Parsing
             public const string Null = "null";
 
             /// <summary>
-            /// Gets the identifier indicating that the item is a case statement.
+            /// Gets the identifier indicating that the item is a case expression.
             /// </summary>
-            public const string Case = "case";
+            public const string MatchCase = "match_case";
+
+            /// <summary>
+            /// Gets the identifier indicating that the item is a case expression.
+            /// </summary>
+            public const string ConditionCase = "conditional_case";
         }
 
         private void defineItem()
@@ -2748,22 +2757,23 @@ namespace SQLGeneration.Parsing
                         .Add(Item.Select.LeftParenthesis, true, Token(SqlTokenRegistry.LeftParenthesis))
                         .Add(Item.Select.SelectStatement, true, Expression(SelectStatement.Name))
                         .Add(Item.Select.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
-                    .Add(Item.Case, Expression(Case.Name)));
+                    .Add(Item.MatchCase, Expression(MatchCase.Name))
+                    .Add(Item.ConditionCase, Expression(ConditionalCase.Name)));
         }
 
         #endregion
 
-        #region Case
+        #region MatchCase
 
         /// <summary>
         /// Describes the structure of a CASE expression.
         /// </summary>
-        public static class Case
+        public static class MatchCase
         {
             /// <summary>
             /// Gets the identifier indicating that an item is a case statement.
             /// </summary>
-            public const string Name = "Case";
+            public const string Name = "MatchCase";
 
             /// <summary>
             /// Gets the identifier for the CASE keyword.
@@ -2786,13 +2796,13 @@ namespace SQLGeneration.Parsing
             public const string EndKeyword = "end";
         }
 
-        private void defineCase()
+        private void defineMatchCase()
         {
-            Define(Case.Name)
-                .Add(Case.CaseKeyword, true, Token(SqlTokenRegistry.Case))
-                .Add(Case.Expression, true, Expression(ArithmeticItem.Name))
-                .Add(Case.MatchList, true, Expression(MatchList.Name))
-                .Add(Case.EndKeyword, true, Token(SqlTokenRegistry.End));
+            Define(MatchCase.Name)
+                .Add(MatchCase.CaseKeyword, true, Token(SqlTokenRegistry.Case))
+                .Add(MatchCase.Expression, true, Expression(ArithmeticItem.Name))
+                .Add(MatchCase.MatchList, true, Expression(MatchList.Name))
+                .Add(MatchCase.EndKeyword, true, Token(SqlTokenRegistry.End));
         }
 
         #endregion
@@ -2889,8 +2899,6 @@ namespace SQLGeneration.Parsing
             public const string Empty = "empty";
         }
 
-        #endregion
-
         private void defineMatchListPrime()
         {
             Define(MatchListPrime.Name)
@@ -2903,6 +2911,8 @@ namespace SQLGeneration.Parsing
                         .Add(MatchListPrime.Else.Value, true, Expression(ArithmeticItem.Name)))
                     .Add(MatchListPrime.Empty, Define()));
         }
+
+        #endregion
 
         #region Match
 
@@ -2944,6 +2954,195 @@ namespace SQLGeneration.Parsing
                 .Add(Match.Expression, true, Expression(ArithmeticItem.Name))
                 .Add(Match.ThenKeyword, true, Token(SqlTokenRegistry.Then))
                 .Add(Match.Value, true, Expression(ArithmeticItem.Name));
+        }
+
+        #endregion
+
+        #region ConditionalCase
+
+        /// <summary>
+        /// Describes the structure of a CASE expression.
+        /// </summary>
+        public static class ConditionalCase
+        {
+            /// <summary>
+            /// Gets the identifier indicating that an item is a case statement.
+            /// </summary>
+            public const string Name = "ConditionalCase";
+
+            /// <summary>
+            /// Gets the identifier for the CASE keyword.
+            /// </summary>
+            public const string CaseKeyword = "case";
+
+            /// <summary>
+            /// Gets the identifier for the list of possible matches.
+            /// </summary>
+            public const string ConditionList = "condition_list";
+
+            /// <summary>
+            /// Gets the identifier for the END keyword.
+            /// </summary>
+            public const string EndKeyword = "end";
+        }
+
+        private void defineConditionalCase()
+        {
+            Define(ConditionalCase.Name)
+                .Add(ConditionalCase.CaseKeyword, true, Token(SqlTokenRegistry.Case))
+                .Add(ConditionalCase.ConditionList, true, Expression(ConditionList.Name))
+                .Add(ConditionalCase.EndKeyword, true, Token(SqlTokenRegistry.End));
+        }
+
+        #endregion
+
+        #region ConditionList
+
+        /// <summary>
+        /// Describes the structure of a case's match list.
+        /// </summary>
+        public static class ConditionList
+        {
+            /// <summary>
+            /// Gets the identifier indicating that there's a case's match list.
+            /// </summary>
+            public const string Name = "ConditionList";
+
+            /// <summary>
+            /// Gets the identifier for the first match.
+            /// </summary>
+            public const string Condition = "condition";
+
+            /// <summary>
+            /// Gets the identifier for the rest of the matches.
+            /// </summary>
+            public const string ConditionListPrime = "condition_list_prime";
+        }
+
+        private void defineConditionList()
+        {
+            Define(ConditionList.Name)
+                .Add(ConditionList.Condition, true, Expression(Condition.Name))
+                .Add(ConditionList.ConditionListPrime, true, Expression(ConditionListPrime.Name));
+        }
+
+        #endregion
+
+        #region ConditionListPrime
+
+        /// <summary>
+        /// Desribes the structure of the remaining matches in a CASE statement.
+        /// </summary>
+        public static class ConditionListPrime
+        {
+            /// <summary>
+            /// Gets the identifier indicating that there are potentially more tests.
+            /// </summary>
+            public const string Name = "ConditionListPrime";
+
+            /// <summary>
+            /// Describes the structure if there are more matches.
+            /// </summary>
+            public static class Condition
+            {
+                /// <summary>
+                /// Gets the identifier indicating that there is a match.
+                /// </summary>
+                public const string Name = "Condition";
+
+                /// <summary>
+                /// Gets the identifier for the next match.
+                /// </summary>
+                public const string First = "first";
+
+                /// <summary>
+                /// Gets the identifier for the remaining matches.
+                /// </summary>
+                public const string Remaining = "remaining";
+            }
+
+            /// <summary>
+            /// Describes the structure of the default case.
+            /// </summary>
+            public static class Else
+            {
+                /// <summary>
+                /// Gets the identifier indicating a default case.
+                /// </summary>
+                public const string Name = "Else";
+
+                /// <summary>
+                /// Gets the identifier for the ELSE keyword.
+                /// </summary>
+                public const string ElseKeyword = "else";
+
+                /// <summary>
+                /// Gets the identifier for the default value.
+                /// </summary>
+                public const string Value = "value";
+            }
+
+            /// <summary>
+            /// Gets the identifier indicating that there are no more matches.
+            /// </summary>
+            public const string Empty = "empty";
+        }
+
+        private void defineConditionListPrime()
+        {
+            Define(ConditionListPrime.Name)
+                .Add(true, Options()
+                    .Add(ConditionListPrime.Condition.Name, Define()
+                        .Add(ConditionListPrime.Condition.First, true, Expression(Condition.Name))
+                        .Add(ConditionListPrime.Condition.Remaining, true, Expression(ConditionListPrime.Name)))
+                    .Add(ConditionListPrime.Else.Name, Define()
+                        .Add(ConditionListPrime.Else.ElseKeyword, true, Token(SqlTokenRegistry.Else))
+                        .Add(ConditionListPrime.Else.Value, true, Expression(ArithmeticItem.Name)))
+                    .Add(ConditionListPrime.Empty, Define()));
+        }
+
+        #endregion
+
+        #region Condition
+
+        /// <summary>
+        /// Describes the structure of a condition in a CASE statement.
+        /// </summary>
+        public static class Condition
+        {
+            /// <summary>
+            /// Gets the identifier indicating that there is a CASE test.
+            /// </summary>
+            public const string Name = "Condition";
+
+            /// <summary>
+            /// Gets the identifier for the WHEN keyword.
+            /// </summary>
+            public const string WhenKeyword = "when";
+
+            /// <summary>
+            /// Gets the identifier for the condition being tested.
+            /// </summary>
+            public const string Filter = "filter";
+
+            /// <summary>
+            /// Gets the identifier for the THEN keyword.
+            /// </summary>
+            public const string ThenKeyword = "then";
+
+            /// <summary>
+            /// Gets the identifier for the value to return if the condition is satisfied.
+            /// </summary>
+            public const string Value = "value";
+        }
+
+        private void defineCondition()
+        {
+            Define(Condition.Name)
+                .Add(Condition.WhenKeyword, true, Token(SqlTokenRegistry.When))
+                .Add(Condition.Filter, true, Expression(OrFilter.Name))
+                .Add(Condition.ThenKeyword, true, Token(SqlTokenRegistry.Then))
+                .Add(Condition.Value, true, Expression(ArithmeticItem.Name));
         }
 
         #endregion
