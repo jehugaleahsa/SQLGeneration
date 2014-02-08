@@ -565,7 +565,7 @@ namespace SQLGeneration.Generators
                 MatchResult expressionResult = isResult.Matches[SqlGrammar.Filter.Is.Expression];
                 IFilterItem expression = (IFilterItem)buildArithmeticItem(expressionResult);
                 NullFilter filter = new NullFilter(expression);
-                MatchResult isNotResult = result.Matches[SqlGrammar.Filter.Is.NotKeyword];
+                MatchResult isNotResult = isResult.Matches[SqlGrammar.Filter.Is.NotKeyword];
                 filter.Not = isNotResult.IsMatch;
                 return filter;
             }

@@ -1143,5 +1143,19 @@ ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.Effe
         }
 
         #endregion
+
+        #region Bug Fixes
+
+        /// <summary>
+        /// @danizator discovered that the NOT was not being persisted within a IS NULL filter.
+        /// </summary>
+        [TestMethod]
+        public void TestNullFilter_NotPersistsRoundtrip()
+        {
+            string commandText = "SELECT CustomerId, FirstName, LastName, Created FROM Customer WHERE FirstName IS NOT NULL";
+            assertCanReproduce(commandText);
+        }
+
+        #endregion
     }
 }
