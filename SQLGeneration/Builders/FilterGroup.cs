@@ -28,7 +28,7 @@ namespace SQLGeneration.Builders
                 _filters.Add(Tuple.Create(filter, conjunction));
             }
         }
-
+        
         /// <summary>
         /// Gets the filters in the filter group.
         /// </summary>
@@ -37,6 +37,19 @@ namespace SQLGeneration.Builders
             get
             {
                 return _filters.Select(pair => pair.Item1).ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Gets the filter with it's conjunction by a particular index.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public Tuple<IFilter, Conjunction> this[int index]
+        {
+            get
+            {
+                return _filters[index];
             }
         }
 
