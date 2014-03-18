@@ -24,6 +24,14 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// The filter that is negated.
+        /// </summary>
+        public IFilter Filter
+        {
+            get { return filter; }
+        }
+
+        /// <summary>
         /// Gets the filter text irrespective of the parentheses.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
@@ -37,7 +45,7 @@ namespace SQLGeneration.Builders
             {
                 stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
             }
-            stream.AddRange(filter.GetFilterTokens(options));
+            stream.AddRange(Filter.GetFilterTokens(options));
             if (wrapInParenthesis)
             {
                 stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
@@ -47,7 +55,7 @@ namespace SQLGeneration.Builders
 
         private bool shouldWrapInParenthesis(CommandOptions options)
         {
-            FilterGroup group = filter as FilterGroup;
+            FilterGroup group = Filter as FilterGroup;
             if (group == null || group.Count == 1 || (group.WrapInParentheses ?? options.WrapFiltersInParentheses))
             {
                 return false;
