@@ -843,6 +843,13 @@ namespace SQLGeneration.Generators
                 writeToken(rightParenthesis, writer);
                 return;
             }
+            MatchResult function = result.Matches[SqlGrammar.Filter.Function.Name];
+            if (function.IsMatch)
+            {
+                MatchResult expression = function.Matches[SqlGrammar.Filter.Function.Expression];
+                buildFunctionCall(expression, writer);
+                return;
+            }
             MatchResult order = result.Matches[SqlGrammar.Filter.Order.Name];
             if (order.IsMatch)
             {
