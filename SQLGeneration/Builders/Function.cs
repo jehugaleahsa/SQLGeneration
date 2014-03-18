@@ -8,7 +8,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Adds a function call to a command.
     /// </summary>
-    public class Function : IProjectionItem, IRightJoinItem, IFilterItem, IGroupByItem, IValueProvider
+    public class Function : Filter, IProjectionItem, IRightJoinItem, IFilterItem, IGroupByItem, IValueProvider
     {
         private readonly Namespace qualifier;
         private readonly ValueList arguments;
@@ -167,6 +167,16 @@ namespace SQLGeneration.Builders
         bool IValueProvider.IsValueList
         {
             get { return false; }
+        }
+
+        /// <summary>
+        /// Gets the filter text irrespective of the parentheses.
+        /// </summary>
+        /// <param name="options">The configuration to use when building the command.</param>
+        /// <returns>A string representing the filter.</returns>
+        protected override TokenStream GetInnerFilterTokens(CommandOptions options)
+        {
+            return getFunctionTokens(options);
         }
     }
 }

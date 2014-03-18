@@ -11,7 +11,7 @@ namespace SQLGeneration.Tests
     [TestClass]
     public class CommandBuilderTester
     {
-        #region SELECT
+        #region Select
 
         /// <summary>
         /// Tests that we can reproduce a simple select statement.
@@ -862,6 +862,16 @@ namespace SQLGeneration.Tests
         public void TestSelect_ConditionalCase_Else()
         {
             string commandText = "SELECT CASE WHEN Table.Column = 'Admin' THEN 'Administrator' ELSE 'User' END FROM Table";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// A function can appear in the WHERE clause of a SQL statement.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FilterWithFunction()
+        {
+            string commandText = "SELECT contactid, firstname, lastname FROM contact WHERE CONTAINS(firstname, 'albert')";
             assertCanReproduce(commandText);
         }
 
