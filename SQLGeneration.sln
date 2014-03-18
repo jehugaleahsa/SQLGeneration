@@ -5,13 +5,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLGeneration", "SQLGenerat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLGeneration.Tests", "SQLGeneration.Tests\SQLGeneration.Tests.csproj", "{0B721A48-59F1-4D97-A321-5C1A56BC68A1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C692E306-06C9-46C5-B0D4-599CF67BF245}"
-	ProjectSection(SolutionItems) = preProject
-		Local.testsettings = Local.testsettings
-		SQLGeneration.vsmdi = SQLGeneration.vsmdi
-		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = SQLGeneration.vsmdi

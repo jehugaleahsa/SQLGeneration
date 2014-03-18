@@ -2111,6 +2111,22 @@ namespace SQLGeneration.Parsing
                 /// </summary>
                 public const string RightParenthesis = "right_parenthesis";
             }
+
+            /// <summary>
+            /// Describes the structure of a
+            /// </summary>
+            public static class Function
+            {
+                /// <summary>
+                /// Gets the identifier indicating that the filter is a function call.
+                /// </summary>
+                public const string Name = "Function";
+
+                /// <summary>
+                /// Gets the identifier for the function being called.
+                /// </summary>
+                public const string Expression = "expression";
+            }
         }
 
         private void defineFilter()
@@ -2133,6 +2149,8 @@ namespace SQLGeneration.Parsing
                             .Add(Filter.Quantify.SelectStatement, Expression(SelectStatement.Name))
                             .Add(Filter.Quantify.ValueList, Expression(ValueList.Name)))
                         .Add(Filter.Quantify.RightParenthesis, true, Token(SqlTokenRegistry.RightParenthesis)))
+                    .Add(Filter.Function.Name, Define()
+                        .Add(Filter.Function.Expression, true, Expression(FunctionCall.Name)))
                     .Add(Filter.Order.Name, Define()
                         .Add(Filter.Order.Left, true, Expression(ArithmeticItem.Name))
                         .Add(Filter.Order.ComparisonOperator, true, Expression(ComparisonOperator.Name))

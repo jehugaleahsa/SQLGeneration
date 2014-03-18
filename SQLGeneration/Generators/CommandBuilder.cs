@@ -523,6 +523,12 @@ namespace SQLGeneration.Generators
                 MatchResult operatorResult = quantifyResult.Matches[SqlGrammar.Filter.Quantify.ComparisonOperator];
                 return buildQuantifierFilter(operatorResult, filterItem, quantifier, valueProvider);
             }
+            MatchResult functionResult = result.Matches[SqlGrammar.Filter.Function.Name];
+            if (functionResult.IsMatch)
+            {
+                MatchResult expressionResult = functionResult.Matches[SqlGrammar.Filter.Function.Expression];
+                return buildFunctionCall(expressionResult);
+            }
             MatchResult orderResult = result.Matches[SqlGrammar.Filter.Order.Name];
             if (orderResult.IsMatch)
             {
