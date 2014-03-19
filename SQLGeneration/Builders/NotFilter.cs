@@ -24,6 +24,14 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// Gets the filter that will be negated.
+        /// </summary>
+        public IFilter Filter 
+        { 
+            get { return filter; } 
+        }
+
+        /// <summary>
         /// Gets the filter text irrespective of the parentheses.
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
