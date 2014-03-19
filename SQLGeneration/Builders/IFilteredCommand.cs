@@ -20,8 +20,7 @@ namespace SQLGeneration.Builders
         /// Adds the filter to the where clause.
         /// </summary>
         /// <param name="filter">The filter to add.</param>
-        /// <param name="conjunction">Specifies whether to use AND or OR when testing the filter.</param>
-        void AddWhere(IFilter filter, Conjunction conjunction);
+        void AddWhere(IFilter filter);
 
         /// <summary>
         /// Removes the filter from the where clause.

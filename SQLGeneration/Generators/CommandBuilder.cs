@@ -139,7 +139,9 @@ namespace SQLGeneration.Generators
             if (where.IsMatch)
             {
                 MatchResult filterList = where.Matches[SqlGrammar.SelectSpecification.Where.FilterList];
-                buildOrFilter(filterList, builder.WhereFilterGroup, Conjunction.And);
+                IFilter innerFilter = buildOrFilter(filterList);
+                builder.WhereFilterGroup.AddFilter(innerFilter);
+                builder.WhereFilterGroup.Optimize();
             }
             MatchResult groupBy = result.Matches[SqlGrammar.SelectSpecification.GroupBy.Name];
             if (groupBy.IsMatch)
@@ -151,7 +153,9 @@ namespace SQLGeneration.Generators
             if (having.IsMatch)
             {
                 MatchResult filterList = having.Matches[SqlGrammar.SelectSpecification.Having.FilterList];
-                buildOrFilter(filterList, builder.HavingFilterGroup, Conjunction.And);
+                IFilter innerFilter = buildOrFilter(filterList);
+                builder.HavingFilterGroup.AddFilter(innerFilter);
+                builder.HavingFilterGroup.Optimize();
             }
             scope.Pop();
             return builder;
@@ -279,7 +283,9 @@ namespace SQLGeneration.Generators
                 scope.Push(filteredJoin.Sources);
                 MatchResult onResult = filtered.Matches[SqlGrammar.JoinPrime.Filtered.On.Name];
                 MatchResult filterListResult = onResult.Matches[SqlGrammar.JoinPrime.Filtered.On.FilterList];
-                buildOrFilter(filterListResult, filteredJoin.OnFilterGroup, Conjunction.And);
+                IFilter innerFilter = buildOrFilter(filterListResult);
+                filteredJoin.OnFilterGroup.AddFilter(innerFilter);
+                filteredJoin.OnFilterGroup.Optimize();
                 MatchResult joinPrimeResult = filtered.Matches[SqlGrammar.JoinPrime.Filtered.JoinPrime];
                 Join prime = buildJoinPrime(joinPrimeResult, filteredJoin);
                 scope.Pop();
@@ -440,44 +446,40 @@ namespace SQLGeneration.Generators
             throw new InvalidOperationException();
         }
 
-        private void buildOrFilter(MatchResult result, FilterGroup filterGroup, Conjunction conjunction)
+        private IFilter buildOrFilter(MatchResult result)
         {
             MatchResult multiple = result.Matches[SqlGrammar.OrFilter.Multiple.Name];
             if (multiple.IsMatch)
             {
                 MatchResult first = multiple.Matches[SqlGrammar.OrFilter.Multiple.First];
-                buildAndFilter(first, filterGroup, conjunction);
+                IFilter firstFilter = buildAndFilter(first);
                 MatchResult remaining = multiple.Matches[SqlGrammar.OrFilter.Multiple.Remaining];
-                buildOrFilter(remaining, filterGroup, Conjunction.Or);
-                return;
+                IFilter remainingFilter = buildOrFilter(remaining);
+                return new FilterGroup(Conjunction.Or, firstFilter, remainingFilter);
             }
             MatchResult single = result.Matches[SqlGrammar.OrFilter.Single];
             if (single.IsMatch)
             {
-                buildAndFilter(single, filterGroup, conjunction);
-                return;
+                return buildAndFilter(single);
             }
             throw new InvalidOperationException();
         }
 
-        private void buildAndFilter(MatchResult result, FilterGroup filterGroup, Conjunction conjunction)
+        private IFilter buildAndFilter(MatchResult result)
         {
             MatchResult multiple = result.Matches[SqlGrammar.AndFilter.Multiple.Name];
             if (multiple.IsMatch)
             {
                 MatchResult first = multiple.Matches[SqlGrammar.AndFilter.Multiple.First];
-                IFilter filter = buildFilter(first);
-                filterGroup.AddFilter(filter, conjunction);
+                IFilter firstFilter = buildFilter(first);
                 MatchResult remaining = multiple.Matches[SqlGrammar.AndFilter.Multiple.Remaining];
-                buildOrFilter(remaining, filterGroup, Conjunction.And);
-                return;
+                IFilter remainingFilter = buildOrFilter(remaining);
+                return new FilterGroup(Conjunction.And, firstFilter, remainingFilter);
             }
             MatchResult single = result.Matches[SqlGrammar.AndFilter.Single];
             if (single.IsMatch)
             {
-                IFilter filter = buildFilter(single);
-                filterGroup.AddFilter(filter, conjunction);
-                return;
+                return buildFilter(single);
             }
             throw new InvalidOperationException();
         }
@@ -496,7 +498,8 @@ namespace SQLGeneration.Generators
             {
                 MatchResult filterResult = wrappedResult.Matches[SqlGrammar.Filter.Wrapped.Filter];
                 FilterGroup nested = new FilterGroup();
-                buildOrFilter(filterResult, nested, Conjunction.And);
+                IFilter innerFilter = buildOrFilter(filterResult);
+                nested.AddFilter(innerFilter);
                 nested.WrapInParentheses = true;
                 return nested;
             }
@@ -888,7 +891,9 @@ namespace SQLGeneration.Generators
             if (whereResult.IsMatch)
             {
                 MatchResult filterListResult = whereResult.Matches[SqlGrammar.UpdateStatement.Where.FilterList];
-                buildOrFilter(filterListResult, builder.WhereFilterGroup, Conjunction.And);
+                IFilter innerFilter = buildOrFilter(filterListResult);
+                builder.WhereFilterGroup.AddFilter(innerFilter);
+                builder.WhereFilterGroup.Optimize();
             }
             scope.Pop();
             return builder;
@@ -945,7 +950,9 @@ namespace SQLGeneration.Generators
             if (whereResult.IsMatch)
             {
                 MatchResult filterListResult = whereResult.Matches[SqlGrammar.DeleteStatement.Where.FilterList];
-                buildOrFilter(filterListResult, builder.WhereFilterGroup, Conjunction.And);
+                IFilter innerFilter = buildOrFilter(filterListResult);
+                builder.WhereFilterGroup.AddFilter(innerFilter);
+                builder.WhereFilterGroup.Optimize();
             }
             scope.Pop();
             return builder;
@@ -1399,10 +1406,11 @@ namespace SQLGeneration.Generators
         private void buildCondition(MatchResult result, ConditionalCase options)
         {
             MatchResult expressionResult = result.Matches[SqlGrammar.Condition.Filter];
-            FilterGroup filterGroup = new FilterGroup();
-            buildOrFilter(expressionResult, filterGroup, Conjunction.And);
+            IFilter innerFilter = buildOrFilter(expressionResult);
             MatchResult valueResult = result.Matches[SqlGrammar.Condition.Value];
             IProjectionItem value = (IProjectionItem)buildArithmeticItem(valueResult);
+            FilterGroup filterGroup = new FilterGroup(Conjunction.And, innerFilter);
+            filterGroup.Optimize();
             options.AddCaseOption(filterGroup, value);
         }
 

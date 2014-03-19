@@ -617,8 +617,10 @@ namespace SQLGeneration.Tests
             SelectBuilder builder = new SelectBuilder();
             AliasedSource table = builder.AddTable(new Table("Table"));
             builder.AddProjection(table.Column("Column"));
-            builder.AddWhere(new EqualToFilter(new NumericLiteral(1), new NumericLiteral(1)));
-            builder.AddWhere(new NullFilter(table.Column("Column")), Conjunction.Or);
+            FilterGroup orGroup = new FilterGroup(Conjunction.Or);
+            orGroup.AddFilter(new EqualToFilter(new NumericLiteral(1), new NumericLiteral(1)));
+            orGroup.AddFilter(new NullFilter(table.Column("Column")));
+            builder.AddWhere(orGroup);
             Formatter formatter = new Formatter();
             string commandText = formatter.GetCommandText(builder);
             string expected = "SELECT Table.Column FROM Table WHERE 1 = 1 OR Table.Column IS NULL";

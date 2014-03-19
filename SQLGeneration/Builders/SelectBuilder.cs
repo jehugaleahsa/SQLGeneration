@@ -307,10 +307,9 @@ namespace SQLGeneration.Builders
         /// Adds the filter to the where clause.
         /// </summary>
         /// <param name="filter">The filter to add.</param>
-        /// <param name="conjunction">Specifies whether to AND or OR that </param>
-        public void AddWhere(IFilter filter, Conjunction conjunction = Conjunction.And)
+        public void AddWhere(IFilter filter)
         {
-            _where.AddFilter(filter, conjunction);
+            _where.AddFilter(filter);
         }
 
         /// <summary>
@@ -343,10 +342,9 @@ namespace SQLGeneration.Builders
         /// Adds the filter to the having clause.
         /// </summary>
         /// <param name="filter">The filter to add.</param>
-        /// <param name="conjunction">Specifies whether to use AND or OR when testing the filter.</param>
-        public void AddHaving(IFilter filter, Conjunction conjunction = Conjunction.And)
+        public void AddHaving(IFilter filter)
         {
-            _having.AddFilter(filter, conjunction);
+            _having.AddFilter(filter);
         }
 
         /// <summary>

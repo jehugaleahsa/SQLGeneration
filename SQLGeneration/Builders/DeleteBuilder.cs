@@ -55,10 +55,9 @@ namespace SQLGeneration.Builders
         /// Adds the filter to the where clause.
         /// </summary>
         /// <param name="filter">The filter to add.</param>
-        /// <param name="conjunction">Specifies whether to AND or OR the filter with the other filters in the group.</param>
-        public void AddWhere(IFilter filter, Conjunction conjunction = Conjunction.And)
+        public void AddWhere(IFilter filter)
         {
-            _where.AddFilter(filter, conjunction);
+            _where.AddFilter(filter);
         }
 
         /// <summary>

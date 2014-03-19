@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using SQLGeneration.Parsing;
 using SQLGeneration.Properties;
@@ -11,22 +12,36 @@ namespace SQLGeneration.Builders
     /// </summary>
     public class FilterGroup : Filter
     {
-        private readonly List<Tuple<IFilter, Conjunction>> _filters;
+        private readonly Conjunction _conjunction;
+        private readonly List<IFilter> _filters;
 
         /// <summary>
         /// Initializes a new instance of a FilterGroup.
         /// </summary>
         public FilterGroup(Conjunction conjunction = Conjunction.And, params IFilter[] filters)
         {
+            if (!Enum.IsDefined(typeof(Conjunction), conjunction))
+            {
+                throw new InvalidEnumArgumentException("conjunction", (int)conjunction, typeof(Conjunction));
+            }
             if (filters == null)
             {
                 throw new ArgumentNullException("filters");
             }
-            _filters = new List<Tuple<IFilter, Conjunction>>();
+            _conjunction = conjunction;
+            _filters = new List<IFilter>();
             foreach (IFilter filter in filters)
             {
-                _filters.Add(Tuple.Create(filter, conjunction));
+                AddFilter(filter);
             }
+        }
+
+        /// <summary>
+        /// Gets the conjunction used to combine the filters within the group.
+        /// </summary>
+        public Conjunction Conjunction
+        {
+            get { return _conjunction; }
         }
         
         /// <summary>
@@ -36,20 +51,7 @@ namespace SQLGeneration.Builders
         {
             get
             {
-                return _filters.Select(pair => pair.Item1).ToArray();
-            }
-        }
-
-        /// <summary>
-        /// Gets the filter with it's conjunction by a particular index.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public Tuple<IFilter, Conjunction> this[int index]
-        {
-            get
-            {
-                return _filters[index];
+                return _filters;
             }
         }
 
@@ -57,14 +59,13 @@ namespace SQLGeneration.Builders
         /// Adds the filter to the group.
         /// </summary>
         /// <param name="filter">The filter to add.</param>
-        /// <param name="conjunction">Specifies whether to AND or OR the filter with the other filters in the group.</param>
-        public void AddFilter(IFilter filter, Conjunction conjunction = Conjunction.And)
+        public void AddFilter(IFilter filter)
         {
             if (filter == null)
             {
                 throw new ArgumentNullException("filter");
             }
-            _filters.Add(Tuple.Create(filter, conjunction));
+            _filters.Add(filter);
         }
 
         /// <summary>
@@ -78,7 +79,7 @@ namespace SQLGeneration.Builders
             {
                 throw new ArgumentNullException("filter");
             }
-            return _filters.RemoveAll(pair => pair.Item1 == filter) != 0;
+            return _filters.Remove(filter);
         }
 
         /// <summary>
@@ -104,19 +105,19 @@ namespace SQLGeneration.Builders
         /// <returns>A string representing the filter.</returns>
         protected override TokenStream GetInnerFilterTokens(CommandOptions options)
         {
-            using (IEnumerator<Tuple<IFilter, Conjunction>> enumerator = _filters.GetEnumerator())
+            using (IEnumerator<IFilter> enumerator = _filters.GetEnumerator())
             {
                 if (!enumerator.MoveNext())
                 {
                     throw new SQLGenerationException(Resources.EmptyFilterGroup);
                 }
                 TokenStream stream = new TokenStream();
-                stream.AddRange(enumerator.Current.Item1.GetFilterTokens(options));
+                stream.AddRange(enumerator.Current.GetFilterTokens(options));
                 while (enumerator.MoveNext())
                 {
                     ConjunctionConverter converter = new ConjunctionConverter();
-                    stream.Add(converter.ToToken(enumerator.Current.Item2));
-                    stream.AddRange(enumerator.Current.Item1.GetFilterTokens(options));
+                    stream.Add(converter.ToToken(_conjunction));
+                    stream.AddRange(enumerator.Current.GetFilterTokens(options));
                 }
                 return stream;
             }
@@ -129,7 +130,76 @@ namespace SQLGeneration.Builders
         /// <returns>True if the filter should be surround by parentheses; otherwise, false.</returns>
         protected override bool ShouldWrapInParentheses(CommandOptions options)
         {
-            return (WrapInParentheses ?? false) || (options.WrapFiltersInParentheses && _filters.Any(pair => pair.Item2 == Conjunction.Or));
+            // Add parenthesis when they are explicitly requested
+            if (WrapInParentheses == true)
+            {
+                return true;
+            }
+            // Add parenthesis when precedence should be automatic
+            if (options.WrapFiltersInParentheses && _conjunction == Conjunction.Or)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Compacts the filter group by combining it with child filter
+        /// groups where doing so won't alter the semantics of the overall
+        /// expression.
+        /// </summary>
+        /// <remarks>
+        /// This is meant to be used by the command
+        /// builders to reduce the overhead of deeply nested filters.
+        /// </remarks>
+        internal void Optimize()
+        {
+            List<IFilter> updates = new List<IFilter>();
+            bool wasOptimized = optimize(updates);
+            if (wasOptimized)
+            {
+                // replace our filters
+                _filters.Clear();
+                _filters.AddRange(updates);
+            }
+        }
+
+        private bool optimize(List<IFilter> updates)
+        {
+            bool wasOptimized = false;
+            foreach (IFilter filter in _filters)
+            {
+                FilterGroup innerGroup = filter as FilterGroup;
+                if (innerGroup == null)
+                {
+                    updates.Add(filter);
+                }
+                else
+                {
+                    // make sure to optimize the child filter group first
+                    List<IFilter> filters = new List<IFilter>();
+                    wasOptimized |= innerGroup.optimize(filters);
+
+                    // if the code explicitly requests parenthesis, keep them in place
+                    bool requiresParenthesis = innerGroup.WrapInParentheses == true;
+                    // if a filter group only has one item, its conjunction is ignored
+                    bool hasUnusedConjunction = filters.Count == 1;
+                    // if the filter group has the same conjunction, then we can safely compact
+                    bool hasMatchingConjunction = innerGroup._conjunction == _conjunction;
+
+                    bool canOptimize = !requiresParenthesis && (hasUnusedConjunction || hasMatchingConjunction);
+                    if (canOptimize)
+                    {
+                        updates.AddRange(filters);
+                        wasOptimized = true;
+                    }
+                    else
+                    {
+                        updates.Add(filter);
+                    }
+                }
+            }
+            return wasOptimized;
         }
     }
 }

@@ -33,9 +33,9 @@ namespace SQLGeneration.Builders
             {
                 throw new ArgumentNullException("filterGenerator");
             }
-            FilterGroup newGroup = new FilterGroup();
+            FilterGroup newGroup = new FilterGroup(Conjunction.And);
             IFilter filter = filterGenerator(this);
-            newGroup.AddFilter(filter, Conjunction.And);
+            newGroup.AddFilter(filter);
             on = newGroup;
             return this;
         }
@@ -60,10 +60,9 @@ namespace SQLGeneration.Builders
         /// Adds the filter to the group.
         /// </summary>
         /// <param name="filter">The filter to add.</param>
-        /// <param name="conjunction">Specifies whether to AND or OR the filter with the other filters in the group.</param>
-        public void AddOnFilter(IFilter filter, Conjunction conjunction = Conjunction.And)
+        public void AddOnFilter(IFilter filter)
         {
-            on.AddFilter(filter, conjunction);
+            on.AddFilter(filter);
         }
 
         /// <summary>
