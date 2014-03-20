@@ -1903,7 +1903,7 @@ namespace SQLGeneration.Parsing
                 /// <summary>
                 /// Gets the identifier for the expression being compared.
                 /// </summary>
-                public const string Expression = "expression";
+                public const string Left = "left";
 
                 /// <summary>
                 /// Gets the identifier indicating whether to negate the results of the comparison.
@@ -1918,7 +1918,7 @@ namespace SQLGeneration.Parsing
                 /// <summary>
                 /// Gets the identifier for string literal being compared to.
                 /// </summary>
-                public const string Value = "value";
+                public const string Right = "right";
             }
 
             /// <summary>
@@ -2163,10 +2163,10 @@ namespace SQLGeneration.Parsing
                         .Add(Filter.Between.And, true, Token(SqlTokenRegistry.And))
                         .Add(Filter.Between.UpperBound, true, Expression(ArithmeticItem.Name)))
                     .Add(Filter.Like.Name, Define()
-                        .Add(Filter.Like.Expression, true, Expression(ArithmeticItem.Name))
+                        .Add(Filter.Like.Left, true, Expression(ArithmeticItem.Name))
                         .Add(Filter.Like.NotKeyword, false, Token(SqlTokenRegistry.Not))
                         .Add(Filter.Like.LikeKeyword, true, Token(SqlTokenRegistry.Like))
-                        .Add(Filter.Like.Value, true, Token(SqlTokenRegistry.String)))
+                        .Add(Filter.Like.Right, true, Expression(ArithmeticItem.Name)))
                     .Add(Filter.Is.Name, Define()
                         .Add(Filter.Is.Expression, true, Expression(ArithmeticItem.Name))
                         .Add(Filter.Is.IsKeyword, true, Token(SqlTokenRegistry.Is))

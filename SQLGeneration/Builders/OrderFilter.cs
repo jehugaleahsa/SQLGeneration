@@ -55,7 +55,7 @@ namespace SQLGeneration.Builders
         {
             TokenStream stream = new TokenStream();
             stream.AddRange(_leftHand.GetFilterTokens(options));
-            stream.Add(GetComparisonOperator(options));
+            stream.AddRange(GetComparisonOperator(options));
             stream.AddRange(_rightHand.GetFilterTokens(options));
             return stream;
         }
@@ -65,6 +65,6 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string containing the name of the operation that compares the left and right hand sides.</returns>
-        protected abstract TokenResult GetComparisonOperator(CommandOptions options);
+        protected abstract TokenStream GetComparisonOperator(CommandOptions options);
     }
 }

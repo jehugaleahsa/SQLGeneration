@@ -23,9 +23,12 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>A string containing the name of the operation that compares the left and right hand sides.</returns>
-        protected override TokenResult GetComparisonOperator(CommandOptions options)
+        protected override TokenStream GetComparisonOperator(CommandOptions options)
         {
-            return new TokenResult(SqlTokenRegistry.EqualTo, "=");
+            TokenStream stream = new TokenStream();
+            TokenResult token = new TokenResult(SqlTokenRegistry.EqualTo, "=");
+            stream.Add(token);
+            return stream;
         }
     }
 }

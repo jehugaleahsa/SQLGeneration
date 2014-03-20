@@ -559,11 +559,11 @@ namespace SQLGeneration.Generators
             MatchResult likeResult = result.Matches[SqlGrammar.Filter.Like.Name];
             if (likeResult.IsMatch)
             {
-                MatchResult expressionResult = likeResult.Matches[SqlGrammar.Filter.Like.Expression];
-                IFilterItem expression = (IFilterItem)buildArithmeticItem(expressionResult);
-                MatchResult valueResult = likeResult.Matches[SqlGrammar.Filter.Like.Value];
-                StringLiteral value = buildStringLiteral(valueResult);
-                LikeFilter filter = new LikeFilter(expression, value);
+                MatchResult leftResult = likeResult.Matches[SqlGrammar.Filter.Like.Left];
+                IFilterItem left = (IFilterItem)buildArithmeticItem(leftResult);
+                MatchResult rightResult = likeResult.Matches[SqlGrammar.Filter.Like.Right];
+                IFilterItem right = (IFilterItem)buildArithmeticItem(rightResult);
+                LikeFilter filter = new LikeFilter(left, right);
                 MatchResult likeNotResult = likeResult.Matches[SqlGrammar.Filter.Like.NotKeyword];
                 filter.Not = likeNotResult.IsMatch;
                 return filter;

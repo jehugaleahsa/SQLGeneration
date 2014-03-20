@@ -414,6 +414,17 @@ namespace SQLGeneration.Tests
         }
 
         /// <summary>
+        /// This sees whether we can reproduce a select with a LIKE filter
+        /// that sees if a column is like another column.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_LikeFilter_CompareTwoColumns()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column1 LIKE Column2";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
         /// This sees whether we can reproduce a select with an IN filter.
         /// </summary>
         [TestMethod]

@@ -6,43 +6,16 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Represents a comparison where the left hand item is greater than or equal to the right hand item.
     /// </summary>
-    public class LikeFilter : Filter
+    public class LikeFilter : OrderFilter
     {
         /// <summary>
         /// Initializes a new instance of a LikeFilter.
         /// </summary>
         /// <param name="leftHand">The left hand item.</param>
         /// <param name="rightHand">The right hand item.</param>
-        public LikeFilter(IFilterItem leftHand, StringLiteral rightHand)
+        public LikeFilter(IFilterItem leftHand, IFilterItem rightHand)
+            : base(leftHand, rightHand)
         {
-            if (leftHand == null)
-            {
-                throw new ArgumentNullException("leftHand");
-            }
-            if (rightHand == null)
-            {
-                throw new ArgumentNullException("rightHand");
-            }
-            LeftHand = leftHand;
-            RightHand = rightHand;
-        }
-
-        /// <summary>
-        /// Gets the object on the left of the operation.
-        /// </summary>
-        public IFilterItem LeftHand
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Gets the object to the right of the operation.
-        /// </summary>
-        public StringLiteral RightHand
-        {
-            get;
-            private set;
         }
 
         /// <summary>
@@ -55,20 +28,18 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets the tokens making up the comparison.
+        /// Gets the operator that will compare the left and right hand values.
         /// </summary>
-        /// <param name="options">The configuration settings to use when building the filter.</param>
-        /// <returns>The tokens making up the comparison.</returns>
-        protected override TokenStream GetInnerFilterTokens(CommandOptions options)
+        /// <param name="options">The configuration to use when building the command.</param>
+        /// <returns>A string containing the name of the operation that compares the left and right hand sides.</returns>
+        protected override TokenStream GetComparisonOperator(CommandOptions options)
         {
             TokenStream stream = new TokenStream();
-            stream.AddRange(LeftHand.GetFilterTokens(options));
             if (Not)
             {
                 stream.Add(new TokenResult(SqlTokenRegistry.Not, "NOT"));
             }
             stream.Add(new TokenResult(SqlTokenRegistry.Like, "LIKE"));
-            stream.AddRange(((IFilterItem)RightHand).GetFilterTokens(options));
             return stream;
         }
     }

@@ -891,8 +891,8 @@ namespace SQLGeneration.Generators
             MatchResult like = result.Matches[SqlGrammar.Filter.Like.Name];
             if (like.IsMatch)
             {
-                MatchResult expression = like.Matches[SqlGrammar.Filter.Like.Expression];
-                buildArithmeticItem(expression, writer);
+                MatchResult left = like.Matches[SqlGrammar.Filter.Like.Left];
+                buildArithmeticItem(left, writer);
                 writer.Write(' ');
                 MatchResult notKeyword = like.Matches[SqlGrammar.Filter.Like.NotKeyword];
                 if (notKeyword.IsMatch)
@@ -903,8 +903,8 @@ namespace SQLGeneration.Generators
                 MatchResult likeKeyword = like.Matches[SqlGrammar.Filter.Like.LikeKeyword];
                 writeToken(likeKeyword, writer);
                 writer.Write(' ');
-                MatchResult value = like.Matches[SqlGrammar.Filter.Like.Value];
-                writeToken(value, writer);
+                MatchResult right = like.Matches[SqlGrammar.Filter.Like.Right];
+                buildArithmeticItem(right, writer);
                 return;
             }
             MatchResult isResult = result.Matches[SqlGrammar.Filter.Is.Name];
