@@ -12,7 +12,8 @@ namespace SQLGeneration.Generators
     /// </summary>
     public sealed class CommandBuilder : SqlGenerator
     {
-        private readonly SourceScope scope;
+        private SourceScope scope;
+        private CommandBuilderOptions options;
 
         /// <summary>
         /// Initializes a new instance of a SimpleFormatter.
@@ -30,17 +31,18 @@ namespace SQLGeneration.Generators
         public CommandBuilder(SqlGrammar grammar = null)
             : base(grammar)
         {
-            scope = new SourceScope();
         }
 
         /// <summary>
         /// Parses the given command text to build a command builder.
         /// </summary>
         /// <param name="commandText">The command text to parse.</param>
+        /// <param name="options">Configures the behavior of the command builder.</param>
         /// <returns>The command that was parsed.</returns>
-        public ICommand GetCommand(string commandText)
+        public ICommand GetCommand(string commandText, CommandBuilderOptions options = null)
         {
-            scope.Clear();
+            this.scope = new SourceScope();
+            this.options = options ?? new CommandBuilderOptions();
             ITokenSource tokenSource = Grammar.TokenRegistry.CreateTokenSource(commandText);
             MatchResult result = GetResult(tokenSource);
             return buildStart(result);
@@ -1118,7 +1120,7 @@ namespace SQLGeneration.Generators
             MatchResult columnResult = result.Matches[SqlGrammar.Item.Column];
             if (columnResult.IsMatch)
             {
-                return buildColumn(columnResult);
+                return buildNamedItem(columnResult);
             }
             MatchResult matchCaseResult = result.Matches[SqlGrammar.Item.MatchCase];
             if (matchCaseResult.IsMatch)
@@ -1144,6 +1146,40 @@ namespace SQLGeneration.Generators
             string numberString = getToken(result);
             double value = Double.Parse(numberString);
             return new NumericLiteral(value);
+        }
+
+        private object buildNamedItem(MatchResult result)
+        {
+            List<string> parts = new List<string>();
+            buildMultipartIdentifier(result, parts);
+            if (parts.Count > 1)
+            {
+                // if is a period-separated, multiple-part identifier, it is a column
+                Namespace qualifier = getNamespace(parts.Take(parts.Count - 2));
+                string tableName = parts[parts.Count - 2];
+                AliasedSource source = scope.GetSource(tableName);
+                string columnName = parts[parts.Count - 1];
+                return source.Column(columnName);
+            }
+            string name = parts[0];
+            if (options.PlaceholderPrefix != null && name.StartsWith(options.PlaceholderPrefix))
+            {
+                // if the identifier begins with the placeholder prefix, treat is as a placeholder
+                Placeholder placeholder = new Placeholder(name);
+                return placeholder;
+            }
+            AliasedSource singleSource;
+            if (scope.HasSingleSource(out singleSource))
+            {
+                // there is only one source in the query, so assume a column
+                Column column = singleSource.Column(name);
+                column.Qualify = false;
+                return column;
+            }
+            // otherwise, we have no idea what the name represents
+            // in order for the SQL to roundtrip without alteration, just use a placeholder
+            Placeholder unknown = new Placeholder(name);
+            return unknown;
         }
 
         private Column buildColumn(MatchResult result)
@@ -1473,6 +1509,7 @@ namespace SQLGeneration.Generators
             public SourceScope()
             {
                 stack = new List<SourceCollection>();
+
             }
 
             public void Push(SourceCollection collection)
@@ -1483,11 +1520,6 @@ namespace SQLGeneration.Generators
             public void Pop()
             {
                 stack.RemoveAt(stack.Count - 1);
-            }
-
-            public void Clear()
-            {
-                stack.Clear();
             }
 
             public AliasedSource GetSource(string sourceName)

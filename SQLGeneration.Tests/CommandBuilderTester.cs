@@ -425,6 +425,21 @@ namespace SQLGeneration.Tests
         }
 
         /// <summary>
+        /// This sees whether we can reproduce a select with a LIKE filter
+        /// that sees if a column is like a parameter.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_LikeFilter_CompareToParameter()
+        {
+            string commandText = "SELECT Column FROM Table WHERE Column1 LIKE @Parameter";
+            CommandBuilderOptions options = new CommandBuilderOptions()
+            {
+                PlaceholderPrefix = "@"
+            };
+            assertCanReproduce(commandText, options);
+        }
+
+        /// <summary>
         /// This sees whether we can reproduce a select with an IN filter.
         /// </summary>
         [TestMethod]
@@ -1010,10 +1025,10 @@ namespace SQLGeneration.Tests
 
         #endregion
 
-        private void assertCanReproduce(string commandText)
+        private void assertCanReproduce(string commandText, CommandBuilderOptions options = null)
         {
             CommandBuilder builder = new CommandBuilder();
-            ICommand command = builder.GetCommand(commandText);
+            ICommand command = builder.GetCommand(commandText, options);
             Formatter formatter = new Formatter();
             string actual = formatter.GetCommandText(command);
             Assert.AreEqual(commandText, actual, "The command builder did not generate the original command text.");
