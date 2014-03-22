@@ -1193,5 +1193,61 @@ ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.Effe
         }
 
         #endregion
+
+        #region FilterGroup
+
+        /// <summary>
+        /// Under a few circumstances, a filter can be optimized/simplified
+        /// by combining sibling and child filter groups that have the same
+        /// conjunction.
+        /// </summary>
+        [TestMethod]
+        public void TestFilterGroup_Optimize_SimplifiesConditions()
+        {
+            FilterGroup topFilter = new FilterGroup(Conjunction.Or,
+                    new FilterGroup(Conjunction.And,
+                        new EqualToFilter(new Column("FirstName"), new StringLiteral("Albert")),
+                        new FilterGroup(Conjunction.And,
+                            new EqualToFilter(new Column("LastName"), new StringLiteral("Einstein")))),
+                    new FilterGroup(Conjunction.And,
+                        new EqualToFilter(new Column("FirstName"), new StringLiteral("Max")),
+                        new FilterGroup(Conjunction.And,
+                            new EqualToFilter(new Column("LastName"), new StringLiteral("Planck")))));
+            
+            wrapInParentheses(topFilter, true);
+
+            SelectBuilder selectBuilder = new SelectBuilder();
+            selectBuilder.AddTable(new Table("Person"));
+            selectBuilder.AddProjection(new Column("FirstName"));
+            selectBuilder.AddProjection(new Column("LastName"));
+            selectBuilder.AddWhere(topFilter);
+            Formatter formatter = new Formatter();
+            string beforeActual = formatter.GetCommandText(selectBuilder);
+            const string beforeExpected = "SELECT FirstName, LastName FROM Person WHERE (((FirstName = 'Albert') AND ((LastName = 'Einstein'))) OR ((FirstName = 'Max') AND ((LastName = 'Planck'))))";
+            Assert.AreEqual(beforeExpected, beforeActual, "The initial query had an unexpected string representation.");
+
+            wrapInParentheses(topFilter, false);
+            topFilter.Optimize();
+            wrapInParentheses(topFilter, true);
+
+            string afterActual = formatter.GetCommandText(selectBuilder, new CommandOptions() { WrapFiltersInParentheses = true });
+            const string afterExpected = "SELECT FirstName, LastName FROM Person WHERE (((FirstName = 'Albert') AND (LastName = 'Einstein')) OR ((FirstName = 'Max') AND (LastName = 'Planck')))";
+            Assert.AreEqual(afterExpected, afterActual, "The optimized query had an unexpected string representation.");
+        }
+
+        private void wrapInParentheses(IFilter filter, bool wrap)
+        {
+            filter.WrapInParentheses = wrap;
+            FilterGroup group = filter as FilterGroup;
+            if (group != null)
+            {
+                foreach (IFilter innerFilter in group.Filters)
+                {
+                    wrapInParentheses(innerFilter, wrap);
+                }
+            }
+        }
+
+        #endregion
     }
 }

@@ -152,7 +152,7 @@ namespace SQLGeneration.Builders
         /// This is meant to be used by the command
         /// builders to reduce the overhead of deeply nested filters.
         /// </remarks>
-        internal void Optimize()
+        public void Optimize()
         {
             List<IFilter> updates = new List<IFilter>();
             bool wasOptimized = optimize(updates);
@@ -178,7 +178,7 @@ namespace SQLGeneration.Builders
                 {
                     // make sure to optimize the child filter group first
                     List<IFilter> filters = new List<IFilter>();
-                    wasOptimized |= innerGroup.optimize(filters);
+                    bool wereChildrenOptimized = innerGroup.optimize(filters);
 
                     // if the code explicitly requests parenthesis, keep them in place
                     bool requiresParenthesis = innerGroup.WrapInParentheses == true;
@@ -193,9 +193,19 @@ namespace SQLGeneration.Builders
                         updates.AddRange(filters);
                         wasOptimized = true;
                     }
+                    else if (wereChildrenOptimized)
+                    {
+                        FilterGroup newGroup = new FilterGroup(innerGroup._conjunction, filters.ToArray());
+                        if (requiresParenthesis)
+                        {
+                            newGroup.WrapInParentheses = true;
+                        }
+                        updates.Add(newGroup);
+                        wasOptimized = true;
+                    }
                     else
                     {
-                        updates.Add(filter);
+                        updates.Add(innerGroup);
                     }
                 }
             }
