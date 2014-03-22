@@ -17,6 +17,14 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// Gets the filter group used to build the command's where clause.
+        /// </summary>
+        FilterGroup WhereFilterGroup
+        {
+            get;
+        }
+
+        /// <summary>
         /// Adds the filter to the where clause.
         /// </summary>
         /// <param name="filter">The filter to add.</param>

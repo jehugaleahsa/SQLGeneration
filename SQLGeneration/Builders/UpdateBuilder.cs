@@ -84,7 +84,7 @@ namespace SQLGeneration.Builders
         /// <summary>
         /// Gets the filter group used to build the where clause.
         /// </summary>
-        internal FilterGroup WhereFilterGroup 
+        public FilterGroup WhereFilterGroup 
         {
             get { return _where; }
         }
