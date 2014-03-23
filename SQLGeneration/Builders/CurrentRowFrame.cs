@@ -31,5 +31,10 @@ namespace SQLGeneration.Builders
             stream.Add(new TokenResult(SqlTokenRegistry.CurrentRow, "CURRENT ROW"));
             return stream;
         }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitCurrentRowFrame(this);
+        }
     }
 }

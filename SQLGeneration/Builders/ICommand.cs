@@ -6,7 +6,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Represents a SQL statement.
     /// </summary>
-    public interface ICommand
+    public interface ICommand : IVisitableBuilder
     {
         /// <summary>
         /// Gets the expression making up the command.

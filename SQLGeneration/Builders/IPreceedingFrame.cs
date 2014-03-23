@@ -6,7 +6,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Specifies where a windowed function's frame should start.
     /// </summary>
-    public interface IPrecedingFrame
+    public interface IPrecedingFrame : IVisitableBuilder
     {
         /// <summary>
         /// Gets the tokens for specifying a window frame.

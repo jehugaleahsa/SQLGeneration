@@ -105,5 +105,10 @@ namespace SQLGeneration.Builders
             }
             return stream;
         }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitDelete(this);
+        }
     }
 }

@@ -6,7 +6,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Represents an item in the order by clause of a select statement.
     /// </summary>
-    public class OrderBy
+    public class OrderBy : IVisitableBuilder
     {
         /// <summary>
         /// Initializes a new instance of a OrderBy.
@@ -95,6 +95,11 @@ namespace SQLGeneration.Builders
                 stream.Add(converter.ToToken(NullPlacement));
             }
             return stream;
+        }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitOrderBy(this);
         }
     }
 }

@@ -6,7 +6,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Adds a column being set to a value to the command.
     /// </summary>
-    public class Setter
+    public class Setter : IVisitableBuilder
     {
         private readonly Column _column;
         private readonly IProjectionItem _value;
@@ -58,6 +58,11 @@ namespace SQLGeneration.Builders
             stream.Add(new TokenResult(SqlTokenRegistry.EqualTo, "="));
             stream.AddRange(_value.GetProjectionTokens(options));
             return stream;
+        }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitSetter(this);
         }
     }
 }

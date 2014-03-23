@@ -6,7 +6,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Represents an item that can appear in the projection-clause of a select statement.
     /// </summary>
-    public interface IProjectionItem
+    public interface IProjectionItem : IVisitableBuilder
     {
         /// <summary>
         /// Gets a string representing the item in a declaration, without the alias.

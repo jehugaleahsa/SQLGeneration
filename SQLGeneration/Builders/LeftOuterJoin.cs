@@ -34,5 +34,14 @@ namespace SQLGeneration.Builders
             result.Append("JOIN");
             return new TokenResult(SqlTokenRegistry.LeftOuterJoin, result.ToString());
         }
+
+        /// <summary>
+        /// Provides information to the given visitor about the current builder.
+        /// </summary>
+        /// <param name="visitor">The visitor requesting information.</param>
+        protected override void OnAccept(BuilderVisitor visitor)
+        {
+            visitor.VisitLeftOuterJoin(this);
+        }
     }
 }

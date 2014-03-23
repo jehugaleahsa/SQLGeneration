@@ -52,5 +52,10 @@ namespace SQLGeneration.Builders
             IProjectionItem literal = new NumericLiteral(RowCount);
             stream.AddRange(literal.GetProjectionTokens(options));
         }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitBoundFrame(this);
+        }
     }
 }

@@ -104,5 +104,16 @@ namespace SQLGeneration.Builders
         /// <param name="options">The configuration to use when building the command.</param>
         /// <returns>The token representing the arithmetic operator.</returns>
         protected abstract TokenResult GetOperator(CommandOptions options);
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            OnAccept(visitor);
+        }
+
+        /// <summary>
+        /// Provides information to the given visitor about the current builder.
+        /// </summary>
+        /// <param name="visitor">The visitor requesting information.</param>
+        protected abstract void OnAccept(BuilderVisitor visitor);
     }
 }

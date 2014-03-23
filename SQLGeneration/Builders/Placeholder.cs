@@ -52,5 +52,10 @@ namespace SQLGeneration.Builders
         {
             return null;
         }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitPlaceholder(this);
+        }
     }
 }

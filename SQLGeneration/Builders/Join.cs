@@ -94,6 +94,17 @@ namespace SQLGeneration.Builders
             return stream;
         }
 
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            OnAccept(visitor);
+        }
+
+        /// <summary>
+        /// Provides information to the given visitor about the current builder.
+        /// </summary>
+        /// <param name="visitor">The visitor requesting information.</param>
+        protected abstract void OnAccept(BuilderVisitor visitor);
+
         /// <summary>
         /// Creates a new join where the given item is inner joined with the existing join items.
         /// </summary>

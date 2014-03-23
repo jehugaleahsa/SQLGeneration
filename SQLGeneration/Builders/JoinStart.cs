@@ -37,5 +37,15 @@ namespace SQLGeneration.Builders
         {
             return ((IJoinItem)source).GetDeclarationTokens(options);
         }
+
+        /// <summary>
+        /// Provides information to the given visitor about the current builder.
+        /// </summary>
+        /// <param name="visitor">The visitor requesting information.</param>
+        protected override void OnAccept(BuilderVisitor visitor)
+        {
+            IJoinItem joinItem = source;
+            joinItem.Accept(visitor);
+        }
     }
 }

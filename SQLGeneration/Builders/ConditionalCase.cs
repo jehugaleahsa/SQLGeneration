@@ -121,5 +121,10 @@ namespace SQLGeneration.Builders
             stream.Add(new TokenResult(SqlTokenRegistry.End, "END"));
             return stream;
         }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitConditionalCase(this);
+        }
     }
 }

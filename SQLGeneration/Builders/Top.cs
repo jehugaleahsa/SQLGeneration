@@ -6,7 +6,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Builds a TOP clause that is found in a SELECT statement.
     /// </summary>
-    public class Top
+    public class Top : IVisitableBuilder
     {
         private readonly IProjectionItem _expression;
 
@@ -72,6 +72,11 @@ namespace SQLGeneration.Builders
                 stream.Add(new TokenResult(SqlTokenRegistry.WithTies, "WITH TIES"));
             }
             return stream;
+        }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitTop(this);
         }
     }
 }

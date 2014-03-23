@@ -44,5 +44,10 @@ namespace SQLGeneration.Builders
         {
             return null;
         }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitAllColumns(this);
+        }
     }
 }

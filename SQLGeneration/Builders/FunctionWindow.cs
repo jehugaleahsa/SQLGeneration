@@ -7,7 +7,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Describes the window that a function is applied to.
     /// </summary>
-    public class FunctionWindow
+    public class FunctionWindow : IVisitableBuilder
     {
         private readonly List<AliasedProjection> partitionItems;
         private readonly List<OrderBy> orderByItems;
@@ -180,6 +180,11 @@ namespace SQLGeneration.Builders
                 }
                 return stream;
             }
+        }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitFunctionWindow(this);
         }
     }
 }

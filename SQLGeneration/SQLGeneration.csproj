@@ -48,7 +48,9 @@
     <Compile Include="Builders\ArithmeticExpression.cs" />
     <Compile Include="Builders\BetweenFilter.cs" />
     <Compile Include="Builders\BetweenWindowFrame.cs" />
+    <Compile Include="Builders\BuilderVisitor.cs" />
     <Compile Include="Builders\ConditionalCase.cs" />
+    <Compile Include="Builders\IVisitableBuilder.cs" />
     <Compile Include="Builders\MatchCase.cs" />
     <Compile Include="Builders\Column.cs" />
     <Compile Include="Builders\Modulus.cs" />

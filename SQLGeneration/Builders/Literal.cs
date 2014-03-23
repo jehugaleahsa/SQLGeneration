@@ -41,5 +41,16 @@ namespace SQLGeneration.Builders
         {
             return GetTokens(options);
         }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            OnAccept(visitor);
+        }
+
+        /// <summary>
+        /// Provides information to the given visitor about the current builder.
+        /// </summary>
+        /// <param name="visitor">The visitor requesting information.</param>
+        protected abstract void OnAccept(BuilderVisitor visitor);
     }
 }

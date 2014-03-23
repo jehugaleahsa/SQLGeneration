@@ -526,5 +526,10 @@ namespace SQLGeneration.Builders
         {
             get { return false; }
         }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitSelectBuilder(this);
+        }
     }
 }

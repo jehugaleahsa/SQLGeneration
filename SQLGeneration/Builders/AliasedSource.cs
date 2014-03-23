@@ -110,5 +110,10 @@ namespace SQLGeneration.Builders
                 return Alias;
             }
         }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            Source.Accept(visitor);
+        }
     }
 }

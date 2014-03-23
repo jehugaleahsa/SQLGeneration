@@ -76,5 +76,10 @@ namespace SQLGeneration.Builders
             }
             return true;
         }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitNegation(this);
+        }
     }
 }

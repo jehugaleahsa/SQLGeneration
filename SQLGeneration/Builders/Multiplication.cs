@@ -27,5 +27,14 @@ namespace SQLGeneration.Builders
         {
             return new TokenResult(SqlTokenRegistry.MultiplicationOperator, "*");
         }
+
+        /// <summary>
+        /// Provides information to the given visitor about the current builder.
+        /// </summary>
+        /// <param name="visitor">The visitor requesting information.</param>
+        protected override void OnAccept(BuilderVisitor visitor)
+        {
+            visitor.VisitMultiplication(this);
+        }
     }
 }

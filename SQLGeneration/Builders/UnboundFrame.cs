@@ -30,5 +30,10 @@ namespace SQLGeneration.Builders
             stream.Add(new TokenResult(SqlTokenRegistry.Following, "FOLLOWING"));
             return stream;
         }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitUnboundFrame(this);
+        }
     }
 }

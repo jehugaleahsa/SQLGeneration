@@ -6,7 +6,7 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Represents an item that can appear in a filter.
     /// </summary>
-    public interface IFilterItem
+    public interface IFilterItem : IVisitableBuilder
     {
         /// <summary>
         /// Gets a string representing the item.

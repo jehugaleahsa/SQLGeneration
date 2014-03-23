@@ -92,5 +92,10 @@ namespace SQLGeneration.Builders
         {
             return Name;
         }
+
+        void IVisitableBuilder.Accept(BuilderVisitor visitor)
+        {
+            visitor.VisitColumn(this);
+        }
     }
 }
