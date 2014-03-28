@@ -30,53 +30,6 @@ namespace SQLGeneration.Builders
             private set; 
         }
 
-        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
-        {
-            return getTokens(options);
-        }
-
-        string IProjectionItem.GetProjectionName()
-        {
-            return null;
-        }
-
-        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
-        {
-            return getTokens(options);
-        }
-
-        TokenStream IGroupByItem.GetGroupByTokens(CommandOptions options)
-        {
-            return getTokens(options);
-        }
-
-        private TokenStream getTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.MinusOperator, "-"));
-            bool wrapInParentheses = shouldWrapInParentheses(options);
-            if (wrapInParentheses)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
-            }
-            stream.AddRange(Item.GetProjectionTokens(options));
-            if (wrapInParentheses)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
-            }
-            return stream;
-        }
-
-        private bool shouldWrapInParentheses(CommandOptions options)
-        {
-            ArithmeticExpression expression = Item as ArithmeticExpression;
-            if (expression == null || (expression.WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses))
-            {
-                return false;
-            }
-            return true;
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             visitor.VisitNegation(this);

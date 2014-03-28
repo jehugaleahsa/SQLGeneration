@@ -71,26 +71,6 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets the filter text irrespective of the parentheses.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>A string representing the filter.</returns>
-        protected override TokenStream GetInnerFilterTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.AddRange(_value.GetFilterTokens(options));
-            if (Not)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.Not, "NOT"));
-            }
-            stream.Add(new TokenResult(SqlTokenRegistry.Between, "BETWEEN"));
-            stream.AddRange(_lowerBound.GetFilterTokens(options));
-            stream.Add(new TokenResult(SqlTokenRegistry.And, "AND"));
-            stream.AddRange(_upperBound.GetFilterTokens(options));
-            return stream;
-        }
-
-        /// <summary>
         /// Provides information to the given visitor about the current builder.
         /// </summary>
         /// <param name="visitor">The visitor requesting information.</param>

@@ -72,28 +72,6 @@ namespace SQLGeneration.Builders
             get { return sources; }
         }
 
-        /// <summary>
-        /// Gets a string that declares the item.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>A string declaring the item.</returns>
-        internal abstract TokenStream GetDeclarationTokens(CommandOptions options);
-
-        TokenStream IJoinItem.GetDeclarationTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            if (WrapInParentheses ?? options.WrapJoinsInParentheses)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
-            }
-            stream.AddRange(GetDeclarationTokens(options));
-            if (WrapInParentheses ?? options.WrapJoinsInParentheses)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
-            }
-            return stream;
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             OnAccept(visitor);

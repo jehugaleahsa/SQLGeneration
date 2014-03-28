@@ -31,22 +31,12 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets the tokens for specifying a window frame.
-        /// </summary>
-        /// <param name="options">The configuration settings to use when generating tokens.</param>
-        /// <returns>The tokens making up the window frame.</returns>
-        protected override TokenStream GetWindowFrameTokens(CommandOptions options)
-        {
-            return PrecedingFrame.GetFrameTokens(options);
-        }
-
-        /// <summary>
         /// Provides information to the given visitor about the current builder.
         /// </summary>
         /// <param name="visitor">The visitor requesting information.</param>
         protected override void OnAccept(BuilderVisitor visitor)
         {
-            visitor.VisitPreceedingOnlyWindowFrame(this);
+            visitor.VisitPrecedingOnlyWindowFrame(this);
         }
     }
 }

@@ -28,21 +28,12 @@ namespace SQLGeneration.Builders
             this.source = source;
         }
 
-        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
+        /// <summary>
+        /// Gets the source that the columns belongs to.
+        /// </summary>
+        public AliasedSource Source
         {
-            TokenStream stream = new TokenStream();
-            if (source != null)
-            {
-                stream.AddRange(source.GetReferenceTokens(options));
-                stream.Add(new TokenResult(SqlTokenRegistry.Dot, "."));
-            }
-            stream.Add(new TokenResult(SqlTokenRegistry.MultiplicationOperator, "*"));
-            return stream;
-        }
-
-        string IProjectionItem.GetProjectionName()
-        {
-            return null;
+            get { return source; }
         }
 
         void IVisitableBuilder.Accept(BuilderVisitor visitor)

@@ -4,17 +4,16 @@ using SQLGeneration.Parsing;
 namespace SQLGeneration.Builders
 {
     /// <summary>
-    /// Removes the items returned by the second query from the first query.
+    /// Describes a window frame that is limited to a specific number of rows preceding in one direction.
     /// </summary>
-    public class Minus : SelectCombiner
+    public class FollowingBoundFrame : BoundFrame, IFollowingFrame
     {
         /// <summary>
-        /// Initializes a new instance of a Minus.
+        /// Initializes a new instance of a FollowingBoundFrame.
         /// </summary>
-        /// <param name="leftHand">The left hand SELECT command.</param>
-        /// <param name="rightHand">The right hand SELECT command.</param>
-        public Minus(ISelectBuilder leftHand, ISelectBuilder rightHand)
-            : base(leftHand, rightHand)
+        /// <param name="rowCount">The limit to the number of rows to include in the frame.</param>
+        public FollowingBoundFrame(int rowCount)
+            : base(rowCount)
         {
         }
 
@@ -24,7 +23,7 @@ namespace SQLGeneration.Builders
         /// <param name="visitor">The visitor requesting information.</param>
         protected override void OnAccept(BuilderVisitor visitor)
         {
-            visitor.VisitMinus(this);
+            visitor.VisitFollowingBoundFrame(this);
         }
     }
 }

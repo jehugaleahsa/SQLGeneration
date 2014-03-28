@@ -61,50 +61,6 @@ namespace SQLGeneration.Builders
             }
         }
 
-        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
-        {
-            return getTokens(options);
-        }
-
-        string IProjectionItem.GetProjectionName()
-        {
-            return null;
-        }
-
-        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
-        {
-            return getTokens(options);
-        }
-
-        TokenStream IGroupByItem.GetGroupByTokens(CommandOptions options)
-        {
-            return getTokens(options);
-        }
-
-        private TokenStream getTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
-            }
-            stream.AddRange(_leftHand.GetProjectionTokens(options));
-            stream.Add(GetOperator(options));
-            stream.AddRange(_rightHand.GetProjectionTokens(options));
-            if (WrapInParentheses ?? options.WrapArithmeticExpressionsInParentheses)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
-            }
-            return stream;
-        }
-
-        /// <summary>
-        /// Gets the token representing the arithmetic operator.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The token representing the arithmetic operator.</returns>
-        protected abstract TokenResult GetOperator(CommandOptions options);
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             OnAccept(visitor);

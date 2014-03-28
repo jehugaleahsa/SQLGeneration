@@ -4,17 +4,14 @@ using SQLGeneration.Parsing;
 namespace SQLGeneration.Builders
 {
     /// <summary>
-    /// Removes the items returned by the second query from the first query.
+    /// Describes a window frame that is unbounded in one direction.
     /// </summary>
-    public class Minus : SelectCombiner
+    public class PrecedingUnboundFrame : UnboundFrame, IPrecedingFrame
     {
         /// <summary>
-        /// Initializes a new instance of a Minus.
+        /// Initializes a new instance of an PrecedingUnboundFrame.
         /// </summary>
-        /// <param name="leftHand">The left hand SELECT command.</param>
-        /// <param name="rightHand">The right hand SELECT command.</param>
-        public Minus(ISelectBuilder leftHand, ISelectBuilder rightHand)
-            : base(leftHand, rightHand)
+        public PrecedingUnboundFrame()
         {
         }
 
@@ -24,7 +21,7 @@ namespace SQLGeneration.Builders
         /// <param name="visitor">The visitor requesting information.</param>
         protected override void OnAccept(BuilderVisitor visitor)
         {
-            visitor.VisitMinus(this);
+            visitor.VisitPrecedingUnboundFrame(this);
         }
     }
 }

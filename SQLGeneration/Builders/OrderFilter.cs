@@ -45,26 +45,5 @@ namespace SQLGeneration.Builders
         {
             get { return _rightHand; }
         }
-
-        /// <summary>
-        /// Gets the filter text irrespective of the parentheses.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>A string representing the filter.</returns>
-        protected override TokenStream GetInnerFilterTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.AddRange(_leftHand.GetFilterTokens(options));
-            stream.AddRange(GetComparisonOperator(options));
-            stream.AddRange(_rightHand.GetFilterTokens(options));
-            return stream;
-        }
-
-        /// <summary>
-        /// Gets the operator that will compare the left and right hand values.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>A string containing the name of the operation that compares the left and right hand sides.</returns>
-        protected abstract TokenStream GetComparisonOperator(CommandOptions options);
     }
 }

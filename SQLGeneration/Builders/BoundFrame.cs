@@ -7,13 +7,13 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Describes a window frame that is limited to a specific number of rows in one direction.
     /// </summary>
-    public class BoundFrame : IPrecedingFrame, IFollowingFrame
+    public abstract class BoundFrame : IVisitableBuilder
     {
         /// <summary>
         /// Initializes a new instance of a BoundFrame.
         /// </summary>
         /// <param name="rowCount">The limit to the number of rows to include in the frame.</param>
-        public BoundFrame(int rowCount)
+        protected BoundFrame(int rowCount)
         {
             if (rowCount < 0)
             {
@@ -31,31 +31,15 @@ namespace SQLGeneration.Builders
             private set;
         }
 
-        TokenStream IPrecedingFrame.GetFrameTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            getTokens(stream, options);
-            stream.Add(new TokenResult(SqlTokenRegistry.Preceding, "PRECEDING"));
-            return stream;
-        }
-
-        TokenStream IFollowingFrame.GetFrameTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            getTokens(stream, options);
-            stream.Add(new TokenResult(SqlTokenRegistry.Following, "FOLLOWING"));
-            return stream;
-        }
-
-        private void getTokens(TokenStream stream, CommandOptions options)
-        {
-            IProjectionItem literal = new NumericLiteral(RowCount);
-            stream.AddRange(literal.GetProjectionTokens(options));
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
-            visitor.VisitBoundFrame(this);
+            OnAccept(visitor);
         }
+
+        /// <summary>
+        /// Provides information to the given visitor about the current builder.
+        /// </summary>
+        /// <param name="visitor">The visitor requesting information.</param>
+        protected abstract void OnAccept(BuilderVisitor visitor);
     }
 }

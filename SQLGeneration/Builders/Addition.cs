@@ -19,16 +19,6 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets the token representing the arithmetic operator.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The token representing the arithmetic operator.</returns>
-        protected override TokenResult GetOperator(CommandOptions options)
-        {
-            return new TokenResult(SqlTokenRegistry.PlusOperator, "+");
-        }
-
-        /// <summary>
         /// Provides information to the given visitor about the current builder.
         /// </summary>
         /// <param name="visitor">The visitor requesting information.</param>

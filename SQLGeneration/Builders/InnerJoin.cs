@@ -20,22 +20,6 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets the name of the join type.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The name of the join type.</returns>
-        protected override TokenResult GetJoinType(CommandOptions options)
-        {
-            StringBuilder result = new StringBuilder();
-            if (options.VerboseInnerJoin)
-            {
-                result.Append("INNER ");
-            }
-            result.Append("JOIN");
-            return new TokenResult(SqlTokenRegistry.InnerJoin, result.ToString());
-        }
-
-        /// <summary>
         /// Provides information to the given visitor about the current builder.
         /// </summary>
         /// <param name="visitor">The visitor requesting information.</param>

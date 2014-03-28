@@ -9,7 +9,7 @@ namespace SQLGeneration.Builders
     /// </summary>
     public abstract class FilteredJoin : BinaryJoin
     {
-        private FilterGroup on;
+        private readonly FilterGroup on;
 
         /// <summary>
         /// Initializes a new instance of a FilteredJoin.
@@ -19,7 +19,7 @@ namespace SQLGeneration.Builders
         protected FilteredJoin(Join left, AliasedSource right)
             : base(left, right)
         {
-            on = new FilterGroup();
+            on = new FilterGroup(Conjunction.And);
         }
 
         /// <summary>
@@ -33,10 +33,9 @@ namespace SQLGeneration.Builders
             {
                 throw new ArgumentNullException("filterGenerator");
             }
-            FilterGroup newGroup = new FilterGroup(Conjunction.And);
+            on.Clear();
             IFilter filter = filterGenerator(this);
-            newGroup.AddFilter(filter);
-            on = newGroup;
+            on.AddFilter(filter);
             return this;
         }
 
@@ -51,7 +50,7 @@ namespace SQLGeneration.Builders
         /// <summary>
         /// Gets the filter group.
         /// </summary>
-        internal FilterGroup OnFilterGroup
+        public FilterGroup OnFilterGroup
         {
             get { return on; }
         }
@@ -73,19 +72,6 @@ namespace SQLGeneration.Builders
         public bool RemoveOnFilter(IFilter filter)
         {
             return on.RemoveFilter(filter);
-        }
-
-        /// <summary>
-        /// Gets the ON expression for the join.
-        /// </summary>
-        /// <param name="options">The configuration settings to use.</param>
-        /// <returns>The generated text.</returns>
-        protected override TokenStream GetOnTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.On, "ON"));
-            stream.AddRange(((IFilter)on).GetFilterTokens(options));
-            return stream;
         }
     }
 }

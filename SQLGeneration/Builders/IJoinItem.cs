@@ -8,11 +8,5 @@ namespace SQLGeneration.Builders
     /// </summary>
     public interface IJoinItem : IVisitableBuilder
     {
-        /// <summary>
-        /// Gets a string that declares the item.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>A string declaring the item.</returns>
-        TokenStream GetDeclarationTokens(CommandOptions options);
     }
 }

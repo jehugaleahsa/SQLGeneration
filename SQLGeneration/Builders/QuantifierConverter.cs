@@ -40,16 +40,16 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="quantifier">The valeu to convert to a string.</param>
         /// <returns>The token representing the quantifier.</returns>
-        public TokenResult ToToken(Quantifier quantifier)
+        public string ToString(Quantifier quantifier)
         {
             switch (quantifier)
             {
                 case Quantifier.All:
-                    return new TokenResult(SqlTokenRegistry.All, "ALL");
+                    return "ALL";
                 case Quantifier.Any:
-                    return new TokenResult(SqlTokenRegistry.Any, "ANY");
+                    return "ANY";
                 case Quantifier.Some:
-                    return new TokenResult(SqlTokenRegistry.Some, "SOME");
+                    return "SOME";
                 default:
                     throw new ArgumentException(Resources.UnknownQuantifier, "quantifier");
             }

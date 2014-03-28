@@ -29,26 +29,6 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets or sets whether a SELECT command is being built.
-        /// </summary>
-        internal protected bool IsSelect { get; set; }
-
-        /// <summary>
-        /// Gets or sets whether an INSERT command is being built.
-        /// </summary>
-        internal protected bool IsInsert { get; set; }
-
-        /// <summary>
-        /// Gets or sets whether an UPDATE command is being built.
-        /// </summary>
-        internal protected bool IsUpdate { get; set; }
-
-        /// <summary>
-        /// Gets or sets whether a DELETE command is being built.
-        /// </summary>
-        internal protected bool IsDelete { get; set; }
-
-        /// <summary>
         /// Gets or sets whether to include the optional keyword AS when aliasing projection items.
         /// </summary>
         public bool AliasProjectionsUsingAs { get; set; }

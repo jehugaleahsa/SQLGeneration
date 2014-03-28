@@ -1305,14 +1305,14 @@ namespace SQLGeneration.Generators
             MatchResult unbound = result.Matches[SqlGrammar.PrecedingFrame.UnboundedPreceding.Name];
             if (unbound.IsMatch)
             {
-                return new UnboundFrame();
+                return new PrecedingUnboundFrame();
             }
             MatchResult bound = result.Matches[SqlGrammar.PrecedingFrame.BoundedPreceding.Name];
             if (bound.IsMatch)
             {
                 MatchResult rowCountResult = bound.Matches[SqlGrammar.PrecedingFrame.BoundedPreceding.Number];
                 NumericLiteral rowCount = buildNumericLiteral(rowCountResult);
-                return new BoundFrame((int)rowCount.Value);
+                return new PrecedingBoundFrame((int)rowCount.Value);
             }
             MatchResult currentRow = result.Matches[SqlGrammar.PrecedingFrame.CurrentRow];
             if (currentRow.IsMatch)
@@ -1327,14 +1327,14 @@ namespace SQLGeneration.Generators
             MatchResult unbound = result.Matches[SqlGrammar.FollowingFrame.UnboundedFollowing.Name];
             if (unbound.IsMatch)
             {
-                return new UnboundFrame();
+                return new FollowingUnboundFrame();
             }
             MatchResult bound = result.Matches[SqlGrammar.FollowingFrame.BoundedFollowing.Name];
             if (bound.IsMatch)
             {
                 MatchResult rowCountResult = bound.Matches[SqlGrammar.FollowingFrame.BoundedFollowing.Number];
                 NumericLiteral rowCount = buildNumericLiteral(rowCountResult);
-                return new BoundFrame((int)rowCount.Value);
+                return new FollowingBoundFrame((int)rowCount.Value);
             }
             MatchResult currentRow = result.Matches[SqlGrammar.FollowingFrame.CurrentRow];
             if (currentRow.IsMatch)
@@ -1394,7 +1394,7 @@ namespace SQLGeneration.Generators
             IProjectionItem expression = (IProjectionItem)buildArithmeticItem(expressionResult);
             MatchResult valueResult = result.Matches[SqlGrammar.Match.Value];
             IProjectionItem value = (IProjectionItem)buildArithmeticItem(valueResult);
-            options.AddCaseOption(expression, value);
+            options.AddBranch(expression, value);
         }
 
         private ConditionalCase buildConditionalCase(MatchResult result)
@@ -1447,7 +1447,7 @@ namespace SQLGeneration.Generators
             IProjectionItem value = (IProjectionItem)buildArithmeticItem(valueResult);
             FilterGroup filterGroup = new FilterGroup(Conjunction.And, innerFilter);
             filterGroup.Optimize();
-            options.AddCaseOption(filterGroup, value);
+            options.AddBranch(filterGroup, value);
         }
 
         private void buildValueList(MatchResult result, ValueList values)

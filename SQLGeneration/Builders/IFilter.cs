@@ -16,12 +16,5 @@ namespace SQLGeneration.Builders
             get;
             set;
         }
-
-        /// <summary>
-        /// Gets a string representation of the filter.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The generated text.</returns>
-        TokenStream GetFilterTokens(CommandOptions options);
     }
 }

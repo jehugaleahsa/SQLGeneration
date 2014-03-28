@@ -51,26 +51,14 @@ namespace SQLGeneration.Builders
             private set;
         }
 
-        TokenStream IJoinItem.GetDeclarationTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            if (Qualifier != null)
-            {
-                stream.AddRange(Qualifier.GetNamespaceTokens(options));
-                stream.Add(new TokenResult(SqlTokenRegistry.Dot, "."));
-            }
-            stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Name));
-            return stream;
-        }
-
         string IRightJoinItem.GetSourceName()
         {
             return Name;
         }
 
-        bool IRightJoinItem.IsTable
+        bool IRightJoinItem.IsAliasRequired
         {
-            get { return true; }
+            get { return false; }
         }
 
         void IVisitableBuilder.Accept(BuilderVisitor visitor)

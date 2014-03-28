@@ -40,14 +40,14 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="order">The value of the enum.</param>
         /// <returns>The string representation.</returns>
-        public TokenResult ToToken(Order order)
+        public string ToString(Order order)
         {
             switch (order)
             {
                 case Order.Ascending:
-                    return new TokenResult(SqlTokenRegistry.Ascending, "ASC");
+                    return "ASC";
                 case Order.Descending:
-                    return new TokenResult(SqlTokenRegistry.Descending, "DESC");
+                    return "DESC";
                 default:
                     throw new ArgumentException(Resources.UnknownOrder, "order");
             }

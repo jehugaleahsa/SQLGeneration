@@ -6,34 +6,24 @@ namespace SQLGeneration.Builders
     /// <summary>
     /// Describes a window frame that is unbounded in one direction.
     /// </summary>
-    public class UnboundFrame : IPrecedingFrame, IFollowingFrame
+    public abstract class UnboundFrame : IVisitableBuilder
     {
         /// <summary>
         /// Initializes a new instance of an UnboundFrame.
         /// </summary>
-        public UnboundFrame()
+        protected UnboundFrame()
         {
-        }
-
-        TokenStream IPrecedingFrame.GetFrameTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.Unbounded, "UNBOUNDED"));
-            stream.Add(new TokenResult(SqlTokenRegistry.Preceding, "PRECEDING"));
-            return stream;
-        }
-
-        TokenStream IFollowingFrame.GetFrameTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.Unbounded, "UNBOUNDED"));
-            stream.Add(new TokenResult(SqlTokenRegistry.Following, "FOLLOWING"));
-            return stream;
         }
 
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
-            visitor.VisitUnboundFrame(this);
+            OnAccept(visitor);
         }
+
+        /// <summary>
+        /// Provides information to the given visitor about the current builder.
+        /// </summary>
+        /// <param name="visitor">The visitor requesting information.</param>
+        protected abstract void OnAccept(BuilderVisitor visitor);
     }
 }

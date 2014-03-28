@@ -36,14 +36,14 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="conjunction">The conjunction to convert to a string.</param>
         /// <returns>The string representation.</returns>
-        public TokenResult ToToken(Conjunction conjunction)
+        public string ToString(Conjunction conjunction)
         {
             switch (conjunction)
             {
                 case Conjunction.And:
-                    return new TokenResult(SqlTokenRegistry.And, "AND");
+                    return "AND";
                 case Conjunction.Or:
-                    return new TokenResult(SqlTokenRegistry.Or, "OR");
+                    return "OR";
                 default:
                     throw new ArgumentException(Resources.UnknownConjunction, "conjunction");
             }

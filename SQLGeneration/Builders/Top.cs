@@ -53,27 +53,6 @@ namespace SQLGeneration.Builders
             set;
         }
 
-        /// <summary>
-        /// Gets the textual representation of the TOP clause.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The generated text.</returns>
-        internal TokenStream GetTopTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.Top, "TOP"));
-            stream.AddRange(_expression.GetProjectionTokens(options));
-            if (IsPercent)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.Percent, "PERCENT"));
-            }
-            if (WithTies)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.WithTies, "WITH TIES"));
-            }
-            return stream;
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             visitor.VisitTop(this);

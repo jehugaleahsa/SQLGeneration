@@ -124,64 +124,6 @@ namespace SQLGeneration.Builders
             set;
         }
 
-        /// <summary>
-        /// Gets the tokens for specifying a window over a function.
-        /// </summary>
-        /// <param name="options">The configuration settings to use when generating tokens.</param>
-        /// <returns>The tokens making up the function window.</returns>
-        internal TokenStream GetDeclarationTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.Over, "OVER"));
-            stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
-            stream.AddRange(buildPartitionList(options));
-            stream.AddRange(buildOrderByList(options));
-            if (Frame != null)
-            {
-                stream.AddRange(Frame.GetDeclarationTokens(options));
-            }
-            stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
-            return stream;
-        }
-
-        private TokenStream buildPartitionList(CommandOptions options)
-        {
-            using (IEnumerator<AliasedProjection> enumerator = partitionItems.GetEnumerator())
-            {
-                TokenStream stream = new TokenStream();
-                if (enumerator.MoveNext())
-                {
-                    stream.Add(new TokenResult(SqlTokenRegistry.PartitionBy, "PARTITION BY"));
-                    stream.AddRange(enumerator.Current.GetReferenceTokens(options));
-                    while (enumerator.MoveNext())
-                    {
-                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
-                        stream.AddRange(enumerator.Current.GetReferenceTokens(options));
-                    }
-                }
-                return stream;
-            }
-        }
-
-        private TokenStream buildOrderByList(CommandOptions options)
-        {
-            using (IEnumerator<OrderBy> enumerator = orderByItems.GetEnumerator())
-            {
-                TokenStream stream = new TokenStream();
-                if (enumerator.MoveNext())
-                {
-                    stream.Add(new TokenResult(SqlTokenRegistry.OrderBy, "ORDER BY"));
-                    stream.AddRange(enumerator.Current.GetOrderByTokens(options));
-                    while (enumerator.MoveNext())
-                    {
-                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
-                        stream.AddRange(enumerator.Current.GetOrderByTokens(options));
-                    }
-                }
-                return stream;
-            }
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             visitor.VisitFunctionWindow(this);

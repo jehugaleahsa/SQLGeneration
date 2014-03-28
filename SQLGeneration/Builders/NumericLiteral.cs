@@ -44,25 +44,6 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets a string representing the item.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The generated text.</returns>
-        protected override TokenStream GetTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            if (Format == null)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.Number, Value.ToString(CultureInfo.InvariantCulture)));
-            }
-            else
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.Number, Value.ToString(Format, CultureInfo.InvariantCulture)));
-            }
-            return stream;
-        }
-
-        /// <summary>
         /// Provides information to the given visitor about the current builder.
         /// </summary>
         /// <param name="visitor">The visitor requesting information.</param>

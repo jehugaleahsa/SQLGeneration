@@ -46,21 +46,6 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets the tokens for specifying a window frame.
-        /// </summary>
-        /// <param name="options">The configuration settings to use when generating tokens.</param>
-        /// <returns>The tokens making up the window frame.</returns>
-        protected override TokenStream GetWindowFrameTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.Between, "BETWEEN"));
-            stream.AddRange(PrecedingFrame.GetFrameTokens(options));
-            stream.Add(new TokenResult(SqlTokenRegistry.And, "AND"));
-            stream.AddRange(FollowingFrame.GetFrameTokens(options));
-            return stream;
-        }
-
-        /// <summary>
         /// Provides information to the given visitor about the current builder.
         /// </summary>
         /// <param name="visitor">The visitor requesting information.</param>

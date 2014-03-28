@@ -56,43 +56,6 @@ namespace SQLGeneration.Builders
             private set;
         }
 
-        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
-        {
-            return getColumnTokens(options);
-        }
-
-        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
-        {
-            return getColumnTokens(options);
-        }
-
-        TokenStream IGroupByItem.GetGroupByTokens(CommandOptions options)
-        {
-            return getColumnTokens(options);
-        }
-
-        private TokenStream getColumnTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            bool qualify = Source != null 
-                && (Qualify ?? (options.IsSelect
-                || (options.IsInsert && options.QualifyInsertColumns)
-                || (options.IsUpdate && options.QualifyUpdateColumns)
-                || (options.IsDelete && options.QualifyDeleteColumns)));
-            if (qualify)
-            {
-                stream.AddRange(Source.GetReferenceTokens(options));
-                stream.Add(new TokenResult(SqlTokenRegistry.Dot, "."));
-            }
-            stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Name));
-            return stream;
-        }
-
-        string IProjectionItem.GetProjectionName()
-        {
-            return Name;
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             visitor.VisitColumn(this);

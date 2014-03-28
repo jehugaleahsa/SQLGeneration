@@ -10,7 +10,7 @@ namespace SQLGeneration.Builders
         /// <summary>
         /// Gets whether the join item is a SELECT statement.
         /// </summary>
-        bool IsTable
+        bool IsAliasRequired
         {
             get;
         }

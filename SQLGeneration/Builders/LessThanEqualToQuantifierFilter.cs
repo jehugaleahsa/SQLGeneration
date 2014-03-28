@@ -20,16 +20,6 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets the comparison operator applied to the value set.
-        /// </summary>
-        /// <param name="options">The configuration settings to use when building the command.</param>
-        /// <returns>The token representing the comparison operator.</returns>
-        protected override TokenResult GetComparisonOperator(CommandOptions options)
-        {
-            return new TokenResult(SqlTokenRegistry.LessThanEqualTo, "<=");
-        }
-
-        /// <summary>
         /// Provides information to the given visitor about the current builder.
         /// </summary>
         /// <param name="visitor">The visitor requesting information.</param>

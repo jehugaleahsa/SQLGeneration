@@ -46,20 +46,6 @@ namespace SQLGeneration.Builders
             get { return _value; }
         }
 
-        /// <summary>
-        /// Gets the expression for setting a column in an update statement.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The setter expression.</returns>
-        internal TokenStream GetSetterTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.AddRange(((IProjectionItem)_column).GetProjectionTokens(options));
-            stream.Add(new TokenResult(SqlTokenRegistry.EqualTo, "="));
-            stream.AddRange(_value.GetProjectionTokens(options));
-            return stream;
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             visitor.VisitSetter(this);

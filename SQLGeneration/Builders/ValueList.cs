@@ -30,11 +30,11 @@ namespace SQLGeneration.Builders
             {
                 throw new ArgumentNullException("values");
             }
-            if (values.Contains(null))
+            _values = new List<IProjectionItem>();
+            foreach (IProjectionItem value in values)
             {
-                throw new ArgumentNullException("values");
+                AddValue(value);
             }
-            _values = new List<IProjectionItem>(values);
         }
 
         /// <summary>
@@ -70,26 +70,6 @@ namespace SQLGeneration.Builders
                 throw new ArgumentNullException("item");
             }
             return _values.Remove(item);
-        }
-
-        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
-        {
-            using (IEnumerator<IProjectionItem> enumerator = _values.GetEnumerator())
-            {
-                TokenStream stream = new TokenStream();
-                stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
-                if (enumerator.MoveNext())
-                {
-                    stream.AddRange(enumerator.Current.GetProjectionTokens(options));
-                    while (enumerator.MoveNext())
-                    {
-                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
-                        stream.AddRange(enumerator.Current.GetProjectionTokens(options));
-                    }
-                }
-                stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
-                return stream;
-            }
         }
 
         bool IValueProvider.IsValueList

@@ -49,29 +49,5 @@ namespace SQLGeneration.Builders
         {
             get { return qualifiers; }
         }
-
-        /// <summary>
-        /// Gets the tokens making up the namespace.
-        /// </summary>
-        /// <param name="options">The configuration settings to use when generating tokens.</param>
-        /// <returns>The tokens making up the namespace.</returns>
-        internal TokenStream GetNamespaceTokens(CommandOptions options)
-        {
-            using (IEnumerator<string> enumerator = qualifiers.GetEnumerator())
-            {
-                if (!enumerator.MoveNext())
-                {
-                    throw new SQLGenerationException(Resources.EmptyNamespace);
-                }
-                TokenStream stream = new TokenStream();
-                stream.Add(new TokenResult(SqlTokenRegistry.Identifier, enumerator.Current));
-                while (enumerator.MoveNext())
-                {
-                    stream.Add(new TokenResult(SqlTokenRegistry.Dot, "."));
-                    stream.Add(new TokenResult(SqlTokenRegistry.Identifier, enumerator.Current));
-                }
-                return stream;
-            }
-        }
     }
 }

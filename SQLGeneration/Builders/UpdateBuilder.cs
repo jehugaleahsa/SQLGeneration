@@ -108,58 +108,6 @@ namespace SQLGeneration.Builders
             return _where.RemoveFilter(filter);
         }
 
-        /// <summary>
-        /// Gets the command text.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        TokenStream ICommand.GetCommandTokens(CommandOptions options)
-        {
-            if (options == null)
-            {
-                throw new ArgumentNullException("options");
-            }
-            options = options.Clone();
-            options.IsSelect = false;
-            options.IsInsert = false;
-            options.IsUpdate = true;
-            options.IsDelete = false;
-            return getCommandTokens(options);
-        }
-
-        private TokenStream getCommandTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.Update, "UPDATE"));
-            stream.AddRange(((IJoinItem)_table).GetDeclarationTokens(options));
-            stream.Add(new TokenResult(SqlTokenRegistry.Set, "SET"));
-            stream.AddRange(buildSetterList(options));
-            if (_where.HasFilters)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.Where, "WHERE"));
-                stream.AddRange(((IFilter)_where).GetFilterTokens(options));
-            }
-            return stream;
-        }
-
-        private TokenStream buildSetterList(CommandOptions options)
-        {
-            using (IEnumerator<Setter> enumerator = _setters.GetEnumerator())
-            {
-                if (!enumerator.MoveNext())
-                {
-                    throw new SQLGenerationException(Resources.NoSetters);
-                }
-                TokenStream stream = new TokenStream();
-                stream.AddRange(enumerator.Current.GetSetterTokens(options));
-                while (enumerator.MoveNext())
-                {
-                    stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
-                    stream.AddRange(enumerator.Current.GetSetterTokens(options));
-                }
-                return stream;
-            }
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             visitor.VisitUpdate(this);

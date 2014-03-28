@@ -83,6 +83,14 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// Clears the group of all filters.
+        /// </summary>
+        public void Clear()
+        {
+            _filters.Clear();
+        }
+
+        /// <summary>
         /// Gets whether there are any filters in the group.
         /// </summary>
         public bool HasFilters
@@ -96,51 +104,6 @@ namespace SQLGeneration.Builders
         internal int Count
         {
             get { return _filters.Count; }
-        }
-
-        /// <summary>
-        /// Gets the filter text irrespective of the parentheses.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>A string representing the filter.</returns>
-        protected override TokenStream GetInnerFilterTokens(CommandOptions options)
-        {
-            using (IEnumerator<IFilter> enumerator = _filters.GetEnumerator())
-            {
-                if (!enumerator.MoveNext())
-                {
-                    throw new SQLGenerationException(Resources.EmptyFilterGroup);
-                }
-                TokenStream stream = new TokenStream();
-                stream.AddRange(enumerator.Current.GetFilterTokens(options));
-                while (enumerator.MoveNext())
-                {
-                    ConjunctionConverter converter = new ConjunctionConverter();
-                    stream.Add(converter.ToToken(_conjunction));
-                    stream.AddRange(enumerator.Current.GetFilterTokens(options));
-                }
-                return stream;
-            }
-        }
-
-        /// <summary>
-        /// Determines whether the filter should be surrounded by parentheses.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>True if the filter should be surround by parentheses; otherwise, false.</returns>
-        protected override bool ShouldWrapInParentheses(CommandOptions options)
-        {
-            // Add parenthesis when they are explicitly requested
-            if (WrapInParentheses == true)
-            {
-                return true;
-            }
-            // Add parenthesis when precedence should be automatic
-            if (options.WrapFiltersInParentheses && _conjunction == Conjunction.Or)
-            {
-                return true;
-            }
-            return false;
         }
 
         /// <summary>

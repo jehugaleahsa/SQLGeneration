@@ -1066,7 +1066,7 @@ namespace SQLGeneration.Tests
 
             Formatter formatter = new Formatter();
             string actual = formatter.GetCommandText(builder);
-            string expected = "SELECT Employee.Type AS Type, COUNT(1) OVER (PARTITION BY Type) AS Count FROM Employee";
+            string expected = "SELECT Employee.Type AS Type, COUNT(1) OVER (PARTITION BY Employee.Type) AS Count FROM Employee";
             Assert.AreEqual(expected, actual, "The wrong SQL was generated.");
         }
 
@@ -1086,7 +1086,7 @@ namespace SQLGeneration.Tests
             FunctionWindow window = new FunctionWindow();
             window.AddPartition(productId);
             window.AddOrderBy(new OrderBy(monthNumber));
-            window.Frame = new BetweenWindowFrame(new UnboundFrame(), new UnboundFrame());
+            window.Frame = new BetweenWindowFrame(new PrecedingUnboundFrame(), new FollowingUnboundFrame());
             function.FunctionWindow = window;
             builder.AddProjection(function);
 
@@ -1112,7 +1112,7 @@ namespace SQLGeneration.Tests
             FunctionWindow window = new FunctionWindow();
             window.AddPartition(productId);
             window.AddOrderBy(new OrderBy(monthNumber));
-            window.Frame = new PrecedingOnlyWindowFrame(new BoundFrame(12));
+            window.Frame = new PrecedingOnlyWindowFrame(new PrecedingBoundFrame(12));
             function.FunctionWindow = window;
             builder.AddProjection(function);
 
@@ -1159,13 +1159,13 @@ namespace SQLGeneration.Tests
             AliasedSource source = builder.AddTable(new Table("Table"));
             Column column = source.Column("Column");
             MatchCase options = new MatchCase(column);
-            options.AddCaseOption(new NumericLiteral(0), new StringLiteral("Sunday"));
-            options.AddCaseOption(new NumericLiteral(1), new StringLiteral("Monday"));
-            options.AddCaseOption(new NumericLiteral(2), new StringLiteral("Tuesday"));
-            options.AddCaseOption(new NumericLiteral(3), new StringLiteral("Wednesday"));
-            options.AddCaseOption(new NumericLiteral(4), new StringLiteral("Thursday"));
-            options.AddCaseOption(new NumericLiteral(5), new StringLiteral("Friday"));
-            options.AddCaseOption(new NumericLiteral(6), new StringLiteral("Saturday"));
+            options.AddBranch(new NumericLiteral(0), new StringLiteral("Sunday"));
+            options.AddBranch(new NumericLiteral(1), new StringLiteral("Monday"));
+            options.AddBranch(new NumericLiteral(2), new StringLiteral("Tuesday"));
+            options.AddBranch(new NumericLiteral(3), new StringLiteral("Wednesday"));
+            options.AddBranch(new NumericLiteral(4), new StringLiteral("Thursday"));
+            options.AddBranch(new NumericLiteral(5), new StringLiteral("Friday"));
+            options.AddBranch(new NumericLiteral(6), new StringLiteral("Saturday"));
             builder.AddProjection(options);
 
             Formatter formatter = new Formatter();
@@ -1184,7 +1184,7 @@ namespace SQLGeneration.Tests
             AliasedSource source = builder.AddTable(new Table("Table"));
             Column column = source.Column("Column");
             MatchCase options = new MatchCase(column);
-            options.AddCaseOption(new StringLiteral("Admin"), new StringLiteral("Administrator"));
+            options.AddBranch(new StringLiteral("Admin"), new StringLiteral("Administrator"));
             options.Default = new StringLiteral("User");
             builder.AddProjection(options);
 
@@ -1204,13 +1204,13 @@ namespace SQLGeneration.Tests
             AliasedSource source = builder.AddTable(new Table("Table"));
             Column column = source.Column("Column");
             ConditionalCase options = new ConditionalCase();
-            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(0)), new StringLiteral("Sunday"));
-            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(1)), new StringLiteral("Monday"));
-            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(2)), new StringLiteral("Tuesday"));
-            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(3)), new StringLiteral("Wednesday"));
-            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(4)), new StringLiteral("Thursday"));
-            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(5)), new StringLiteral("Friday"));
-            options.AddCaseOption(new EqualToFilter(column, new NumericLiteral(6)), new StringLiteral("Saturday"));
+            options.AddBranch(new EqualToFilter(column, new NumericLiteral(0)), new StringLiteral("Sunday"));
+            options.AddBranch(new EqualToFilter(column, new NumericLiteral(1)), new StringLiteral("Monday"));
+            options.AddBranch(new EqualToFilter(column, new NumericLiteral(2)), new StringLiteral("Tuesday"));
+            options.AddBranch(new EqualToFilter(column, new NumericLiteral(3)), new StringLiteral("Wednesday"));
+            options.AddBranch(new EqualToFilter(column, new NumericLiteral(4)), new StringLiteral("Thursday"));
+            options.AddBranch(new EqualToFilter(column, new NumericLiteral(5)), new StringLiteral("Friday"));
+            options.AddBranch(new EqualToFilter(column, new NumericLiteral(6)), new StringLiteral("Saturday"));
             builder.AddProjection(options);
 
             Formatter formatter = new Formatter();
@@ -1229,7 +1229,7 @@ namespace SQLGeneration.Tests
             AliasedSource source = builder.AddTable(new Table("Table"));
             Column column = source.Column("Column");
             ConditionalCase options = new ConditionalCase();
-            options.AddCaseOption(new EqualToFilter(column, new StringLiteral("Admin")), new StringLiteral("Administrator"));
+            options.AddBranch(new EqualToFilter(column, new StringLiteral("Admin")), new StringLiteral("Administrator"));
             options.Default = new StringLiteral("User");
             builder.AddProjection(options);
 

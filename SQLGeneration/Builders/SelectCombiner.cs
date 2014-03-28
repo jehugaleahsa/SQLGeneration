@@ -101,103 +101,19 @@ namespace SQLGeneration.Builders
             return orderBy.Remove(item);
         }
 
-        /// <summary>
-        /// Gets the command expression.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The expression making up the command.</returns>
-        TokenStream ICommand.GetCommandTokens(CommandOptions options)
-        {
-            if (options == null)
-            {
-                throw new ArgumentNullException("options");
-            }
-            return getCommandTokens(options);
-        }
-
-        /// <summary>
-        /// Retrieves the text used to combine two queries.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The text used to combine two queries.</returns>
-        protected abstract TokenResult GetCombinationType(CommandOptions options);
-
-        TokenStream IJoinItem.GetDeclarationTokens(CommandOptions options)
-        {
-            return getWrappedCommandTokens(options);
-        }
-
-        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
-        {
-            return getWrappedCommandTokens(options);
-        }
-
-        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
-        {
-            return getWrappedCommandTokens(options);
-        }
-
-        private TokenStream getWrappedCommandTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
-            stream.AddRange(getCommandTokens(options));
-            stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
-            return stream;
-        }
-
-        private TokenStream getCommandTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.AddRange(leftHand.GetCommandTokens(options));
-            stream.Add(GetCombinationType(options));
-            if (Distinct != DistinctQualifier.Default)
-            {
-                DistinctQualifierConverter converter = new DistinctQualifierConverter();
-                stream.Add(converter.ToToken(Distinct));
-            }
-            stream.AddRange(rightHand.GetCommandTokens(options));
-            stream.AddRange(buildOrderBy(options));
-            return stream;
-        }
-
-        private TokenStream buildOrderBy(CommandOptions options)
-        {
-            using (IEnumerator<OrderBy> enumerator = orderBy.GetEnumerator())
-            {
-                TokenStream stream = new TokenStream();
-                if (enumerator.MoveNext())
-                {
-                    stream.Add(new TokenResult(SqlTokenRegistry.OrderBy, "ORDER BY"));
-                    stream.AddRange(enumerator.Current.GetOrderByTokens(options));
-                    while (enumerator.MoveNext())
-                    {
-                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
-                        stream.AddRange(enumerator.Current.GetOrderByTokens(options));
-                    }
-                }
-                return stream;
-            }
-        }
-
         string IRightJoinItem.GetSourceName()
         {
             return null;
         }
 
-        bool IRightJoinItem.IsTable
+        bool IRightJoinItem.IsAliasRequired
         {
-            get { return false; }
+            get { return true; }
         }
 
         bool IValueProvider.IsValueList
         {
             get { return false; }
-        }
-
-        string IProjectionItem.GetProjectionName()
-        {
-            return null;
         }
 
         void IVisitableBuilder.Accept(BuilderVisitor visitor)

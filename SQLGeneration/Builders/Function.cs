@@ -11,7 +11,7 @@ namespace SQLGeneration.Builders
     public class Function : Filter, IProjectionItem, IRightJoinItem, IFilterItem, IGroupByItem, IValueProvider
     {
         private readonly Namespace qualifier;
-        private readonly ValueList arguments;
+        private readonly List<IProjectionItem> arguments;
 
         /// <summary>
         /// Initializes a new instance of a Function.
@@ -56,7 +56,7 @@ namespace SQLGeneration.Builders
             }
             this.qualifier = qualifier;
             Name = name;
-            this.arguments = new ValueList(arguments);
+            this.arguments = new List<IProjectionItem>(arguments);
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace SQLGeneration.Builders
         /// </summary>
         public IEnumerable<IProjectionItem> Arguments
         {
-            get { return arguments.Values; }
+            get { return arguments; }
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace SQLGeneration.Builders
         /// <param name="item">The value to add.</param>
         public void AddArgument(IProjectionItem item)
         {
-            arguments.AddValue(item);
+            arguments.Add(item);
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace SQLGeneration.Builders
         /// <returns>True if the item was removed; otherwise, false.</returns>
         public bool RemoveArgument(IProjectionItem item)
         {
-            return arguments.RemoveValue(item);
+            return arguments.Remove(item);
         }
 
         /// <summary>
@@ -112,46 +112,9 @@ namespace SQLGeneration.Builders
             set;
         }
 
-        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
+        bool IRightJoinItem.IsAliasRequired
         {
-            return getFunctionTokens(options);
-        }
-
-        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
-        {
-            return getFunctionTokens(options);
-        }
-
-        TokenStream IGroupByItem.GetGroupByTokens(CommandOptions options)
-        {
-            return getFunctionTokens(options);
-        }
-
-        private TokenStream getFunctionTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            if (qualifier != null)
-            {
-                stream.AddRange(qualifier.GetNamespaceTokens(options));
-                stream.Add(new TokenResult(SqlTokenRegistry.Dot, "."));
-            }
-            stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Name));
-            stream.AddRange(((IFilterItem)arguments).GetFilterTokens(options));
-            if (FunctionWindow != null)
-            {
-                stream.AddRange(FunctionWindow.GetDeclarationTokens(options));
-            }
-            return stream;
-        }
-
-        string IProjectionItem.GetProjectionName()
-        {
-            return null;
-        }
-
-        bool IRightJoinItem.IsTable
-        {
-            get { return false; }
+            get { return true; }
         }
 
         string IRightJoinItem.GetSourceName()
@@ -159,24 +122,9 @@ namespace SQLGeneration.Builders
             return null;
         }
 
-        TokenStream IJoinItem.GetDeclarationTokens(CommandOptions options)
-        {
-            return getFunctionTokens(options);
-        }
-
         bool IValueProvider.IsValueList
         {
             get { return false; }
-        }
-
-        /// <summary>
-        /// Gets the filter text irrespective of the parentheses.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>A string representing the filter.</returns>
-        protected override TokenStream GetInnerFilterTokens(CommandOptions options)
-        {
-            return getFunctionTokens(options);
         }
 
         /// <summary>

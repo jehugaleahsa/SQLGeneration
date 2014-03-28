@@ -40,15 +40,15 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="qualifier">The qualifier to convert to a string.</param>
         /// <returns>The string representation.</returns>
-        public TokenResult ToToken(DistinctQualifier qualifier)
+        public string ToString(DistinctQualifier qualifier)
         {
             switch (qualifier)
             {
                 case DistinctQualifier.All:
                 case DistinctQualifier.Default:
-                    return new TokenResult(SqlTokenRegistry.All, "ALL");
+                    return "ALL";
                 case DistinctQualifier.Distinct:
-                    return new TokenResult(SqlTokenRegistry.Distinct, "DISTINCT");
+                    return "DISTINCT";
                 default:
                     throw new ArgumentException(Resources.UnknownDistinctQualifier, "qualifier");
             }

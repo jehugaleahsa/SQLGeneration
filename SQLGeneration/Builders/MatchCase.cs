@@ -11,7 +11,7 @@ namespace SQLGeneration.Builders
     /// </summary>
     public class MatchCase : IProjectionItem, IFilterItem, IGroupByItem
     {
-        private readonly List<Tuple<IProjectionItem, IProjectionItem>> options;
+        private readonly List<MatchCaseBranch> branches;
 
         /// <summary>
         /// Initializes a new instance of a MatchCase.
@@ -24,11 +24,11 @@ namespace SQLGeneration.Builders
                 throw new ArgumentNullException("item");
             }
             Item = item;
-            options = new List<Tuple<IProjectionItem, IProjectionItem>>();
+            branches = new List<MatchCaseBranch>();
         }
 
         /// <summary>
-        /// Gets the item that will be compared to the different values.
+        /// Gets the item that will be compared to the different branch options.
         /// </summary>
         public IProjectionItem Item 
         { 
@@ -37,49 +37,47 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets the values that the item will be compared to.
+        /// Gets the case branches.
         /// </summary>
-        public IEnumerable<IProjectionItem> Options
+        public IEnumerable<MatchCaseBranch> Branches
         {
-            get { return options.Select(pair => pair.Item1); }
+            get { return branches; }
         }
 
         /// <summary>
-        /// Adds the case option to the case expression.
+        /// Adds a branch with the given option and value to the case expression.
         /// </summary>
         /// <param name="option">The value that the case item must equal for given the result to be returned.</param>
-        /// <param name="result">The value to return when the item equals the option.</param>
-        public void AddCaseOption(IProjectionItem option, IProjectionItem result)
+        /// <param name="value">The value to return when the item equals the option.</param>
+        public MatchCaseBranch AddBranch(IProjectionItem option, IProjectionItem value)
         {
             if (option == null)
             {
                 throw new ArgumentNullException("option");
             }
-            if (result == null)
+            if (value == null)
             {
-                throw new ArgumentNullException("result");
+                throw new ArgumentNullException("value");
             }
-            options.Add(Tuple.Create(option, result));
+            MatchCaseBranch branch = new MatchCaseBranch();
+            branch.Option = option;
+            branch.Value = value;
+            branches.Add(branch);
+            return branch;
         }
 
         /// <summary>
-        /// Removes the case option.
+        /// Removes the branch.
         /// </summary>
-        /// <param name="option">The value of the option to be removed.</param>
-        /// <returns>True if a case with the given option was found; otherwise, false.</returns>
-        public bool RemoveCaseOption(IProjectionItem option)
+        /// <param name="branch">The branch to be removed.</param>
+        /// <returns>True if the branch was found; otherwise, false.</returns>
+        public bool RemoveBranch(MatchCaseBranch branch)
         {
-            if (option == null)
+            if (branch == null)
             {
-                throw new ArgumentNullException("option");
+                throw new ArgumentNullException("branch");
             }
-            int index = options.FindIndex(pair => pair.Item1 == option);
-            if (index != -1)
-            {
-                options.RemoveAt(index);
-                return true;
-            }
-            return false;
+            return branches.Remove(branch);
         }
 
         /// <summary>
@@ -89,53 +87,6 @@ namespace SQLGeneration.Builders
         {
             get;
             set;
-        }
-
-        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
-        {
-            return getTokens(options);
-        }
-
-        string IProjectionItem.GetProjectionName()
-        {
-            return null;
-        }
-
-        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
-        {
-            return getTokens(options);
-        }
-
-        TokenStream IGroupByItem.GetGroupByTokens(CommandOptions options)
-        {
-            return getTokens(options);
-        }
-
-        private TokenStream getTokens(CommandOptions options)
-        {
-            if (this.options.Count == 0)
-            {
-                throw new SQLGenerationException(Resources.EmptyCaseExpression);
-            }
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.Case, "CASE"));
-            stream.AddRange(Item.GetProjectionTokens(options));
-            foreach (Tuple<IProjectionItem, IProjectionItem> pair in this.options)
-            {
-                IProjectionItem option = pair.Item1;
-                IProjectionItem result = pair.Item2;
-                stream.Add(new TokenResult(SqlTokenRegistry.When, "WHEN"));
-                stream.AddRange(option.GetProjectionTokens(options));
-                stream.Add(new TokenResult(SqlTokenRegistry.Then, "THEN"));
-                stream.AddRange(result.GetProjectionTokens(options));
-            }
-            if (Default != null)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.Else, "ELSE"));
-                stream.AddRange(Default.GetProjectionTokens(options));
-            }
-            stream.Add(new TokenResult(SqlTokenRegistry.End, "END"));
-            return stream;
         }
 
         void IVisitableBuilder.Accept(BuilderVisitor visitor)

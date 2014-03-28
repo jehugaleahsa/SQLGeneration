@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AliasRequired" xml:space="preserve">
+    <value>A reference was made to a source without defining an alias for it.</value>
+  </data>
   <data name="BlankColumnName" xml:space="preserve">
     <value>Encountered a null or blank column name.</value>
   </data>
@@ -179,15 +182,6 @@
   </data>
   <data name="NoSetters" xml:space="preserve">
     <value>An attempt was made to build an update statement without any setters.</value>
-  </data>
-  <data name="ReferencedJoinWithoutAlias" xml:space="preserve">
-    <value>A reference to a join was made without defining an alias for it.</value>
-  </data>
-  <data name="ReferencedQueryCombinerWithoutAlias" xml:space="preserve">
-    <value>A reference to a compound command was made without defining an alias for it.</value>
-  </data>
-  <data name="ReferencedQueryWithoutAlias" xml:space="preserve">
-    <value>A reference to a sub-select was made without defining an alias for it.</value>
   </data>
   <data name="UnexpectedToken" xml:space="preserve">
     <value>Encountered unexpected token: {0}.</value>

@@ -85,59 +85,6 @@ namespace SQLGeneration.Builders
             get { return _values; }
         }
 
-        /// <summary>
-        /// Gets the SQL for the insert statement.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        TokenStream ICommand.GetCommandTokens(CommandOptions options)
-        {
-            if (options == null)
-            {
-                throw new ArgumentNullException("options");
-            }
-            options = options.Clone();
-            options.IsSelect = false;
-            options.IsInsert = true;
-            options.IsUpdate = false;
-            options.IsDelete = false;
-            return getCommandToken(options);
-        }
-
-        private TokenStream getCommandToken(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.Insert, "INSERT"));
-            stream.Add(new TokenResult(SqlTokenRegistry.Into, "INTO"));
-            stream.AddRange(((IJoinItem)_table).GetDeclarationTokens(options));
-            stream.AddRange(buildColumnList(options));
-            if (_values.IsValueList)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.Values, "VALUES"));
-            }
-            stream.AddRange(_values.GetFilterTokens(options));
-            return stream;
-        }
-
-        private TokenStream buildColumnList(CommandOptions options)
-        {
-            using (IEnumerator<Column> enumerator = _columns.GetEnumerator())
-            {
-                TokenStream stream = new TokenStream();
-                if (enumerator.MoveNext())
-                {
-                    stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
-                    stream.AddRange(((IProjectionItem)enumerator.Current).GetProjectionTokens(options));
-                    while (enumerator.MoveNext())
-                    {
-                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
-                        stream.AddRange(((IProjectionItem)enumerator.Current).GetProjectionTokens(options));
-                    }
-                    stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
-                }
-                return stream;
-            }
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             visitor.VisitInsert(this);

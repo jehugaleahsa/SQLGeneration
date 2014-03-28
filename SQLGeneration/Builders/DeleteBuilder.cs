@@ -70,42 +70,6 @@ namespace SQLGeneration.Builders
             return _where.RemoveFilter(filter);
         }
 
-        /// <summary>
-        /// Gets the command, formatting it using the given options.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The command text.</returns>
-        TokenStream ICommand.GetCommandTokens(CommandOptions options)
-        {
-            if (options == null)
-            {
-                throw new ArgumentNullException("options");
-            }
-            options = options.Clone();
-            options.IsSelect = false;
-            options.IsInsert = false;
-            options.IsUpdate = false;
-            options.IsDelete = true;
-            return getCommandTokens(options);
-        }
-
-        private TokenStream getCommandTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.Delete, "DELETE"));
-            if (options.VerboseDeleteStatement)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.From, "FROM"));
-            }
-            stream.AddRange(((IJoinItem)_table).GetDeclarationTokens(options));
-            if (_where.HasFilters)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.Where, "WHERE"));
-                stream.AddRange(((IFilter)_where).GetFilterTokens(options));
-            }
-            return stream;
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             visitor.VisitDelete(this);

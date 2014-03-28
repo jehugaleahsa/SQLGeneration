@@ -71,7 +71,6 @@ namespace SQLGeneration.Builders
                 throw new ArgumentNullException("item");
             }
             AliasedProjection projection = new AliasedProjection(item, alias);
-            string name = projection.GetProjectionName();
             _projection.Add(projection);
             return projection;
         }
@@ -357,169 +356,14 @@ namespace SQLGeneration.Builders
             return _having.RemoveFilter(filter);
         }
 
-        /// <summary>
-        /// Gets the SQL that represents the query.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        TokenStream ICommand.GetCommandTokens(CommandOptions options)
-        {
-            if (options == null)
-            {
-                throw new ArgumentNullException("options");
-            }
-            options = options.Clone();
-            options.IsSelect = true;
-            options.IsInsert = false;
-            options.IsUpdate = false;
-            options.IsDelete = false;
-            return getCommandTokens(options);
-        }
-
-        private TokenStream getCommandTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.Select, "SELECT"));
-            if (Distinct != DistinctQualifier.Default)
-            {
-                DistinctQualifierConverter converter = new DistinctQualifierConverter();
-                stream.Add(converter.ToToken(Distinct));
-            }
-            if (Top != null)
-            {
-                stream.AddRange(Top.GetTopTokens(options));
-            }
-            stream.AddRange(buildProjection(options));
-            stream.AddRange(buildFrom(options));
-            if (_where.HasFilters)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.Where, "WHERE"));
-                stream.AddRange(((IFilter)_where).GetFilterTokens(options));
-            }
-            stream.AddRange(buildGroupBy(options));
-            if (_having.HasFilters)
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.Having, "HAVING"));
-                stream.AddRange(((IFilter)_having).GetFilterTokens(options));
-            }
-            stream.AddRange(buildOrderBy(options));
-            return stream;
-        }
-
-        private TokenStream buildProjection(CommandOptions options)
-        {
-            using (IEnumerator<AliasedProjection> enumerator = _projection.GetEnumerator())
-            {
-                if (!enumerator.MoveNext())
-                {
-                    throw new SQLGenerationException(Resources.NoProjections);
-                }
-                TokenStream stream = new TokenStream();
-                stream.AddRange(enumerator.Current.GetDeclarationTokens(options));
-                while (enumerator.MoveNext())
-                {
-                    stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
-                    stream.AddRange(enumerator.Current.GetDeclarationTokens(options));
-                }
-                return stream;
-            }
-        }
-
-        private TokenStream buildFrom(CommandOptions options)
-        {
-            using (IEnumerator<IJoinItem> enumerator = _from.GetEnumerator())
-            {
-                TokenStream stream = new TokenStream();
-                if (enumerator.MoveNext())
-                {
-                    stream.Add(new TokenResult(SqlTokenRegistry.From, "FROM"));
-                    stream.AddRange(enumerator.Current.GetDeclarationTokens(options));
-                    while (enumerator.MoveNext())
-                    {
-                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
-                        stream.AddRange(enumerator.Current.GetDeclarationTokens(options));
-                    }
-                }
-                return stream;
-            }
-        }
-
-        private TokenStream buildGroupBy(CommandOptions options)
-        {
-            using (IEnumerator<IGroupByItem> enumerator = _groupBy.GetEnumerator())
-            {
-                TokenStream stream = new TokenStream();
-                if (enumerator.MoveNext())
-                {
-                    stream.Add(new TokenResult(SqlTokenRegistry.GroupBy, "GROUP BY"));
-                    stream.AddRange(enumerator.Current.GetGroupByTokens(options));
-                    while (enumerator.MoveNext())
-                    {
-                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
-                        stream.AddRange(enumerator.Current.GetGroupByTokens(options));
-                    }
-                }
-                return stream;
-            }
-        }
-
-        private TokenStream buildOrderBy(CommandOptions options)
-        {
-            using (IEnumerator<OrderBy> enumerator = _orderBy.GetEnumerator())
-            {
-                TokenStream stream = new TokenStream();
-                if (enumerator.MoveNext())
-                {
-                    stream.Add(new TokenResult(SqlTokenRegistry.OrderBy, "ORDER BY"));
-                    stream.AddRange(enumerator.Current.GetOrderByTokens(options));
-                    while (enumerator.MoveNext())
-                    {
-                        stream.Add(new TokenResult(SqlTokenRegistry.Comma, ","));
-                        stream.AddRange(enumerator.Current.GetOrderByTokens(options));
-                    }
-                }
-                return stream;
-            }
-        }
-
-        TokenStream IJoinItem.GetDeclarationTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.AddRange(getSelectContentTokens(options));
-            return stream;
-        }
-
-        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
-        {
-            return getSelectContentTokens(options);
-        }
-
-        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
-        {
-            return getSelectContentTokens(options);
-        }
-
-        TokenStream getSelectContentTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.LeftParenthesis, "("));
-            stream.AddRange(getCommandTokens(options));
-            stream.Add(new TokenResult(SqlTokenRegistry.RightParenthesis, ")"));
-            return stream;
-        }
-
         string IRightJoinItem.GetSourceName()
         {
             return null;
         }
 
-        string IProjectionItem.GetProjectionName()
+        bool IRightJoinItem.IsAliasRequired
         {
-            return null;
-        }
-
-        bool IRightJoinItem.IsTable
-        {
-            get { return false; }
+            get { return true; }
         }
 
         bool IValueProvider.IsValueList
@@ -529,7 +373,7 @@ namespace SQLGeneration.Builders
 
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
-            visitor.VisitSelectBuilder(this);
+            visitor.VisitSelect(this);
         }
     }
 }

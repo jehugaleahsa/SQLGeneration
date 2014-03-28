@@ -40,15 +40,15 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="value">The type of the frame.</param>
         /// <returns>The string representing the given frame type.</returns>
-        public TokenResult ToToken(FrameType value)
+        public string ToString(FrameType value)
         {
             switch (value)
             {
                 case FrameType.Default:
                 case FrameType.Row:
-                    return new TokenResult(SqlTokenRegistry.Rows, "ROWS");
+                    return "ROWS";
                 case FrameType.Range:
-                    return new TokenResult(SqlTokenRegistry.Range, "RANGE");
+                    return "RANGE";
                 default:
                     throw new ArgumentException(Resources.UnknownFrameType, "value");
             }

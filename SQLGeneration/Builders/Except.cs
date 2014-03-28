@@ -19,16 +19,6 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Retrieves the text used to combine two queries.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The text used to combine two queries.</returns>
-        protected override TokenResult GetCombinationType(CommandOptions options)
-        {
-            return new TokenResult(SqlTokenRegistry.Except, "EXCEPT");
-        }
-
-        /// <summary>
         /// Provides information to the given visitor about the current builder.
         /// </summary>
         /// <param name="visitor">The visitor requesting information.</param>

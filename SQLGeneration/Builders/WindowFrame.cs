@@ -20,27 +20,6 @@ namespace SQLGeneration.Builders
         /// </summary>
         public FrameType FrameType { get; set; }
 
-        /// <summary>
-        /// Gets the tokens for specifying a window frame.
-        /// </summary>
-        /// <param name="options">The configuration settings to use when generating tokens.</param>
-        /// <returns>The tokens making up the window frame.</returns>
-        internal TokenStream GetDeclarationTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            FrameTypeConverter converter = new FrameTypeConverter();
-            stream.Add(converter.ToToken(FrameType));
-            stream.AddRange(GetWindowFrameTokens(options));
-            return stream;
-        }
-
-        /// <summary>
-        /// Gets the tokens for specifying a window frame.
-        /// </summary>
-        /// <param name="options">The configuration settings to use when generating tokens.</param>
-        /// <returns>The tokens making up the window frame.</returns>
-        protected abstract TokenStream GetWindowFrameTokens(CommandOptions options);
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             OnAccept(visitor);

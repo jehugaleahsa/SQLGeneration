@@ -53,49 +53,6 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
-        /// Gets the tokens comprising a declaration of the source.
-        /// </summary>
-        /// <param name="options">The configuration settings to use to generate the tokens.</param>
-        /// <returns>The tokens comprising a reference to the source.</returns>
-        TokenStream IJoinItem.GetDeclarationTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.AddRange(Source.GetDeclarationTokens(options));
-            if (!String.IsNullOrWhiteSpace(Alias))
-            {
-                if (options.AliasColumnSourcesUsingAs)
-                {
-                    stream.Add(new TokenResult(SqlTokenRegistry.As, "AS"));
-                }
-                stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Alias));
-            }
-            return stream;
-        }
-        
-        /// <summary>
-        /// Gets the tokens comprising a reference to the source.
-        /// </summary>
-        /// <param name="options">The configuration settings to use to generate the tokens.</param>
-        /// <returns>The tokens comprising a reference to the source..</returns>
-        internal TokenStream GetReferenceTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            if (String.IsNullOrWhiteSpace(Alias))
-            {
-                if (!Source.IsTable)
-                {
-                    throw new SQLGenerationException(Resources.ReferencedQueryWithoutAlias);
-                }
-                stream.AddRange(Source.GetDeclarationTokens(options));
-            }
-            else
-            {
-                stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Alias));
-            }
-            return stream;
-        }
-
-        /// <summary>
         /// Gets the name used to refer to the source.
         /// </summary>
         /// <returns>The name used to refer to the source.</returns>
@@ -113,7 +70,7 @@ namespace SQLGeneration.Builders
 
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
-            Source.Accept(visitor);
+            visitor.VisitAliasedSource(this);
         }
     }
 }

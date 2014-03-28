@@ -55,28 +55,5 @@ namespace SQLGeneration.Builders
             get;
             private set;
         }
-
-        /// <summary>
-        /// Gets the comparison operator applied to the value set.
-        /// </summary>
-        /// <param name="options">The configuration settings to use when building the command.</param>
-        /// <returns>The token representing the comparison operator.</returns>
-        protected abstract TokenResult GetComparisonOperator(CommandOptions options);
-
-        /// <summary>
-        /// Gets the filter text irrespective of the parentheses.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>A string representing the filter.</returns>
-        protected override TokenStream GetInnerFilterTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.AddRange(LeftHand.GetFilterTokens(options));
-            stream.Add(GetComparisonOperator(options));
-            QuantifierConverter converter = new QuantifierConverter();
-            stream.Add(converter.ToToken(Quantifier));
-            stream.AddRange(ValueProvider.GetFilterTokens(options));
-            return stream;
-        }
     }
 }

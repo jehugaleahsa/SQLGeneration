@@ -40,14 +40,14 @@ namespace SQLGeneration.Builders
         /// </summary>
         /// <param name="placement">The null placement to convert to a string.</param>
         /// <returns>The string representation.</returns>
-        public TokenResult ToToken(NullPlacement placement)
+        public string ToString(NullPlacement placement)
         {
             switch (placement)
             {
                 case NullPlacement.First:
-                    return new TokenResult(SqlTokenRegistry.NullsFirst, "NULLS FIRST");
+                    return "NULLS FIRST";
                 case NullPlacement.Last:
-                    return new TokenResult(SqlTokenRegistry.NullsLast, "NULLS LAST");
+                    return "NULLS LAST";
                 default:
                     throw new ArgumentException(Resources.UnknownNullPlacement, "placement");
             }

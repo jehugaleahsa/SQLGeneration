@@ -26,33 +26,6 @@ namespace SQLGeneration.Builders
             private set;
         }
 
-        TokenStream IProjectionItem.GetProjectionTokens(CommandOptions options)
-        {
-            return getPlaceholderToken();
-        }
-
-        TokenStream IGroupByItem.GetGroupByTokens(CommandOptions options)
-        {
-            return getPlaceholderToken();
-        }
-
-        TokenStream IFilterItem.GetFilterTokens(CommandOptions options)
-        {
-            return getPlaceholderToken();
-        }
-
-        private TokenStream getPlaceholderToken()
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.Identifier, Value));
-            return stream;
-        }
-
-        string IProjectionItem.GetProjectionName()
-        {
-            return null;
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             visitor.VisitPlaceholder(this);

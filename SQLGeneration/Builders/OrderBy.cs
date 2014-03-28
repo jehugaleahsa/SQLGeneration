@@ -75,28 +75,6 @@ namespace SQLGeneration.Builders
             set;
         }
 
-        /// <summary>
-        /// Gets the text making up the order by expression.
-        /// </summary>
-        /// <param name="options">The configuration to use when building the command.</param>
-        /// <returns>The order by text.</returns>
-        internal TokenStream GetOrderByTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.AddRange(Projection.GetReferenceTokens(options));
-            if (Order != Order.Default)
-            {
-                OrderConverter converter = new OrderConverter();
-                stream.Add(converter.ToToken(Order));
-            }
-            if (NullPlacement != NullPlacement.Default)
-            {
-                NullPlacementConverter converter = new NullPlacementConverter();
-                stream.Add(converter.ToToken(NullPlacement));
-            }
-            return stream;
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             visitor.VisitOrderBy(this);

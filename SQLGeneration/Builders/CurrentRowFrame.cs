@@ -15,23 +15,6 @@ namespace SQLGeneration.Builders
         {
         }
 
-        TokenStream IPrecedingFrame.GetFrameTokens(CommandOptions options)
-        {
-            return getTokens(options);
-        }
-
-        TokenStream IFollowingFrame.GetFrameTokens(CommandOptions options)
-        {
-            return getTokens(options);
-        }
-
-        private TokenStream getTokens(CommandOptions options)
-        {
-            TokenStream stream = new TokenStream();
-            stream.Add(new TokenResult(SqlTokenRegistry.CurrentRow, "CURRENT ROW"));
-            return stream;
-        }
-
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
         {
             visitor.VisitCurrentRowFrame(this);
