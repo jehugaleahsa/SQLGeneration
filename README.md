@@ -58,3 +58,8 @@ If you had to do that much typing for every SELECT statement, you'd probably jus
     
     Formatter formatter = new Formatter();
     commandText = formatter.GetCommandText(builder);
+
+## Licence
+If you are looking for a licence, you won't find one. The software in this project is free, as in "free as air". Feel free to use my software anyway you like. Use it to build up your evil war machine, swindle old people out of their social security or crush the souls of the innocent.
+
+I love to hear how people are using my code, so drop me a line. Feel free to contribute any enhancements or documentation you may come up with, but don't feel obligated. I just hope this code makes someone's life just a little bit easier.
