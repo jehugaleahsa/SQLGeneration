@@ -53,7 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SQLGeneration\SQLGeneration.csproj">
-      <Project>{A57BC336-3100-415B-91A5-B779CC64EF91}</Project>
+      <Project>{a57bc336-3100-415b-91a5-b779cc64ef91}</Project>
       <Name>SQLGeneration</Name>
     </ProjectReference>
   </ItemGroup>

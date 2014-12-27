@@ -1,16 +1,20 @@
 <?xml version="1.0"?>
-<package >
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
-    <id>$id$</id>
-    <version>$version$</version>
-    <title>$title$</title>
-    <authors>$author$</authors>
-    <owners>$author$</owners>
-    <projectUrl>http://github.com/jehugaleahsa/sqlgeneration</projectUrl>
+    <id>SQLGeneration.DazinatorFork</id>
+    <version>2.6.2</version>
+    <title>SQLGeneration (DazinatorFork)</title>
+    <authors>Dazinator</authors>
+    <owners>Dazinator</owners>
+    <projectUrl>https://github.com/dazinator/SQLGeneration</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>$description$</description>
-    <releaseNotes>Record Token Type When Building Commands</releaseNotes>
-    <copyright>Copyright 2013</copyright>
-    <tags>SQL generation builder building command select insert update delete</tags>
+    <description>A fork of the SQLGeneration code base.</description>
+    <releaseNotes>Small enhancement, SQLGeneration can now parse OUTPUT clauses that use the AllColumns (*) identifier - described here: https://github.com/dazinator/SQLGeneration/issues/7 </releaseNotes>
+    <copyright>Copyright 2014</copyright>
+    <tags>SQL generation builder sql parser sqlparser building command select insert update delete</tags>
   </metadata>
+  <files>
+    <file src="bin\Release\SqlGeneration.dll" target="lib\net40" />
+  </files>
+
 </package>

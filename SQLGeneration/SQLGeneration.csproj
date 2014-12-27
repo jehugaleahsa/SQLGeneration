@@ -23,7 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DocumentationFile>bin\Debug\SQLGeneration.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\SQLGeneration.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -37,7 +37,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>key.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>dazinator.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -46,11 +46,53 @@
     <Compile Include="Builders\AliasedProjection.cs" />
     <Compile Include="Builders\AliasedSource.cs" />
     <Compile Include="Builders\ArithmeticExpression.cs" />
+    <Compile Include="Builders\BatchBuilder.cs" />
     <Compile Include="Builders\BetweenFilter.cs" />
     <Compile Include="Builders\BetweenWindowFrame.cs" />
     <Compile Include="Builders\BuilderVisitor.cs" />
     <Compile Include="Builders\ConditionalCaseBranch.cs" />
     <Compile Include="Builders\ConditionalCase.cs" />
+    <Compile Include="Builders\DDL\AddColumns.cs" />
+    <Compile Include="Builders\DDL\AlterBuilder.cs" />
+    <Compile Include="Builders\DDL\AlterColumn.cs" />
+    <Compile Include="Builders\DDL\AlterColumnProperty.cs" />
+    <Compile Include="Builders\DDL\AlterDatabase.cs" />
+    <Compile Include="Builders\DDL\AlterTableDefinition.cs" />
+    <Compile Include="Builders\DDL\AlterAction.cs" />
+    <Compile Include="Builders\DDL\AutoIncrement.cs" />
+    <Compile Include="Builders\DDL\CascadeAction.cs" />
+    <Compile Include="Builders\DDL\ColumnDefinition.cs" />
+    <Compile Include="Builders\DDL\ColumnDefinitionList.cs" />
+    <Compile Include="Builders\DDL\Constraint.cs" />
+    <Compile Include="Builders\DDL\ConstraintList.cs" />
+    <Compile Include="Builders\DDL\DataType.cs" />
+    <Compile Include="Builders\DDL\CreateDatabase.cs" />
+    <Compile Include="Builders\DDL\DefaultConstraint.cs" />
+    <Compile Include="Builders\DDL\DropColumn.cs" />
+    <Compile Include="Builders\DDL\DropColumnsList.cs" />
+    <Compile Include="Builders\DDL\DropConstraint.cs" />
+    <Compile Include="Builders\DDL\DropConstraintsList.cs" />
+    <Compile Include="Builders\DDL\DropItemsList.cs" />
+    <Compile Include="Builders\DDL\ForeignKeyAction.cs" />
+    <Compile Include="Builders\DDL\ForeignKeyConstraint.cs" />
+    <Compile Include="Builders\DDL\IAlterBuilder.cs" />
+    <Compile Include="Builders\DDL\IDropTableItem.cs" />
+    <Compile Include="Builders\DDL\ITableAlteration.cs" />
+    <Compile Include="Builders\DDL\IColumnProperty.cs" />
+    <Compile Include="Builders\DDL\ICreateBuilder.cs" />
+    <Compile Include="Builders\DDL\IDatabaseObject.cs" />
+    <Compile Include="Builders\DDL\CreateBuilder.cs" />
+    <Compile Include="Builders\DDL\NoAction.cs" />
+    <Compile Include="Builders\DDL\NotForReplicationColumnProperty.cs" />
+    <Compile Include="Builders\DDL\PersistedColumnProperty.cs" />
+    <Compile Include="Builders\DDL\PrimaryKeyConstraint.cs" />
+    <Compile Include="Builders\DDL\RowGuidColumnProperty.cs" />
+    <Compile Include="Builders\DDL\SetDefaultAction.cs" />
+    <Compile Include="Builders\DDL\SetNullAction.cs" />
+    <Compile Include="Builders\DDL\CreateTableDefinition.cs" />
+    <Compile Include="Builders\DDL\SparseColumnProperty.cs" />
+    <Compile Include="Builders\DDL\UniqueConstraint.cs" />
+    <Compile Include="Builders\IOutputCommand.cs" />
     <Compile Include="Builders\PrecedingUnboundFrame.cs" />
     <Compile Include="Builders\FollowingUnboundFrame.cs" />
     <Compile Include="Builders\FollowingBoundFrame.cs" />
@@ -183,7 +225,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="dazinator.pfx" />
     <None Include="key.pfx" />
+    <None Include="SQLGeneration.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

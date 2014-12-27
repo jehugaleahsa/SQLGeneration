@@ -123,6 +123,9 @@
   <data name="BlankColumnName" xml:space="preserve">
     <value>Encountered a null or blank column name.</value>
   </data>
+  <data name="BlankDataType" xml:space="preserve">
+    <value>Encountered a null or blank datatype name.</value>
+  </data>
   <data name="BlankExpressionType" xml:space="preserve">
     <value>Encountered a null or blank expression type.</value>
   </data>

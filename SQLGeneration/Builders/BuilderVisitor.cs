@@ -46,6 +46,14 @@ namespace SQLGeneration.Builders
         }
 
         /// <summary>
+        /// Visits a Batch builder.
+        /// </summary>
+        /// <param name="item">The item to visit.</param>
+        protected internal virtual void VisitBatch(BatchBuilder item)
+        {
+        }
+
+        /// <summary>
         /// Visits a BetweenFilter builder.
         /// </summary>
         /// <param name="item">The item to visit.</param>
@@ -509,5 +517,237 @@ namespace SQLGeneration.Builders
         {
         }
 
+        /// <summary>
+        /// Visits a Create builder.
+        /// </summary>
+        /// <param name="item">The item to visit.</param>
+        protected internal virtual void VisitCreate(CreateBuilder item)
+        {
+            // throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Visits a Database builder.
+        /// </summary>
+        /// <param name="item">The item to visit.</param>
+        protected internal virtual void VisitDatabase(CreateDatabase item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a TableDefinition builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitCreateTableDefinition(CreateTableDefinition item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a ColumnDefinition builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitColumnDefinition(ColumnDefinition item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a DataType builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitDataType(DataType item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a AutoIncrement builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitAutoIncrement(AutoIncrement item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a DefaultConstraint builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitDefaultConstraint(DefaultConstraint item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a PrimaryKeyConstraint builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitPrimaryKeyConstraint(PrimaryKeyConstraint item)
+        {
+
+        }
+
+        /// <summary>
+        /// Visits a UniqueConstraint builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitUniqueConstraint(UniqueConstraint item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a ForeignKeyConstraint builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitForeignKeyConstraint(ForeignKeyConstraint item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a CascadeAction builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitForeignKeyCascadeAction(CascadeAction item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a SetDefaultAction builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitForeignKeySetDefaultAction(SetDefaultAction item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a SetNullAction builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitForeignKeySetNullAction(SetNullAction item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a NoAction builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitForeignKeyNoAction(NoAction item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a Alter builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitAlter(AlterBuilder item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a Alter database builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitAlterDatabase(AlterDatabase item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a Alter table builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitAlterTableDefinition(AlterTableDefinition item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a AlterColumn builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitAlterColumn(AlterColumn item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a AlterColumnProperty builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitAlterColumnProperty(AlterColumnProperty item)
+        {
+        }
+        /// <summary>
+        /// Visits a RowGuidColumnProperty builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitRowGuidColumnProperty(RowGuidColumnProperty item)
+        {
+
+        }
+        /// <summary>
+        /// Visits a NotForReplicationColumnProperty builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitNotForReplicationColumnProperty(NotForReplicationColumnProperty item)
+        {
+
+        }
+        /// <summary>
+        /// Visits a SparseColumnProperty builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitSparseColumnProperty(SparseColumnProperty item)
+        {
+
+        }
+        /// <summary>
+        /// Visits a PersistedColumnProperty builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitPersistedColumnProperty(PersistedColumnProperty item)
+        {
+
+        }
+
+        /// <summary>
+        /// Visits a AddColumns builder.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitAddColumns(AddColumns item)
+        {
+
+        }
+        /// <summary>
+        /// Visits a DropColumn.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitDropColumn(DropColumn item)
+        {
+        }
+        /// <summary>
+        /// Visits a DropConstraint.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitDropConstraint(DropConstraint item)
+        {
+        }
+        /// <summary>
+        /// Visits a DropItemsList.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitDropItemsList(DropItemsList item)
+        {
+        }
+
+        /// <summary>
+        /// Visits a DropColumnsList.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitDropColumnsList(DropColumnsList item)
+        {
+
+        }
+
+        /// <summary>
+        /// Visits a DropConstraintsList.
+        /// </summary>
+        /// <param name="item"></param>
+        protected internal virtual void VisitDropConstraintsList(DropConstraintsList item)
+        {
+        }
     }
 }

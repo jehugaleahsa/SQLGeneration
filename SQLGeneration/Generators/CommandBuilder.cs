@@ -44,8 +44,43 @@ namespace SQLGeneration.Generators
             this.scope = new SourceScope();
             this.options = options ?? new CommandBuilderOptions();
             ITokenSource tokenSource = Grammar.TokenRegistry.CreateTokenSource(commandText);
-            MatchResult result = GetResult(tokenSource);
-            return buildStart(result);
+
+            var batch = new BatchBuilder();
+            int statementCount = 0;
+            while (true)
+            {
+                MatchResult result = GetResult(tokenSource);
+                if (result != null && result.IsMatch)
+                {
+                    statementCount++;
+                    var command = buildStart(result);
+                    batch.AddCommand(command);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (statementCount == 0)
+            {
+                throw new InvalidOperationException();
+            }
+            else if (statementCount == 1)
+            {
+                return batch.GetCommand(0);
+            }
+            else
+            {
+                return batch;
+            }
+        }
+
+        private void buildTerminator(MatchResult result, ICommand builder)
+        {
+            MatchResult terminator = result.Matches[SqlGrammar.Start.Terminator];
+            builder.HasTerminator = terminator.IsMatch;
+            return;
         }
 
         private ICommand buildStart(MatchResult result)
@@ -53,25 +88,893 @@ namespace SQLGeneration.Generators
             MatchResult select = result.Matches[SqlGrammar.Start.SelectStatement];
             if (select.IsMatch)
             {
-                return buildSelectStatement(select);
+                ICommand command = buildSelectStatement(select);
+                buildTerminator(result, command);
+                return command;
             }
             MatchResult insert = result.Matches[SqlGrammar.Start.InsertStatement];
             if (insert.IsMatch)
             {
-                return buildInsertStatement(insert);
+                ICommand command = buildInsertStatement(insert);
+                buildTerminator(result, command);
+                return command;
             }
             MatchResult update = result.Matches[SqlGrammar.Start.UpdateStatement];
             if (update.IsMatch)
             {
-                return buildUpdateStatement(update);
+                ICommand command = buildUpdateStatement(update);
+                buildTerminator(result, command);
+                return command;
             }
             MatchResult delete = result.Matches[SqlGrammar.Start.DeleteStatement];
             if (delete.IsMatch)
             {
-                return buildDeleteStatement(delete);
+                ICommand command = buildDeleteStatement(delete);
+                buildTerminator(result, command);
+                return command;
             }
+            MatchResult create = result.Matches[SqlGrammar.Start.CreateStatement];
+            if (create.IsMatch)
+            {
+                ICommand command = buildCreateStatement(create);
+                buildTerminator(result, command);
+                return command;
+            }
+            MatchResult alter = result.Matches[SqlGrammar.Start.AlterStatement];
+            if (alter.IsMatch)
+            {
+                ICommand command = buildAlterStatement(alter);
+                buildTerminator(result, command);
+                return command;
+            }
+
             throw new InvalidOperationException();
         }
+
+        #region DDL
+
+        #region Create
+
+        private ICommand buildCreateStatement(MatchResult result)
+        {
+            var createBuilder = new CreateBuilder();
+            var createdbExpression = result.Matches[SqlGrammar.CreateStatement.CreateDatabaseExpressionName];
+            if (createdbExpression.IsMatch)
+            {
+                CreateDatabase db = buildCreateDatabase(createdbExpression);
+                createBuilder.CreateObject = db;
+                return createBuilder;
+            }
+
+            MatchResult createTableResult = result.Matches[SqlGrammar.CreateStatement.CreateTableExpressionName];
+            if (createTableResult.IsMatch)
+            {
+                CreateTableDefinition tableDef = buildCreateTableDefinition(createTableResult);
+                createBuilder.CreateObject = tableDef;
+                return createBuilder;
+            }
+
+            return createBuilder;
+        }
+
+        private CreateDatabase buildCreateDatabase(MatchResult result)
+        {
+            CreateDatabase db = null;
+
+            MatchResult databaseNameResult = result.Matches[SqlGrammar.CreateDatabaseStatement.DatabaseName];
+            if (databaseNameResult.IsMatch)
+            {
+                var databaseName = getToken(databaseNameResult);
+                db = new CreateDatabase(databaseName);
+                MatchResult collateResult = result.Matches[SqlGrammar.CreateDatabaseStatement.Collate.Name];
+                if (collateResult.IsMatch)
+                {
+                    MatchResult collationNameResult = collateResult.Matches[SqlGrammar.CreateDatabaseStatement.Collate.Collation];
+                    if (collationNameResult.IsMatch)
+                    {
+                        var collation = getToken(collationNameResult);
+                        db.Collation = collation;
+                    }
+                }
+
+            }
+            return db;
+        }
+
+        private CreateTableDefinition buildCreateTableDefinition(MatchResult result)
+        {
+            CreateTableDefinition tableDef = null;
+
+            MatchResult tableNameResult = result.Matches[SqlGrammar.CreateTableStatement.TableName];
+            if (tableNameResult.IsMatch)
+            {
+                List<string> parts = new List<string>();
+                buildMultipartIdentifier(tableNameResult, parts);
+
+
+                if (parts.Count > 1)
+                {
+                    Namespace qualifier = getNamespace(parts.Take(parts.Count - 1));
+                    string tableName = parts[parts.Count - 1];
+                    // AliasedSource source = scope.GetSource(tableName);               
+                    tableDef = new CreateTableDefinition(qualifier, tableName);
+                }
+                else
+                {
+                    string name = parts[0];
+                    tableDef = new CreateTableDefinition(name);
+                }
+
+                // build the table definition
+                MatchResult tableDefinitionResult = result.Matches[SqlGrammar.CreateTableStatement.TableDefinition.Name];
+                if (tableDefinitionResult != null && tableDefinitionResult.IsMatch)
+                {
+                    MatchResult columnsDefinitionResult = tableDefinitionResult.Matches[SqlGrammar.CreateTableStatement.TableDefinition.ColumnsDefinitionList];
+                    if (columnsDefinitionResult.IsMatch)
+                    {
+                        buildColumnDefinitionsList(tableDef.Columns, columnsDefinitionResult);
+                    }
+
+                }
+            }
+            return tableDef;
+        }
+
+        #endregion
+
+        #region Alter
+
+        private ICommand buildAlterStatement(MatchResult result)
+        {
+            var alterBuilder = new AlterBuilder();
+            var alterdbExpression = result.Matches[SqlGrammar.AlterStatement.AlterDatabaseExpressionName];
+            if (alterdbExpression.IsMatch)
+            {
+                AlterDatabase db = buildAlterDatabase(alterdbExpression);
+                alterBuilder.AlterObject = db;
+                return alterBuilder;
+            }
+
+            var alterTableExpression = result.Matches[SqlGrammar.AlterStatement.AlterTableExpressionName];
+            if (alterTableExpression.IsMatch)
+            {
+                AlterTableDefinition db = buildAlterTable(alterTableExpression);
+                alterBuilder.AlterObject = db;
+                return alterBuilder;
+            }
+
+            return alterBuilder;
+        }
+
+        private AlterTableDefinition buildAlterTable(MatchResult result)
+        {
+            AlterTableDefinition alterTable = null;
+            MatchResult tableNameResult = result.Matches[SqlGrammar.AlterTableStatement.TableName];
+            if (tableNameResult.IsMatch)
+            {
+                List<string> parts = new List<string>();
+                buildMultipartIdentifier(tableNameResult, parts);
+
+                if (parts.Count > 1)
+                {
+                    Namespace qualifier = getNamespace(parts.Take(parts.Count - 1));
+                    string tableName = parts[parts.Count - 1];
+                    // AliasedSource source = scope.GetSource(tableName);               
+                    alterTable = new AlterTableDefinition(qualifier, tableName);
+                }
+                else
+                {
+                    string name = parts[0];
+                    alterTable = new AlterTableDefinition(name);
+                }
+
+                // build the alter column definition
+                MatchResult alterColumnResult = result.Matches[SqlGrammar.AlterTableStatement.AlterColumn.Name];
+                if (alterColumnResult.IsMatch)
+                {
+                    ITableAlteration alterColumn = buildAlterColumn(alterColumnResult);
+                    alterTable.Alteration = alterColumn;
+                }
+
+                MatchResult addColumnsResult = result.Matches[SqlGrammar.AlterTableStatement.AddColumns.Name];
+                if (addColumnsResult.IsMatch)
+                {
+
+                    ITableAlteration alterColumn = buildAlterTableAddColumns(addColumnsResult);
+                    alterTable.Alteration = alterColumn;
+                }
+
+                MatchResult dropTableItemsResult = result.Matches[SqlGrammar.AlterTableStatement.DropColumnsOrConstraints.Name];
+                if (dropTableItemsResult.IsMatch)
+                {
+                    ITableAlteration dropItems = buildDropTableItems(dropTableItemsResult);
+                    alterTable.Alteration = dropItems;
+                }
+
+            }
+            return alterTable;
+            //  throw new NotImplementedException();
+        }
+
+        private ITableAlteration buildDropTableItems(MatchResult result)
+        {
+            var dropItems = new DropItemsList();
+            var dropListItemsResult = result.Matches[SqlGrammar.AlterTableStatement.DropColumnsOrConstraints.DropListExpressionName];
+
+            //   MatchResult columnsDefinitionResult = result.Matches[SqlGrammar.CreateTableStatement.TableDefinition.ColumnsDefinitionList];
+            if (dropListItemsResult.IsMatch)
+            {
+                buildDropItemsList(dropItems.Items, dropListItemsResult);
+            }
+            return dropItems;
+            // throw new NotImplementedException();
+        }
+
+        private void buildDropItemsList(List<IDropTableItem> list, MatchResult result)
+        {
+            // First add column defintions
+            MatchResult multiple = result.Matches[SqlGrammar.DropTableItemsList.Multiple.Name];
+            if (multiple.IsMatch)
+            {
+                MatchResult first = multiple.Matches[SqlGrammar.DropTableItemsList.Multiple.First];
+                var dropTableItem = buildDropItem(first);
+                list.Add(dropTableItem);
+                // ColumnDefinition column = buildColumnDefinition(first);
+                //  columns.AddColumnDefinition(column);
+                MatchResult remaining = multiple.Matches[SqlGrammar.DropTableItemsList.Multiple.Remaining];
+                buildDropItemsList(list, remaining);
+                return;
+            }
+            MatchResult single = result.Matches[SqlGrammar.DropTableItemsList.Single];
+            if (single.IsMatch)
+            {
+                var dropTableItem = buildDropItem(single);
+                list.Add(dropTableItem);
+                //ColumnDefinition column = buildColumnDefinition(single);
+                // columns.AddColumnDefinition(column);
+                return;
+            }
+        }
+
+        private IDropTableItem buildDropItem(MatchResult result)
+        {
+            MatchResult dropConstraintExpression = result.Matches[SqlGrammar.DropTableItem.DropConstraintExpressionName];
+            if (dropConstraintExpression.IsMatch)
+            {
+                var dropConstraintsListResult = dropConstraintExpression.Matches[SqlGrammar.DropTableItem.DropConstraintListExpressionName];
+                if (dropConstraintsListResult.IsMatch)
+                {
+                    var constraints = new DropConstraintsList();
+                    buildDropTableConstraintsList(constraints, dropConstraintsListResult);
+                    return constraints;
+                }
+            }
+
+            MatchResult dropColumnExpression = result.Matches[SqlGrammar.DropTableItem.DropColumnExpressionName];
+            if (dropColumnExpression.IsMatch)
+            {
+
+                var dropColumnsListResult = dropColumnExpression.Matches[SqlGrammar.DropTableItem.DropColumnListExpressionName];
+                if (dropColumnsListResult.IsMatch)
+                {
+                    var cols = new DropColumnsList();
+                    buildDropTableColumnsList(cols, dropColumnsListResult);
+                    return cols;
+                }
+            }
+
+            return null;
+
+        }
+
+        private void buildDropTableConstraintsList(DropConstraintsList list, MatchResult result)
+        {
+            // First add column defintions
+            MatchResult multiple = result.Matches[SqlGrammar.DropTableConstraintList.Multiple.Name];
+            if (multiple.IsMatch)
+            {
+                MatchResult first = multiple.Matches[SqlGrammar.DropTableConstraintList.Multiple.First];
+                DropConstraint item = buildDropConstraint(first);
+                list.Items.Add(item);
+                // ColumnDefinition column = buildColumnDefinition(first);
+                //  columns.AddColumnDefinition(column);
+                MatchResult remaining = multiple.Matches[SqlGrammar.DropTableConstraintList.Multiple.Remaining];
+                buildDropTableConstraintsList(list, remaining);
+                return;
+            }
+            MatchResult single = result.Matches[SqlGrammar.DropTableConstraintList.Single];
+            if (single.IsMatch)
+            {
+                DropConstraint item = buildDropConstraint(single);
+                list.Items.Add(item);
+                //ColumnDefinition column = buildColumnDefinition(single);
+                // columns.AddColumnDefinition(column);
+                return;
+            }
+        }
+
+        private DropConstraint buildDropConstraint(MatchResult result)
+        {
+            var nameResult = result.Matches[SqlGrammar.DropTableConstraint.ConstraintName];
+            var name = getToken(nameResult);
+            var dropConstraint = new DropConstraint(name);
+            return dropConstraint;
+        }
+
+        private void buildDropTableColumnsList(DropColumnsList list, MatchResult result)
+        {
+            // First add column defintions
+            MatchResult multiple = result.Matches[SqlGrammar.DropTableColumnList.Multiple.Name];
+            if (multiple.IsMatch)
+            {
+                MatchResult first = multiple.Matches[SqlGrammar.DropTableColumnList.Multiple.First];
+                DropColumn item = buildDropColumn(first);
+                list.Items.Add(item);
+                // ColumnDefinition column = buildColumnDefinition(first);
+                //  columns.AddColumnDefinition(column);
+                MatchResult remaining = multiple.Matches[SqlGrammar.DropTableColumnList.Multiple.Remaining];
+                buildDropTableColumnsList(list, remaining);
+                return;
+            }
+            MatchResult single = result.Matches[SqlGrammar.DropTableColumnList.Single];
+            if (single.IsMatch)
+            {
+                DropColumn item = buildDropColumn(single);
+                list.Items.Add(item);
+                //ColumnDefinition column = buildColumnDefinition(single);
+                // columns.AddColumnDefinition(column);
+                return;
+            }
+        }
+
+        private DropColumn buildDropColumn(MatchResult result)
+        {
+            var colNameResult = result.Matches[SqlGrammar.DropTableColumn.ColumnName];
+            var columnName = getToken(colNameResult);
+            var dropCol = new DropColumn(columnName);
+            return dropCol;
+        }
+
+        private ITableAlteration buildAlterTableAddColumns(MatchResult result)
+        {
+            var addColumns = new AddColumns();
+            var addColumnsDefinitionListResult = result.Matches[SqlGrammar.AlterTableStatement.AddColumns.ColumnDefinitionListExpressionName];
+
+            //   MatchResult columnsDefinitionResult = result.Matches[SqlGrammar.CreateTableStatement.TableDefinition.ColumnsDefinitionList];
+            if (addColumnsDefinitionListResult.IsMatch)
+            {
+                buildColumnDefinitionsList(addColumns.Columns, addColumnsDefinitionListResult);
+            }
+            return addColumns;
+        }
+
+        private ITableAlteration buildAlterColumn(MatchResult result)
+        {
+            //  AlterColumn ac = null;
+            string columnName = null;
+
+            MatchResult columNameResult = result.Matches[SqlGrammar.AlterTableStatement.AlterColumn.ColumnName];
+            if (columNameResult.IsMatch)
+            {
+                columnName = getToken(columNameResult);
+            }
+
+            var columnDefinitionResult = result.Matches[SqlGrammar.AlterTableStatement.AlterColumn.AlterColumnDataTypeExpressionName];
+            if (columnDefinitionResult.IsMatch)
+            {
+                var ac = new AlterColumn(columnName);
+
+                var colDataTypeResult = columnDefinitionResult.Matches[SqlGrammar.DataType.Name];
+                var dataType = buildDataType(colDataTypeResult);
+                ac.DataType = dataType;
+
+                var collationResult = columnDefinitionResult.Matches[SqlGrammar.Collate.Name];
+                if (collationResult.IsMatch)
+                {
+                    var collation = buildCollation(collationResult);
+                    ac.Collation = collation;
+                }
+
+                var nullabilityResult = columnDefinitionResult.Matches[SqlGrammar.Nullability.Name];
+                if (nullabilityResult.IsMatch)
+                {
+                    var isNullable = buildIsNullable(nullabilityResult);
+                    ac.IsNullable = isNullable;
+                }
+
+                return ac;
+            }
+
+            var addOrDropPropertyResult = result.Matches[SqlGrammar.AlterTableStatement.AlterColumn.AddOrDropColumnProperty.Name];
+            if (addOrDropPropertyResult.IsMatch)
+            {
+
+                AlterAction alterType;
+                var addResult = addOrDropPropertyResult.Matches[SqlGrammar.AlterTableStatement.AlterColumn.AddOrDropColumnProperty.AddKeyword];
+                if (addResult.IsMatch)
+                {
+                    alterType = AlterAction.Add;
+                }
+                else
+                {
+                    alterType = AlterAction.Drop;
+                }
+
+                var ac = new AlterColumnProperty(alterType, columnName);
+
+                IColumnProperty prop = null;
+                var notForReplicationResult = addOrDropPropertyResult.Matches[SqlGrammar.AlterTableStatement.AlterColumn.AddOrDropColumnProperty.NotForReplicationExpressionName];
+                if (notForReplicationResult.IsMatch)
+                {
+                    prop = new NotForReplicationColumnProperty();
+                    ac.Property = prop;
+                    return ac;
+                }
+
+                var persistedResult = addOrDropPropertyResult.Matches[SqlGrammar.AlterTableStatement.AlterColumn.AddOrDropColumnProperty.PersistedKeyword];
+                if (persistedResult.IsMatch)
+                {
+                    prop = new PersistedColumnProperty();
+                    ac.Property = prop;
+                    return ac;
+                }
+
+                var rowGuidResult = addOrDropPropertyResult.Matches[SqlGrammar.AlterTableStatement.AlterColumn.AddOrDropColumnProperty.RowGuidColKeyword];
+                if (rowGuidResult.IsMatch)
+                {
+                    prop = new RowGuidColumnProperty();
+                    ac.Property = prop;
+                    return ac;
+                }
+
+                var sparseResult = addOrDropPropertyResult.Matches[SqlGrammar.AlterTableStatement.AlterColumn.AddOrDropColumnProperty.SparseKeyword];
+                if (sparseResult.IsMatch)
+                {
+                    prop = new SparseColumnProperty();
+                    ac.Property = prop;
+                    return ac;
+                }
+
+            }
+
+            throw new InvalidOperationException();
+
+        }
+
+        private AlterDatabase buildAlterDatabase(MatchResult result)
+        {
+            AlterDatabase db = null;
+
+            MatchResult databaseNameResult = result.Matches[SqlGrammar.AlterDatabaseStatement.DatabaseName];
+            if (databaseNameResult.IsMatch)
+            {
+                var name = getToken(databaseNameResult);
+                db = new AlterDatabase(name);
+            }
+            else
+            {
+                MatchResult currentDatabase = result.Matches[SqlGrammar.AlterDatabaseStatement.CurrentKeyword];
+                if (currentDatabase.IsMatch)
+                {
+                    db = new AlterDatabase(true);
+                }
+                else
+                {
+                    // A database name, or the CURRENT keyword must be used with an alter database statement.
+                    throw new InvalidOperationException();
+                }
+            }
+
+            // Are we modifying the name?
+            MatchResult modifyNameResult = result.Matches[SqlGrammar.AlterDatabaseStatement.ModifyName.Name];
+            if (modifyNameResult.IsMatch)
+            {
+                var newNameResult = modifyNameResult.Matches[SqlGrammar.AlterDatabaseStatement.ModifyName.NewDatabaseName];
+                if (newNameResult.IsMatch)
+                {
+                    var newName = getToken(newNameResult);
+                    db.NewDatabaseName = newName;
+                    return db;
+                }
+            }
+
+            // Are we modifying the collation?
+            MatchResult collateResult = result.Matches[SqlGrammar.Collate.Name];
+            if (collateResult.IsMatch)
+            {
+                var collation = buildCollation(collateResult);
+                db.NewCollation = collation;
+            }
+
+            return db;
+        }
+
+        #endregion
+
+        private ColumnDefinition buildColumnDefinition(MatchResult result)
+        {
+            var columnNameResult = result.Matches[SqlGrammar.ColumnDefinition.ColumnName];
+            var columnName = getToken(columnNameResult);
+            var columnDefinition = new ColumnDefinition(columnName);
+
+            var collationResult = result.Matches[SqlGrammar.Collate.Name];
+            if (collationResult.IsMatch)
+            {
+                string collation = buildCollation(collationResult);
+                columnDefinition.Collation = collation;
+            }
+
+            var dataTypeResult = result.Matches[SqlGrammar.DataType.Name];
+            if (dataTypeResult.IsMatch)
+            {
+                DataType dataType = buildDataType(dataTypeResult);
+                columnDefinition.DataType = dataType;
+            }
+
+            var isNullableResult = result.Matches[SqlGrammar.Nullability.Name];
+            if (isNullableResult.IsMatch)
+            {
+                bool isNullable = buildIsNullable(isNullableResult);
+                columnDefinition.IsNullable = isNullable;
+            }
+
+            var defaultConstraintResult = result.Matches[SqlGrammar.ColumnDefinition.Default.Name];
+            if (defaultConstraintResult.IsMatch)
+            {
+                columnDefinition.Default = new DefaultConstraint();
+
+                var constraintResult = defaultConstraintResult.Matches[SqlGrammar.ColumnDefinition.Constraint.Name];
+                if (constraintResult.IsMatch)
+                {
+                    var constraintNameResult = constraintResult.Matches[SqlGrammar.ColumnDefinition.Constraint.ConstraintName];
+                    if (constraintNameResult.IsMatch)
+                    {
+                        columnDefinition.Default.ConstraintName = getToken(constraintNameResult);
+                    }
+                }
+
+                var defaultValueResult = defaultConstraintResult.Matches[SqlGrammar.ColumnDefinition.Default.DefaultName];
+                if (defaultValueResult.IsMatch)
+                {
+
+                    var defaultStringLiteralResult = defaultValueResult.Matches[SqlGrammar.ColumnDefinition.Default.DefaultStringLiteral];
+                    if (defaultStringLiteralResult.IsMatch)
+                    {
+                        columnDefinition.Default.Value = buildStringLiteral(defaultStringLiteralResult);
+                    }
+                    else
+                    {
+                        var defaultNumericLiteralResult = defaultValueResult.Matches[SqlGrammar.ColumnDefinition.Default.DefaultNumericLiteral];
+                        if (defaultNumericLiteralResult.IsMatch)
+                        {
+                            columnDefinition.Default.Value = buildNumericLiteral(defaultNumericLiteralResult);
+                        }
+                        else
+                        {
+                            var defaultFunctionResult = defaultValueResult.Matches[SqlGrammar.ColumnDefinition.Default.DefaultFunction];
+                            if (defaultFunctionResult.IsMatch)
+                            {
+                                columnDefinition.Default.Function = buildFunctionCall(defaultFunctionResult);
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            var identityResult = result.Matches[SqlGrammar.ColumnDefinition.Identity.Name];
+            if (identityResult.IsMatch)
+            {
+                AutoIncrement autoIncrement = new AutoIncrement();
+                MatchResult identitySeedResult = identityResult.Matches[SqlGrammar.ColumnDefinition.Identity.IdentitySeed];
+                if (identitySeedResult.IsMatch)
+                {
+
+                    MatchResult identitySeedValuesResult = identitySeedResult.Matches[SqlGrammar.ColumnDefinition.Identity.IdentitySeedValues];
+                    if (identitySeedValuesResult.IsMatch)
+                    {
+                        ValueList arguments = new ValueList();
+                        buildValueList(identitySeedValuesResult, arguments);
+                        foreach (NumericLiteral value in arguments.Values)
+                        {
+                            autoIncrement.AddArgument(value);
+                        }
+                    }
+                }
+
+                MatchResult notForReplicationResult = identityResult.Matches[SqlGrammar.ColumnDefinition.Identity.NotForReplicationExpressionName];
+                if (notForReplicationResult.IsMatch)
+                {
+                    autoIncrement.NotForReplication = new NotForReplicationColumnProperty();
+                }
+
+                columnDefinition.AutoIncrement = autoIncrement;
+            }
+
+            var rowGuidResult = result.Matches[SqlGrammar.ColumnDefinition.RowGuidColKeyword];
+            if (rowGuidResult.IsMatch)
+            {
+                columnDefinition.IsRowGuid = true;
+            }
+
+            // Column constraints
+            MatchResult columnConstraintsResult = result.Matches[SqlGrammar.ColumnDefinition.ColumnConstraintListExpressionName];
+            if (columnConstraintsResult.IsMatch)
+            {
+                buildColumnConstraintList(columnDefinition, columnConstraintsResult);
+            }
+
+            return columnDefinition;
+        }
+
+        private void buildColumnDefinitionsList(ColumnDefinitionList columns, MatchResult columnsDefinitionResult)
+        {
+            // First add column defintions
+            MatchResult multiple = columnsDefinitionResult.Matches[SqlGrammar.ColumnDefinitionList.Multiple.Name];
+            if (multiple.IsMatch)
+            {
+                MatchResult first = multiple.Matches[SqlGrammar.ColumnDefinitionList.Multiple.First];
+                ColumnDefinition column = buildColumnDefinition(first);
+                columns.AddColumnDefinition(column);
+                MatchResult remaining = multiple.Matches[SqlGrammar.ColumnDefinitionList.Multiple.Remaining];
+                buildColumnDefinitionsList(columns, remaining);
+                return;
+            }
+            MatchResult single = columnsDefinitionResult.Matches[SqlGrammar.ColumnDefinitionList.Single];
+            if (single.IsMatch)
+            {
+                ColumnDefinition column = buildColumnDefinition(single);
+                columns.AddColumnDefinition(column);
+                return;
+            }
+        }
+
+        private void buildColumnConstraintList(ColumnDefinition builder, MatchResult columnConstraintsResult)
+        {
+            // First add column defintions
+            MatchResult multiple = columnConstraintsResult.Matches[SqlGrammar.ColumnConstraintList.Multiple.Name];
+            if (multiple.IsMatch)
+            {
+                MatchResult first = multiple.Matches[SqlGrammar.ColumnConstraintList.Multiple.First];
+                buildColumnConstraint(builder, first);
+                // builder.Columns.AddColumnDefinition(column);
+                MatchResult remaining = multiple.Matches[SqlGrammar.ColumnConstraintList.Multiple.Remaining];
+                buildColumnConstraintList(builder, remaining);
+                return;
+            }
+            MatchResult single = columnConstraintsResult.Matches[SqlGrammar.ColumnConstraintList.Single];
+            if (single.IsMatch)
+            {
+                buildColumnConstraint(builder, single);
+                // ColumnDefinition column = buildColumnDefinition(single);
+                // builder.Columns.AddColumnDefinition(column);
+                return;
+            }
+        }
+
+        private void buildColumnConstraint(ColumnDefinition builder, MatchResult result)
+        {
+
+            string constraintName = null;
+            var constraintResult = result.Matches[SqlGrammar.ColumnDefinition.Constraint.Name];
+            if (constraintResult.IsMatch)
+            {
+                var constraintNameResult = constraintResult.Matches[SqlGrammar.ColumnDefinition.Constraint.ConstraintName];
+                if (constraintNameResult.IsMatch)
+                {
+                    constraintName = getToken(constraintNameResult);
+                }
+            }
+
+            //   var constraintResult = result.Matches[SqlGrammar.ColumnConstraint.Name];
+            var pkOrUniqueResult = result.Matches[SqlGrammar.ColumnConstraint.PrimarKeyOrUniqueConstraint.Name];
+            if (pkOrUniqueResult.IsMatch)
+            {
+                // which is it..
+                var pkResult = pkOrUniqueResult.Matches[SqlGrammar.ColumnConstraint.PrimaryKey.Name];
+                if (pkResult.IsMatch)
+                {
+                    // build pk                    
+                    PrimaryKeyConstraint pk = new PrimaryKeyConstraint(constraintName);
+                    builder.Constraints.AddConstraint(pk);
+                }
+                else
+                {
+                    var uniqueResult = pkOrUniqueResult.Matches[SqlGrammar.ColumnConstraint.Unique.Name];
+                    if (uniqueResult.IsMatch)
+                    {
+                        UniqueConstraint un = new UniqueConstraint(constraintName);
+                        builder.Constraints.AddConstraint(un);
+                        // build unique
+                    }
+                }
+            }
+            else
+            {
+                // is it a fk?
+                var fkResult = result.Matches[SqlGrammar.ColumnConstraint.ForeignKeyExpressionName];
+                if (fkResult.IsMatch)
+                {
+                    // build fk
+                    var fk = new ForeignKeyConstraint(constraintName);
+                    var referencesResult = fkResult.Matches[SqlGrammar.ForeignKeyConstraint.References.Name];
+                    if (referencesResult.IsMatch)
+                    {
+                        var referencedTableResult = referencesResult.Matches[SqlGrammar.ForeignKeyConstraint.ReferencedTable.Name];
+                        if (referencedTableResult.IsMatch)
+                        {
+                            var table = buildTable(referencedTableResult);
+                            fk.ReferencedTable = table;
+                        }
+
+                        var referencedColumnResult = referencesResult.Matches[SqlGrammar.ForeignKeyConstraint.ReferencedColumn.Name];
+                        if (referencedColumnResult.IsMatch)
+                        {
+                            var columnNameResult = referencedColumnResult.Matches[SqlGrammar.ForeignKeyConstraint.ReferencedColumn.ColumnName];
+                            if (columnNameResult.IsMatch)
+                            {
+                                var colName = getToken(columnNameResult);
+                                fk.ReferencedColumn = colName;
+                            }
+                        }
+                    }
+
+                    // On Delete
+                    var onDeleteResult = fkResult.Matches[SqlGrammar.ForeignKeyConstraint.On.Delete.Name];
+                    if (onDeleteResult.IsMatch)
+                    {
+                        ForeignKeyAction action = null;
+                        action = buildForeignKeyAction(onDeleteResult);
+                        fk.OnDeleteAction = action;
+                    }
+
+                    // On Update
+                    var onUpdateResult = fkResult.Matches[SqlGrammar.ForeignKeyConstraint.On.Update.Name];
+                    if (onUpdateResult.IsMatch)
+                    {
+                        ForeignKeyAction action = null;
+                        action = buildForeignKeyAction(onUpdateResult);
+                        fk.OnUpdateAction = action;
+                    }
+
+                    // Not for replication
+                    var notForReplicationResult = fkResult.Matches[SqlGrammar.ForeignKeyConstraint.NotForReplicationExpressionName];
+                    if (notForReplicationResult.IsMatch)
+                    {
+                        fk.NotForReplication = new NotForReplicationColumnProperty();
+                    }
+
+                    builder.Constraints.AddConstraint(fk);
+                }
+                else
+                {
+                    // is it a check constraint?
+                    var chkResult = result.Matches[SqlGrammar.ColumnConstraint.Check.Name];
+                    if (chkResult.IsMatch)
+                    {
+                        // buils chk
+
+                    }
+                }
+            }
+
+            //  throw new NotImplementedException();
+        }
+
+        private ForeignKeyAction buildForeignKeyAction(MatchResult onDeleteResult)
+        {
+            var noActionResult = onDeleteResult.Matches[SqlGrammar.ForeignKeyConstraint.On.NoAction.Name];
+            if (noActionResult.IsMatch)
+            {
+                return new NoAction();
+            }
+
+            var cascadeResult = onDeleteResult.Matches[SqlGrammar.ForeignKeyConstraint.On.CascadeKeyword];
+            if (cascadeResult.IsMatch)
+            {
+                return new CascadeAction();
+            }
+
+            var setNullResult = onDeleteResult.Matches[SqlGrammar.ForeignKeyConstraint.On.SetNull.Name];
+            if (setNullResult.IsMatch)
+            {
+                return new SetNullAction();
+            }
+
+            var setDefaultResult = onDeleteResult.Matches[SqlGrammar.ForeignKeyConstraint.On.SetDefault.Name];
+            if (setDefaultResult.IsMatch)
+            {
+                return new SetDefaultAction();
+            }
+
+            throw new NotSupportedException();
+        }
+
+        private bool buildIsNullable(MatchResult isNullableResult)
+        {
+            bool isNullable = false;
+            var isNotNullResult = isNullableResult.Matches[SqlGrammar.Nullability.NotKeyword];
+            if (isNotNullResult.IsMatch)
+            {
+                isNullable = false;
+            }
+            else
+            {
+                isNullable = true;
+            }
+            return isNullable;
+        }
+
+        private string buildCollation(MatchResult collationResult)
+        {
+            var collationNameResult = collationResult.Matches[SqlGrammar.Collate.Collation];
+            var c = getToken(collationNameResult);
+            return c;
+        }
+
+        private DataType buildDataType(MatchResult dataTypeResult)
+        {
+            DataType dataType = null;
+
+            var dataTypeNameResult = dataTypeResult.Matches[SqlGrammar.DataType.DataTypeName];
+            if (dataTypeNameResult.IsMatch)
+            {
+                List<string> parts = new List<string>();
+                buildMultipartIdentifier(dataTypeNameResult, parts);
+
+                if (parts.Count > 1)
+                {
+                    Namespace qualifier = getNamespace(parts.Take(parts.Count - 1));
+                    string dataTypeName = parts[parts.Count - 1];
+                    dataType = new DataType(qualifier, dataTypeName);
+
+                }
+                else
+                {
+                    string dataTypeName = parts[0];
+                    dataType = new DataType(dataTypeName);
+                }
+
+                var columnSizeResult = dataTypeResult.Matches[SqlGrammar.DataType.ColumnSize];
+                if (columnSizeResult.IsMatch)
+                {
+                    MatchResult argumentsResult = columnSizeResult.Matches[SqlGrammar.DataType.ColumnSizeArguments];
+                    if (argumentsResult.IsMatch)
+                    {
+                        ValueList arguments = new ValueList();
+                        buildValueList(argumentsResult, arguments);
+
+                        foreach (var value in arguments.Values)
+                        {
+
+                            var lit = value as Literal;
+                            if (lit != null)
+                            {
+                                dataType.AddArgument(lit);
+                            }
+                            else
+                            {
+
+                                var placeHolder = value as Placeholder;
+                                if (placeHolder != null)
+                                {
+                                    if (placeHolder.Value.ToLower() == "max")
+                                    {
+                                        dataType.HasMax = true;
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            return dataType;
+
+        }
+
+        #endregion
 
         private ISelectBuilder buildSelectStatement(MatchResult result)
         {
@@ -846,7 +1749,21 @@ namespace SQLGeneration.Generators
                 MatchResult columnListResult = columnsResult.Matches[SqlGrammar.InsertStatement.Columns.ColumnList];
                 buildColumnsList(columnListResult, builder);
             }
+
+            // within the context of a T-SQL output clause, INSERTED and DELETED are valid sources.
+            collection.AddSource("INSERTED", new AliasedSource(new Table("INSERTED"), null));
+            collection.AddSource("DELETED", new AliasedSource(new Table("DELETED"), null));
+            MatchResult outputClauseResult = result.Matches[SqlGrammar.InsertStatement.Output.Name];
+            if (outputClauseResult.IsMatch)
+            {
+                var columnListResult = outputClauseResult.Matches[SqlGrammar.Output.Columns.Name];
+                buildOutputProjectionList(columnListResult, builder);
+            }
+            collection.Remove("INSERTED");
+            collection.Remove("DELETED");
             scope.Pop();
+
+
             return builder;
         }
 
@@ -872,6 +1789,88 @@ namespace SQLGeneration.Generators
             throw new InvalidOperationException();
         }
 
+        //private void buildOutputColumnsList(MatchResult result, IOutputCommand builder)
+        //{
+        //    MatchResult multiple = result.Matches[SqlGrammar.ColumnList.Multiple.Name];
+        //    if (multiple.IsMatch)
+        //    {
+        //        MatchResult first = multiple.Matches[SqlGrammar.ColumnList.Multiple.First];
+        //        Column column = buildColumn(first);
+        //        builder.AddOutputColumn(column);
+        //        MatchResult remaining = multiple.Matches[SqlGrammar.ColumnList.Multiple.Remaining];
+        //        buildOutputColumnsList(remaining, builder);
+        //        return;
+        //    }
+        //    MatchResult single = result.Matches[SqlGrammar.ColumnList.Single];
+        //    if (single.IsMatch)
+        //    {
+        //        Column column = buildColumn(single);
+        //        builder.AddOutputColumn(column);
+        //        return;
+        //    }
+        //    throw new InvalidOperationException();
+        //}
+
+
+        private void buildOutputProjectionList(MatchResult result, IOutputCommand builder)
+        {
+            MatchResult multiple = result.Matches[SqlGrammar.ProjectionList.Multiple.Name];
+            if (multiple.IsMatch)
+            {
+                MatchResult first = multiple.Matches[SqlGrammar.ProjectionList.Multiple.First];
+                buildOutputProjectionItem(first, builder);
+                MatchResult remaining = multiple.Matches[SqlGrammar.ProjectionList.Multiple.Remaining];
+                buildOutputProjectionList(remaining, builder);
+                return;
+            }
+            MatchResult single = result.Matches[SqlGrammar.ProjectionList.Single];
+            if (single.IsMatch)
+            {
+                buildOutputProjectionItem(single, builder);
+                return;
+            }
+            throw new InvalidOperationException();
+        }
+
+        private void buildOutputProjectionItem(MatchResult result, IOutputCommand builder)
+        {
+            MatchResult expression = result.Matches[SqlGrammar.ProjectionItem.Expression.Name];
+            if (expression.IsMatch)
+            {
+                MatchResult itemResult = expression.Matches[SqlGrammar.ProjectionItem.Expression.Item];
+                IProjectionItem item = (IProjectionItem)buildArithmeticItem(itemResult);
+                string alias = null;
+                MatchResult aliasExpression = expression.Matches[SqlGrammar.ProjectionItem.Expression.AliasExpression.Name];
+                if (aliasExpression.IsMatch)
+                {
+                    MatchResult aliasResult = aliasExpression.Matches[SqlGrammar.ProjectionItem.Expression.AliasExpression.Alias];
+                    alias = getToken(aliasResult);
+                }
+
+                var p = builder.AddOutputProjection(item, alias);
+
+                return;
+            }
+            MatchResult star = result.Matches[SqlGrammar.ProjectionItem.Star.Name];
+            if (star.IsMatch)
+            {
+                AliasedSource source = null;
+                MatchResult qualifier = star.Matches[SqlGrammar.ProjectionItem.Star.Qualifier.Name];
+                if (qualifier.IsMatch)
+                {
+                    MatchResult columnSource = qualifier.Matches[SqlGrammar.ProjectionItem.Star.Qualifier.ColumnSource];
+                    List<string> parts = new List<string>();
+                    buildMultipartIdentifier(columnSource, parts);
+                    string sourceName = parts[parts.Count - 1];
+                    source = scope.GetSource(sourceName);
+                }
+                AllColumns all = new AllColumns(source);
+                builder.AddOutputProjection(all);
+                return;
+            }
+            throw new InvalidOperationException();
+        }
+
         private ICommand buildUpdateStatement(MatchResult result)
         {
             MatchResult tableResult = result.Matches[SqlGrammar.UpdateStatement.Table];
@@ -889,6 +1888,20 @@ namespace SQLGeneration.Generators
             scope.Push(collection);
             MatchResult setterListResult = result.Matches[SqlGrammar.UpdateStatement.SetterList];
             buildSetterList(setterListResult, builder);
+
+            // within the context of a T-SQL output clause, INSERTED and DELETED are valid sources.
+            collection.AddSource("INSERTED", new AliasedSource(new Table("INSERTED"), null));
+            collection.AddSource("DELETED", new AliasedSource(new Table("DELETED"), null));
+
+            MatchResult outputClauseResult = result.Matches[SqlGrammar.UpdateStatement.Output.Name];
+            if (outputClauseResult.IsMatch)
+            {
+                var columnListResult = outputClauseResult.Matches[SqlGrammar.Output.Columns.Name];
+                buildOutputProjectionList(columnListResult, builder);
+            }
+            collection.Remove("INSERTED");
+            collection.Remove("DELETED");
+
             MatchResult whereResult = result.Matches[SqlGrammar.UpdateStatement.Where.Name];
             if (whereResult.IsMatch)
             {
@@ -948,6 +1961,20 @@ namespace SQLGeneration.Generators
             SourceCollection collection = new SourceCollection();
             collection.AddSource(builder.Table.GetSourceName(), builder.Table);
             scope.Push(collection);
+
+            // within the context of a T-SQL output clause, INSERTED and DELETED are valid sources.
+            collection.AddSource("INSERTED", new AliasedSource(new Table("INSERTED"), null));
+            collection.AddSource("DELETED", new AliasedSource(new Table("DELETED"), null));
+            //scope.Push(collection);
+            MatchResult outputClauseResult = result.Matches[SqlGrammar.DeleteStatement.Output.Name];
+            if (outputClauseResult.IsMatch)
+            {
+                var columnListResult = outputClauseResult.Matches[SqlGrammar.Output.Columns.Name];
+                buildOutputProjectionList(columnListResult, builder);
+            }
+            collection.Remove("INSERTED");
+            collection.Remove("DELETED");
+
             MatchResult whereResult = result.Matches[SqlGrammar.DeleteStatement.Where.Name];
             if (whereResult.IsMatch)
             {
@@ -1159,7 +2186,9 @@ namespace SQLGeneration.Generators
                 string tableName = parts[parts.Count - 2];
                 AliasedSource source = scope.GetSource(tableName);
                 string columnName = parts[parts.Count - 1];
-                return source.Column(columnName);
+                var column = source.Column(columnName);
+                column.Qualify = true;
+                return column;
             }
             string name = parts[0];
             if (options.PlaceholderPrefix != null && name.StartsWith(options.PlaceholderPrefix))
@@ -1192,7 +2221,9 @@ namespace SQLGeneration.Generators
                 string tableName = parts[parts.Count - 2];
                 AliasedSource source = scope.GetSource(tableName);
                 string columnName = parts[parts.Count - 1];
-                return source.Column(columnName);
+                var col = source.Column(columnName);
+                col.Qualify = true;
+                return col;
             }
             else
             {

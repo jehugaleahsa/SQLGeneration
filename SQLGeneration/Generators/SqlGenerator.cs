@@ -39,7 +39,8 @@ namespace SQLGeneration.Generators
         protected MatchResult GetResult(ITokenSource tokenSource)
         {
             Parser parser = new Parser(grammar);
-            return parser.Parse(SqlGrammar.Start.Name, tokenSource);
+            var matchedStatement = parser.Parse(SqlGrammar.Start.Name, tokenSource);
+            return matchedStatement;
         }
     }
 }

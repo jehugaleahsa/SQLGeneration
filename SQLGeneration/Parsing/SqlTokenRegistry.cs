@@ -151,7 +151,7 @@ namespace SQLGeneration.Parsing
         /// Gets the identifier for the CROSS JOIN keyword.
         /// </summary>
         public const string CrossJoin = "CrossJoin";
-        
+
         /// <summary>
         /// Gets the identifier for a left parenthesis.
         /// </summary>
@@ -246,7 +246,7 @@ namespace SQLGeneration.Parsing
         /// Gets the identifier for the SET keyword.
         /// </summary>
         public const string Set = "Set";
-        
+
         /// <summary>
         /// Gets the identifier for a string literal.
         /// </summary>
@@ -378,6 +378,167 @@ namespace SQLGeneration.Parsing
         public const string End = "End";
 
         /// <summary>
+        /// Gets the identifier for the Line Terminator which can be used to seperate SQL statements in a batch.
+        /// </summary>
+        public const string LineTerminator = "LineTerminator";
+
+        /// <summary>
+        /// Gets the identifier for the Output keyword.
+        /// </summary>
+        public const string Output = "Output";
+
+        #region DDL
+
+        /// <summary>
+        /// Gets the identifier for the CREATE keyword.
+        /// </summary>
+        public const string Create = "Create";
+
+        /// <summary>
+        /// Gets the identifier for the Database keyword.
+        /// </summary>
+        public const string Database = "Database";
+
+        /// <summary>
+        /// Gets the identifier for the Table keyword.
+        /// </summary>
+        public const string Table = "Table";
+
+        /// <summary>
+        /// Gets the identifier for the Primary keyword.
+        /// </summary>
+        public const string Primary = "Primary";
+
+        /// <summary>
+        /// Gets the identifier for the Key keyword.
+        /// </summary>
+        public const string Key = "Key";
+
+        /// <summary>
+        /// Gets the identifier for the Collate keyword.
+        /// </summary>
+        public const string Collate = "Collate";
+
+        /// <summary>
+        /// Gets the identifier for the Constraint keyword.
+        /// </summary>
+        public const string Constraint = "Constraint";
+
+        /// <summary>
+        /// Gets the identifier for the Constraint keyword.
+        /// </summary>
+        public const string Identity = "Identity";
+
+        /// <summary>
+        /// Gets the identifier for the Default keyword.
+        /// </summary>
+        public const string Default = "Default";
+
+        /// <summary>
+        /// Gets the identifier for the RowGuidCol keyword.
+        /// </summary>
+        public const string RowGuidCol = "RowGuidCol";
+
+        /// <summary>
+        /// Gets the identifier for the Unique keyword.
+        /// </summary>
+        public const string Unique = "Unique";
+
+        /// <summary>
+        /// Gets the identifier for the Clustered keyword.
+        /// </summary>
+        public const string Clustered = "Clustered";
+
+        /// <summary>
+        /// Gets the identifier for the NonClustered keyword.
+        /// </summary>
+        public const string NonClustered = "NonClustered";
+
+        /// <summary>
+        /// Gets the identifier for the Foreign keyword.
+        /// </summary>
+        public const string Foreign = "Foreign";
+
+        /// <summary>
+        /// Gets the identifier for the References keyword.
+        /// </summary>
+        public const string References = "References";
+
+        /// <summary>
+        /// Gets the identifier for the No keyword.
+        /// </summary>
+        public const string No = "No";
+
+        /// <summary>
+        /// Gets the identifier for the Action keyword.
+        /// </summary>
+        public const string Action = "Action";
+
+        /// <summary>
+        /// Gets the identifier for the Cascade keyword.
+        /// </summary>
+        public const string Cascade = "Cascade";
+
+        /// <summary>
+        /// Gets the identifier for the For keyword.
+        /// </summary>
+        public const string For = "For";
+
+        /// <summary>
+        /// Gets the identifier for the Replication keyword.
+        /// </summary>
+        public const string Replication = "Replication";
+
+        /// <summary>
+        /// Gets the identifier for the Check keyword.
+        /// </summary>
+        public const string Check = "Check";
+
+        /// <summary>
+        /// Gets the identifier for the Alter keyword.
+        /// </summary>
+        public const string Alter = "Alter";
+
+        /// <summary>
+        /// Gets the identifier for the Modify keyword.
+        /// </summary>
+        public const string ModifyName = "ModifyName";
+
+        /// <summary>
+        /// Gets the identifier for the Current keyword.
+        /// </summary>
+        public const string Current = "Current";
+
+        /// <summary>
+        /// Gets the identifier for the Column keyword.
+        /// </summary>
+        public const string Column = "Column";
+
+        /// <summary>
+        /// Gets the identifier for the Add keyword.
+        /// </summary>
+        public const string Add = "Add";
+
+        /// <summary>
+        /// Gets the identifier for the Drop keyword.
+        /// </summary>
+        public const string Drop = "Drop";
+
+        /// <summary>
+        /// Gets the identifier for the Persisted keyword.
+        /// </summary>
+        public const string Persisted = "Persisted";
+
+        /// <summary>
+        /// Gets the identifier for the Sparse keyword.
+        /// </summary>
+        public const string Sparse = "Sparse";
+
+
+
+        #endregion
+
+        /// <summary>
         /// Initializes a new instance of a SqlTokenizer.
         /// </summary>
         public SqlTokenRegistry()
@@ -438,6 +599,38 @@ namespace SQLGeneration.Parsing
             Define(Then, @"THEN\b", true);
             Define(Else, @"ELSE\b", true);
             Define(End, @"END\b", true);
+            Define(Output, @"OUTPUT\b", true);        
+
+            // DDL
+            Define(Create, @"CREATE\b", true);
+            Define(Database, @"DATABASE\b", true);
+            Define(Table, @"TABLE\b", true);
+            Define(Primary, @"PRIMARY\b", true);
+            Define(Key, @"KEY\b", true);
+            Define(Collate, @"COLLATE\b", true);
+            Define(Constraint, @"CONSTRAINT\b", true);
+            Define(Identity, @"IDENTITY\b", true);
+            Define(Default, @"DEFAULT\b", true);
+            Define(RowGuidCol, @"ROWGUIDCOL\b", true);
+            Define(Unique, @"UNIQUE\b", true);
+            Define(Clustered, @"CLUSTERED\b", true);
+            Define(NonClustered, @"NONCLUSTERED\b", true);
+            Define(Foreign, @"FOREIGN\b", true);
+            Define(References, @"REFERENCES\b", true);
+            Define(No, @"NO\b", true);
+            Define(Action, @"ACTION\b", true);
+            Define(Cascade, @"CASCADE\b", true);
+            Define(For, @"FOR\b", true);
+            Define(Replication, @"REPLICATION\b", true);
+            Define(Check, @"CHECK\b", true);
+            Define(Alter, @"ALTER\b", true);
+            Define(ModifyName, @"MODIFY\s+NAME\b", true);
+            Define(Current, @"CURRENT\b", true);
+            Define(Column, @"COLUMN\b", true);
+            Define(Add, @"ADD\b", true);
+            Define(Drop, @"DROP\b", true);
+            Define(Persisted, @"PERSISTED\b", true);
+            Define(Sparse, @"SPARSE\b", true);
 
             Define(Identifier, @"([\p{L}:?@#_][\p{L}\p{N}@#$_]*)|(""(\.|"""")+"")|(\[[^\]]+\])");
 
@@ -458,6 +651,8 @@ namespace SQLGeneration.Parsing
             Define(Number, @"[-+]?\d*\.?\d+([eE][-+]?\d+)?");
             Define(RightParenthesis, @"\)");
             Define(String, @"'([^']|'')*'");
+            Define(LineTerminator, @"('(?:\\.|''|[^'])*(')?)|(;)");
+
         }
     }
 }

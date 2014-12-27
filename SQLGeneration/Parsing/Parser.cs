@@ -70,11 +70,7 @@ namespace SQLGeneration.Parsing
             Expression expression = grammar.Expression(expressionType);
             ParseAttempt attempt = new ParseAttempt(this, tokenSource);
             MatchResult result = expression.Match(attempt, String.Empty);
-            TokenResult tokenResult = attempt.GetToken();
-            if (tokenResult != null)
-            {
-                result.IsMatch = false;
-            }
+          
             return result;
         }
 

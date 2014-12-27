@@ -7,6 +7,7 @@ using System.Text;
 using SQLGeneration.Builders;
 using SQLGeneration.Properties;
 
+
 namespace SQLGeneration.Generators
 {
     /// <summary>
@@ -40,10 +41,10 @@ namespace SQLGeneration.Generators
         }
 
         private FormattingVisitor(
-            TextWriter writer, 
-            CommandOptions options, 
-            int level, 
-            CommandType commandType, 
+            TextWriter writer,
+            CommandOptions options,
+            int level,
+            CommandType commandType,
             SourceReferenceType sourceType,
             ValueReferenceType projectionType)
         {
@@ -105,6 +106,19 @@ namespace SQLGeneration.Generators
                 writer.Write(".");
             }
             writer.Write("*");
+        }
+
+        /// <summary>
+        /// Generates the text for a Batch builder.
+        /// </summary>
+        /// <param name="item">The BatchBuilder to generate the text for.</param>
+        protected internal override void VisitBatch(BatchBuilder item)
+        {
+            foreach (var command in item.Commands())
+            {
+                command.Accept(this);
+            }
+            base.VisitBatch(item);
         }
 
         /// <summary>
@@ -222,11 +236,22 @@ namespace SQLGeneration.Generators
                 writer.Write("FROM ");
             }
             forSourceContext(SourceReferenceType.Declaration).visitAliasedSource(item.Table);
+
+            if (item.Output.Any())
+            {
+                writer.Write(" OUTPUT ");
+                forValueContext(ValueReferenceType.Reference).join(", ", item.Output);
+            }
+
             if (item.WhereFilterGroup.HasFilters)
             {
                 writer.Write(" WHERE ");
                 IFilter filterGroup = item.WhereFilterGroup;
                 filterGroup.Accept(forSubCommand().forValueContext(ValueReferenceType.Reference));
+            }
+            if (item.HasTerminator)
+            {
+                writer.Write(options.Terminator);
             }
         }
 
@@ -502,11 +527,21 @@ namespace SQLGeneration.Generators
                 writer.Write(")");
             }
             writer.Write(" ");
+            if (item.Output.Any())
+            {
+                writer.Write("OUTPUT ");
+                forValueContext(ValueReferenceType.Reference).join(", ", item.Output);
+                writer.Write(" ");
+            }
             if (item.Values.IsValueList)
             {
                 writer.Write("VALUES");
             }
             item.Values.Accept(forSubCommand().forValueContext(ValueReferenceType.Reference));
+            if (item.HasTerminator)
+            {
+                writer.Write(options.Terminator);
+            }
         }
 
         /// <summary>
@@ -834,7 +869,7 @@ namespace SQLGeneration.Generators
             visitUnboundFrame(item);
             writer.Write(" PRECEDING");
         }
-        
+
         /// <summary>
         /// Generates the text for a RightOuterJoin builder.
         /// </summary>
@@ -910,6 +945,10 @@ namespace SQLGeneration.Generators
             if (needsParentheses)
             {
                 writer.Write(")");
+            }
+            if (item.HasTerminator)
+            {
+                writer.Write(options.Terminator);
             }
         }
 
@@ -1004,11 +1043,21 @@ namespace SQLGeneration.Generators
             forSourceContext(SourceReferenceType.Declaration).visitAliasedSource(item.Table);
             writer.Write(" SET ");
             forValueContext(ValueReferenceType.Reference).join(", ", item.Setters);
+
+            if (item.Output.Any())
+            {
+                writer.Write(" OUTPUT ");
+                forValueContext(ValueReferenceType.Reference).join(", ", item.Output);
+            }
             if (item.WhereFilterGroup.HasFilters)
             {
                 writer.Write(" WHERE ");
                 IVisitableBuilder where = item.WhereFilterGroup;
                 where.Accept(forSubCommand().forValueContext(ValueReferenceType.Reference));
+            }
+            if (item.HasTerminator)
+            {
+                writer.Write(options.Terminator);
             }
         }
 
@@ -1214,6 +1263,10 @@ namespace SQLGeneration.Generators
             {
                 writer.Write(")");
             }
+            if (combiner.HasTerminator)
+            {
+                writer.Write(options.Terminator);
+            }
         }
 
         private void visitBoundFrame(BoundFrame item)
@@ -1312,7 +1365,9 @@ namespace SQLGeneration.Generators
             Select,
             Insert,
             Update,
-            Delete
+            Delete,
+            Create,
+            Alter
         }
 
         private enum SourceReferenceType
@@ -1327,5 +1382,615 @@ namespace SQLGeneration.Generators
             Alias,
             Reference
         }
+
+        #region DDL
+
+        #region Create
+
+        /// <summary>
+        /// Generates the text for a Create builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitCreate(CreateBuilder item)
+        {
+            forCommandType(CommandType.Create).visitCreate(item);
+        }
+
+        private void visitCreate(CreateBuilder item)
+        {
+            writer.Write("CREATE ");
+
+            item.CreateObject.Accept(this);
+
+            if (item.HasTerminator)
+            {
+                writer.Write(options.Terminator);
+            }
+        }
+
+        /// <summary>
+        /// Generates the text for a Database builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitDatabase(CreateDatabase item)
+        {
+            writer.Write("DATABASE ");
+            writer.Write(item.Name);
+
+            if (!string.IsNullOrWhiteSpace(item.Collation))
+            {
+                writer.Write(" COLLATE ");
+                writer.Write(item.Collation);
+            }
+        }
+
+        /// <summary>
+        /// Generates the text for a TableDefinition builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitCreateTableDefinition(CreateTableDefinition item)
+        {
+            writer.Write("TABLE ");
+            visitMultipartIdentifier(item.Qualifier, item.Name);
+
+            if (item.Columns != null && item.Columns.Any())
+            {
+                writer.Write("(");
+
+                join(", ", item.Columns);
+
+                writer.Write(")");
+            }
+        }
+
+        /// <summary>
+        /// Generates the text for a DataType builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitDataType(DataType item)
+        {
+            visitMultipartIdentifier(item.Qualifier, item.Name);
+
+            bool hasArgs = item.Arguments != null && item.Arguments.Any();
+            bool hasMax = item.HasMax;
+
+            if (hasArgs || hasMax)
+            {
+                writer.Write("(");
+
+                if (hasArgs)
+                {
+                    join(",", item.Arguments);
+                }
+                else if (hasMax)
+                {
+                    writer.Write("MAX");
+                }
+                writer.Write(")");
+            }
+
+            base.VisitDataType(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a AutoIncrement builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitAutoIncrement(AutoIncrement item)
+        {
+            writer.Write("IDENTITY");
+            if (item.Arguments != null && item.Arguments.Any())
+            {
+                writer.Write("(");
+                if (item.Arguments.Any())
+                {
+                    join(",", item.Arguments);
+                }
+                writer.Write(")");
+            }
+
+            if (item.NotForReplication != null)
+            {
+                writer.Write(" ");
+                ((IVisitableBuilder)item.NotForReplication).Accept(this);
+            }
+            base.VisitAutoIncrement(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a DefaultConstraint builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitDefaultConstraint(DefaultConstraint item)
+        {
+
+            if (!string.IsNullOrWhiteSpace(item.ConstraintName))
+            {
+                writer.Write("CONSTRAINT ");
+                writer.Write(item.ConstraintName);
+                writer.Write(" ");
+            }
+
+            writer.Write("DEFAULT");
+            if (item.Value != null)
+            {
+                writer.Write(" ");
+                ((IVisitableBuilder)item.Value).Accept(this);
+                return;
+            }
+
+            if (item.Function != null)
+            {
+                writer.Write(" ");
+                ((IVisitableBuilder)item.Function).Accept(this);
+                return;
+            }
+
+            base.VisitDefaultConstraint(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a PrimaryKeyConstraint builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitPrimaryKeyConstraint(PrimaryKeyConstraint item)
+        {
+            if (!string.IsNullOrWhiteSpace(item.ConstraintName))
+            {
+                writer.Write("CONSTRAINT ");
+                writer.Write(item.ConstraintName);
+                writer.Write(" ");
+            }
+            writer.Write("PRIMARY KEY");
+            base.VisitPrimaryKeyConstraint(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a UniqueConstraint builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitUniqueConstraint(UniqueConstraint item)
+        {
+            if (!string.IsNullOrWhiteSpace(item.ConstraintName))
+            {
+                writer.Write("CONSTRAINT ");
+                writer.Write(item.ConstraintName);
+                writer.Write(" ");
+            }
+            writer.Write("UNIQUE");
+            base.VisitUniqueConstraint(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a ForeignKeyConstraint builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitForeignKeyConstraint(ForeignKeyConstraint item)
+        {
+            if (!string.IsNullOrWhiteSpace(item.ConstraintName))
+            {
+                writer.Write("CONSTRAINT ");
+                writer.Write(item.ConstraintName);
+                writer.Write(" ");
+            }
+            writer.Write("FOREIGN KEY REFERENCES");
+            if (item.ReferencedTable != null)
+            {
+                writer.Write(" ");
+                this.VisitTable(item.ReferencedTable);
+            }
+            if (!string.IsNullOrWhiteSpace(item.ReferencedColumn))
+            {
+                writer.Write("(");
+                writer.Write(item.ReferencedColumn);
+                writer.Write(")");
+            }
+            if (item.OnDeleteAction != null)
+            {
+                writer.Write(" ON DELETE ");
+                ((IVisitableBuilder)item.OnDeleteAction).Accept(this);
+            }
+            if (item.OnUpdateAction != null)
+            {
+                writer.Write(" ON UPDATE ");
+                ((IVisitableBuilder)item.OnUpdateAction).Accept(this);
+            }
+            if (item.NotForReplication != null)
+            {
+                writer.Write(" ");
+                ((IVisitableBuilder)item.NotForReplication).Accept(this);
+            }
+
+            base.VisitForeignKeyConstraint(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a CascadeAction builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitForeignKeyCascadeAction(CascadeAction item)
+        {
+            writer.Write("CASCADE");
+            base.VisitForeignKeyCascadeAction(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a NoAction builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitForeignKeyNoAction(NoAction item)
+        {
+            writer.Write("NO ACTION");
+            base.VisitForeignKeyNoAction(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a SetDefaultAction builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitForeignKeySetDefaultAction(SetDefaultAction item)
+        {
+            writer.Write("SET DEFAULT");
+            base.VisitForeignKeySetDefaultAction(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a SetNullAction builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitForeignKeySetNullAction(SetNullAction item)
+        {
+            writer.Write("SET NULL");
+            base.VisitForeignKeySetNullAction(item);
+        }
+        #endregion
+
+        #region Alter
+
+        /// <summary>
+        /// Generates the text for a Alter builder.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitAlter(AlterBuilder item)
+        {
+            forCommandType(CommandType.Alter).visitAlter(item);
+        }
+
+        private void visitAlter(AlterBuilder item)
+        {
+            writer.Write("ALTER ");
+
+            item.AlterObject.Accept(this);
+
+            if (item.HasTerminator)
+            {
+                writer.Write(options.Terminator);
+            }
+
+        }
+
+        /// <summary>
+        /// Generates the text for an Alter Database.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitAlterDatabase(AlterDatabase item)
+        {
+            writer.Write("DATABASE ");
+            if (!string.IsNullOrEmpty(item.Name))
+            {
+                writer.Write(item.Name);
+            }
+            else
+            {
+                if (item.CurrentDatabase)
+                {
+                    writer.Write("CURRENT");
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(item.NewDatabaseName))
+            {
+                writer.Write(" MODIFY NAME = ");
+                writer.Write(item.NewDatabaseName);
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(item.NewCollation))
+                {
+                    writer.Write(" COLLATE ");
+                    writer.Write(item.NewCollation);
+                }
+            }
+
+            base.VisitAlterDatabase(item);
+        }
+
+        /// <summary>
+        /// Generates the text for an AlterTableDefinition.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitAlterTableDefinition(AlterTableDefinition item)
+        {
+            writer.Write("TABLE ");
+            writer.Write(item.Name);
+            writer.Write(" ");
+
+            if (item.Alteration != null)
+            {
+                ((IVisitableBuilder)item.Alteration).Accept(this);
+            }
+
+            base.VisitAlterTableDefinition(item);
+        }
+
+        /// <summary>
+        /// Generates the text for an Alter Column.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitAlterColumn(AlterColumn item)
+        {
+            writer.Write("ALTER COLUMN ");
+            writer.Write(item.Name);
+
+            if (item.DataType != null)
+            {
+                writer.Write(" ");
+                ((IVisitableBuilder)item.DataType).Accept(this);
+            }
+
+            if (!string.IsNullOrEmpty(item.Collation))
+            {
+                writer.Write(" COLLATE ");
+                writer.Write(item.Collation);
+            }
+
+            if (item.IsNullable.HasValue)
+            {
+                if (item.IsNullable.Value)
+                {
+                    writer.Write(" NULL");
+                }
+                else
+                {
+                    writer.Write(" NOT NULL");
+                }
+            }
+
+            base.VisitAlterColumn(item);
+        }
+
+        /// <summary>
+        /// Generates the text for an Alter Column Property.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitAlterColumnProperty(AlterColumnProperty item)
+        {
+            writer.Write("ALTER COLUMN ");
+            writer.Write(item.Name);
+            //  writer.Write(" ");
+
+            switch (item.AlterType)
+            {
+                case AlterAction.Add:
+                    writer.Write(" ADD ");
+                    break;
+                case AlterAction.Drop:
+                    writer.Write(" DROP ");
+                    break;
+            }
+
+            ((IVisitableBuilder)item.Property).Accept(this);
+            base.VisitAlterColumnProperty(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a NotForReplicationColumnProperty column property.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitNotForReplicationColumnProperty(NotForReplicationColumnProperty item)
+        {
+            writer.Write("NOT FOR REPLICATION");
+            base.VisitNotForReplicationColumnProperty(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a PERSISTED column property.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitPersistedColumnProperty(PersistedColumnProperty item)
+        {
+            writer.Write("PERSISTED");
+            base.VisitPersistedColumnProperty(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a ROWGUIDCOL column property.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitRowGuidColumnProperty(RowGuidColumnProperty item)
+        {
+            writer.Write("ROWGUIDCOL");
+            base.VisitRowGuidColumnProperty(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a Sparse column property.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitSparseColumnProperty(SparseColumnProperty item)
+        {
+            writer.Write("SPARSE");
+            base.VisitSparseColumnProperty(item);
+        }
+
+        /// <summary>
+        /// Generates the text for an Add Columns.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitAddColumns(AddColumns item)
+        {
+            if (item.Columns != null && item.Columns.Any())
+            {
+                writer.Write("ADD ");
+                IVisitableBuilder first = item.Columns.First();
+                first.Accept(this);
+
+                foreach (IVisitableBuilder next in item.Columns.Skip(1))
+                {
+                    writer.Write(", ");
+                    next.Accept(this);
+                }
+            }
+
+            base.VisitAddColumns(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a DropItemsList column property.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitDropItemsList(DropItemsList item)
+        {
+            if (item.Items != null && item.Items.Any())
+            {
+                writer.Write("DROP ");
+                IVisitableBuilder first = item.Items.First();
+                first.Accept(this);
+
+                foreach (IVisitableBuilder next in item.Items.Skip(1))
+                {
+                    writer.Write(", ");
+                    next.Accept(this);
+                }
+            }
+            base.VisitDropItemsList(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a DropColumnsList column property.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitDropColumnsList(DropColumnsList item)
+        {
+            if (item.Items != null && item.Items.Any())
+            {
+                writer.Write("COLUMN ");
+                IVisitableBuilder first = item.Items.First();
+                first.Accept(this);
+
+                foreach (IVisitableBuilder next in item.Items.Skip(1))
+                {
+                    writer.Write(", ");
+                    next.Accept(this);
+                }
+            }
+            base.VisitDropColumnsList(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a DropColumn column property.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitDropColumn(DropColumn item)
+        {
+            writer.Write(item.Name);
+            base.VisitDropColumn(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a DropConstraintsList column property.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitDropConstraintsList(DropConstraintsList item)
+        {
+            if (item.Items != null && item.Items.Any())
+            {
+                writer.Write("CONSTRAINT ");
+                IVisitableBuilder first = item.Items.First();
+                first.Accept(this);
+
+                foreach (IVisitableBuilder next in item.Items.Skip(1))
+                {
+                    writer.Write(", ");
+                    next.Accept(this);
+                }
+            }
+            base.VisitDropConstraintsList(item);
+        }
+
+        /// <summary>
+        /// Generates the text for a DropConstraint column property.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitDropConstraint(DropConstraint item)
+        {
+            writer.Write(item.Name);
+            base.VisitDropConstraint(item);
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Generates the text for a ColumnDefinition.
+        /// </summary>
+        /// <param name="item">The item to generate the text for.</param>
+        protected internal override void VisitColumnDefinition(ColumnDefinition item)
+        {
+            writer.Write(item.Name);
+
+            if (item.DataType != null)
+            {
+                writer.Write(" ");
+                ((IVisitableBuilder)item.DataType).Accept(this);
+            }
+
+            if (!string.IsNullOrEmpty(item.Collation))
+            {
+                writer.Write(" COLLATE ");
+                writer.Write(item.Collation);
+            }
+
+            if (item.IsNullable.HasValue)
+            {
+                if (item.IsNullable.Value)
+                {
+                    writer.Write(" NULL");
+                }
+                else
+                {
+                    writer.Write(" NOT NULL");
+                }
+            }
+
+            if (item.Default != null)
+            {
+                writer.Write(" ");
+                ((IVisitableBuilder)item.Default).Accept(this);
+            }
+
+            if (item.AutoIncrement != null)
+            {
+                writer.Write(" ");
+                ((IVisitableBuilder)item.AutoIncrement).Accept(this);
+            }
+
+            if (item.IsRowGuid)
+            {
+                writer.Write(" ROWGUIDCOL");
+            }
+
+            // Now do the column constraint list. This will be primary key, unique, foreignkey, default.
+
+            if (item.Constraints != null && item.Constraints.Any())
+            {
+                writer.Write(" ");
+                join(" ", item.Constraints);
+            }
+
+            base.VisitColumnDefinition(item);
+        }
+
+        #endregion
+
     }
 }

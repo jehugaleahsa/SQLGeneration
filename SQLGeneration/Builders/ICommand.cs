@@ -8,5 +8,10 @@ namespace SQLGeneration.Builders
     /// </summary>
     public interface ICommand : IVisitableBuilder
     {
+        /// <summary>
+        /// Gets whether the command has a terminator.
+        /// </summary>
+        bool HasTerminator { get; set; }
     }
+    
 }

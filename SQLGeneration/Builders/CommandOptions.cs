@@ -17,6 +17,7 @@ namespace SQLGeneration.Builders
             VerboseDeleteStatement = true;
             VerboseInnerJoin = true;
             VerboseOuterJoin = true;
+            Terminator = ';';
         }
 
         /// <summary>
@@ -82,5 +83,10 @@ namespace SQLGeneration.Builders
         /// Gets or sets whether columns should be fully qualified within a DELETE statement.
         /// </summary>
         public bool QualifyDeleteColumns { get; set; }
+
+        /// <summary>
+        /// Gets or sets the terminator to be used.
+        /// </summary>
+        public char Terminator { get; set; }
     }
 }

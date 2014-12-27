@@ -61,4 +61,5 @@ namespace SQLGeneration.Builders
             visitor.VisitColumn(this);
         }
     }
+  
 }

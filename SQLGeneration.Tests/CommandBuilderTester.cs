@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SQLGeneration.Builders;
 using SQLGeneration.Generators;
+using System.Linq;
 
 namespace SQLGeneration.Tests
 {
@@ -79,7 +80,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_FromTable()
         {
-            string commandText = "SELECT 1 FROM Table";
+            string commandText = "SELECT 1 FROM [Table]";
             assertCanReproduce(commandText);
         }
 
@@ -99,7 +100,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_GroupBy()
         {
-            string commandText = "SELECT COUNT(1) FROM Table GROUP BY Table.Column";
+            string commandText = "SELECT COUNT(1) FROM [Table] GROUP BY [Table].TestCol";
             assertCanReproduce(commandText);
         }
 
@@ -129,7 +130,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_WrappedJoin()
         {
-            string commandText = "SELECT 1 FROM (Table1 INNER JOIN Table2 ON Table1.Column = Table2.Column)";
+            string commandText = "SELECT 1 FROM (Table1 INNER JOIN Table2 ON Table1.TestCol = Table2.TestCol)";
             assertCanReproduce(commandText);
         }
 
@@ -139,7 +140,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_MultipleWrappedJoins()
         {
-            string commandText = "SELECT 1 FROM ((Table1 INNER JOIN Table2 ON Table1.Column = Table2.Column) INNER JOIN Table3 ON Table2.Column = Table3.Column)";
+            string commandText = "SELECT 1 FROM ((Table1 INNER JOIN Table2 ON Table1.TestCol = Table2.TestCol) INNER JOIN Table3 ON Table2.TestCol = Table3.TestCol)";
             assertCanReproduce(commandText);
         }
 
@@ -149,7 +150,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_AliasedTable()
         {
-            string commandText = "SELECT t.Column FROM Table t";
+            string commandText = "SELECT t.TestCol FROM [Table] t";
             assertCanReproduce(commandText);
         }
 
@@ -159,7 +160,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_TwoAliasedTables()
         {
-            string commandText = "SELECT t1.Column FROM Table1 t1 CROSS JOIN Table2 t2";
+            string commandText = "SELECT t1.TestCol FROM Table1 t1 CROSS JOIN Table2 t2";
             assertCanReproduce(commandText);
         }
 
@@ -189,7 +190,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_LeftOuterJoin()
         {
-            string commandText = "SELECT t1.Column FROM Table1 t1 LEFT OUTER JOIN Table2 t2 ON t1.Column = t2.Column";
+            string commandText = "SELECT t1.TestCol FROM Table1 t1 LEFT OUTER JOIN Table2 t2 ON t1.TestCol = t2.TestCol";
             assertCanReproduce(commandText);
         }
 
@@ -199,7 +200,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_RightOuterJoin()
         {
-            string commandText = "SELECT t1.Column FROM Table1 t1 RIGHT OUTER JOIN Table2 t2 ON t1.Column = t2.Column";
+            string commandText = "SELECT t1.TestCol FROM Table1 t1 RIGHT OUTER JOIN Table2 t2 ON t1.TestCol = t2.TestCol";
             assertCanReproduce(commandText);
         }
 
@@ -209,7 +210,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_FullOuterJoin()
         {
-            string commandText = "SELECT t1.Column FROM Table1 t1 FULL OUTER JOIN Table2 t2 ON t1.Column = t2.Column";
+            string commandText = "SELECT t1.TestCol FROM Table1 t1 FULL OUTER JOIN Table2 t2 ON t1.TestCol = t2.TestCol";
             assertCanReproduce(commandText);
         }
 
@@ -219,7 +220,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_MultipleProjectionItems()
         {
-            string commandText = "SELECT 3.14, 'Hello', NULL, SUM(1), Table.Column, (SELECT 123) FROM Table";
+            string commandText = "SELECT 3.14, 'Hello', NULL, SUM(1), [Table].TestCol, (SELECT 123) FROM [Table]";
             assertCanReproduce(commandText);
         }
 
@@ -229,7 +230,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_AliasedProjection()
         {
-            string commandText = "SELECT Table.Column AS c FROM Table";
+            string commandText = "SELECT [Table].TestCol AS c FROM [Table]";
             assertCanReproduce(commandText);
         }
 
@@ -239,7 +240,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_Star()
         {
-            string commandText = "SELECT * FROM Table";
+            string commandText = "SELECT * FROM [Table]";
             assertCanReproduce(commandText);
         }
 
@@ -249,7 +250,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_QualifiedStar()
         {
-            string commandText = "SELECT Table.* FROM Table";
+            string commandText = "SELECT [Table].* FROM [Table]";
             assertCanReproduce(commandText);
         }
 
@@ -259,7 +260,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_MultipleGroupByItems()
         {
-            string commandText = "SELECT Column1, Column2, COUNT(1) FROM Table GROUP BY Column1, Column2";
+            string commandText = "SELECT TestCol1, TestCol2, COUNT(1) FROM [Table] GROUP BY TestCol1, TestCol2";
             assertCanReproduce(commandText);
         }
 
@@ -269,7 +270,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_WrappedFilters()
         {
-            string commandText = "SELECT Column1 FROM Table WHERE (Column2 = 123 AND Column3 IS NULL)";
+            string commandText = "SELECT TestCol1 FROM [Table] WHERE (TestCol2 = 123 AND TestCol3 IS NULL)";
             assertCanReproduce(commandText);
         }
 
@@ -279,7 +280,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_OrFilters()
         {
-            string commandText = "SELECT Column1 FROM Table WHERE (Column2 = 123 OR Column3 IS NULL)";
+            string commandText = "SELECT TestCol1 FROM [Table] WHERE (TestCol2 = 123 OR TestCol3 IS NULL)";
             assertCanReproduce(commandText);
         }
 
@@ -289,7 +290,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_WrappedLeftFilter()
         {
-            string commandText = "SELECT Column1 FROM Table WHERE (Column2 = 123) OR Column3 IS NULL";
+            string commandText = "SELECT TestCol1 FROM [Table] WHERE (TestCol2 = 123) OR TestCol3 IS NULL";
             assertCanReproduce(commandText);
         }
 
@@ -299,7 +300,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_WrappedRightFilter()
         {
-            string commandText = "SELECT Column1 FROM Table WHERE Column2 = 123 AND (Column3 IS NULL)";
+            string commandText = "SELECT TestCol1 FROM [Table] WHERE TestCol2 = 123 AND (TestCol3 IS NULL)";
             assertCanReproduce(commandText);
         }
 
@@ -309,7 +310,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_MultipleWrappedFilter()
         {
-            string commandText = "SELECT Column1 FROM Table WHERE ((Column2 = 123) AND (Column3 IS NULL))";
+            string commandText = "SELECT TestCol1 FROM [Table] WHERE ((TestCol2 = 123) AND (TestCol3 IS NULL))";
             assertCanReproduce(commandText);
         }
 
@@ -319,7 +320,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_OrFilterNegated()
         {
-            string commandText = "SELECT Column1 FROM Table WHERE NOT (Column2 = 123 OR Column3 IS NULL)";
+            string commandText = "SELECT TestCol1 FROM [Table] WHERE NOT (TestCol2 = 123 OR TestCol3 IS NULL)";
             assertCanReproduce(commandText);
         }
 
@@ -329,7 +330,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_AndFilterNegated()
         {
-            string commandText = "SELECT Column1 FROM Table WHERE NOT (Column2 = 123 AND Column3 IS NULL)";
+            string commandText = "SELECT TestCol1 FROM [Table] WHERE NOT (TestCol2 = 123 AND TestCol3 IS NULL)";
             assertCanReproduce(commandText);
         }
 
@@ -339,7 +340,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_InternalRightOrFilterNegated()
         {
-            string commandText = "SELECT Column1 FROM Table WHERE Column1 = 'abc' OR NOT (Column2 = 123 AND Column3 IS NULL)";
+            string commandText = "SELECT TestCol1 FROM [Table] WHERE TestCol1 = 'abc' OR NOT (TestCol2 = 123 AND TestCol3 IS NULL)";
             assertCanReproduce(commandText);
         }
 
@@ -349,7 +350,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_InternalLeftOrFilterNegated()
         {
-            string commandText = "SELECT Column1 FROM Table WHERE NOT (Column1 = 'abc' OR Column2 = 123) AND Column3 IS NULL";
+            string commandText = "SELECT TestCol1 FROM [Table] WHERE NOT (TestCol1 = 'abc' OR TestCol2 = 123) AND TestCol3 IS NULL";
             assertCanReproduce(commandText);
         }
 
@@ -359,7 +360,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_InternalRightAndFilterNegated()
         {
-            string commandText = "SELECT Column1 FROM Table WHERE Column1 = 'abc' AND NOT (Column2 = 123 OR Column3 IS NULL)";
+            string commandText = "SELECT TestCol1 FROM [Table] WHERE TestCol1 = 'abc' AND NOT (TestCol2 = 123 OR TestCol3 IS NULL)";
             assertCanReproduce(commandText);
         }
 
@@ -369,7 +370,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_InternalLeftAndFilterNegated()
         {
-            string commandText = "SELECT Column1 FROM Table WHERE NOT (Column1 = 'abc' AND Column2 = 123) OR Column3 IS NULL";
+            string commandText = "SELECT TestCol1 FROM [Table] WHERE NOT (TestCol1 = 'abc' AND TestCol2 = 123) OR TestCol3 IS NULL";
             assertCanReproduce(commandText);
         }
 
@@ -379,7 +380,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_QuantifyingFilter_Select()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column > ALL (SELECT Column FROM Table2)";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol > ALL (SELECT TestCol FROM Table2)";
             assertCanReproduce(commandText);
         }
 
@@ -389,7 +390,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_QuantifyingFilter_ValueList()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column > ALL (1, 2, 3)";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol > ALL (1, 2, 3)";
             assertCanReproduce(commandText);
         }
 
@@ -399,7 +400,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_BetweenFilter()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column BETWEEN 1 AND 10";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol BETWEEN 1 AND 10";
             assertCanReproduce(commandText);
         }
 
@@ -409,18 +410,18 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_LikeFilter()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column LIKE '%ABC'";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol LIKE '%ABC'";
             assertCanReproduce(commandText);
         }
 
         /// <summary>
         /// This sees whether we can reproduce a select with a LIKE filter
-        /// that sees if a column is like another column.
+        /// that sees if a TestCol is like another TestCol.
         /// </summary>
         [TestMethod]
         public void TestSelect_LikeFilter_CompareTwoColumns()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column1 LIKE Column2";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol1 LIKE TestCol2";
             assertCanReproduce(commandText);
         }
 
@@ -431,7 +432,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_LikeFilter_CompareToParameter()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column1 LIKE @Parameter";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol1 LIKE @Parameter";
             CommandBuilderOptions options = new CommandBuilderOptions()
             {
                 PlaceholderPrefix = "@"
@@ -445,7 +446,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_InFilter_ValueList()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column IN (1, 2, 3)";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol IN (1, 2, 3)";
             assertCanReproduce(commandText);
         }
 
@@ -455,7 +456,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_InFilter_Select()
         {
-            string commandText = "SELECT Column FROM Table1 WHERE Column IN (SELECT Column FROM Table2)";
+            string commandText = "SELECT TestCol FROM Table1 WHERE TestCol IN (SELECT TestCol FROM Table2)";
             assertCanReproduce(commandText);
         }
 
@@ -465,7 +466,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_InFilter_FunctionCall()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column IN GetData()";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol IN GetData()";
             assertCanReproduce(commandText);
         }
 
@@ -475,7 +476,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_ExistsFilter()
         {
-            string commandText = "SELECT Column FROM Table1 WHERE EXISTS(SELECT 1 FROM Table2 WHERE Table1.Column = Table2.Column)";
+            string commandText = "SELECT TestCol FROM Table1 WHERE EXISTS(SELECT 1 FROM Table2 WHERE Table1.TestCol = Table2.TestCol)";
             assertCanReproduce(commandText);
         }
 
@@ -485,7 +486,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_QuantifyingFilter_Any()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column > ANY (SELECT Column FROM Table2)";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol > ANY (SELECT TestCol FROM Table2)";
             assertCanReproduce(commandText);
         }
 
@@ -495,7 +496,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_QuantifyingFilter_Some()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column > SOME (SELECT Column FROM Table2)";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol > SOME (SELECT TestCol FROM Table2)";
             assertCanReproduce(commandText);
         }
 
@@ -505,7 +506,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_QuantifyingFilter_EqualTo()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column = ALL (SELECT Column FROM Table2)";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol = ALL (SELECT TestCol FROM Table2)";
             assertCanReproduce(commandText);
         }
 
@@ -515,7 +516,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_QuantifyingFilter_NotEqualTo()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column <> ALL (SELECT Column FROM Table2)";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol <> ALL (SELECT TestCol FROM Table2)";
             assertCanReproduce(commandText);
         }
 
@@ -525,7 +526,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_QuantifyingFilter_LessThanEqualTo()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column <= ALL (SELECT Column FROM Table2)";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol <= ALL (SELECT TestCol FROM Table2)";
             assertCanReproduce(commandText);
         }
 
@@ -535,7 +536,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_QuantifyingFilter_GreaterThanEqualTo()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column >= ALL (SELECT Column FROM Table2)";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol >= ALL (SELECT TestCol FROM Table2)";
             assertCanReproduce(commandText);
         }
 
@@ -545,7 +546,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_QuantifyingFilter_LessThan()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column < ALL (SELECT Column FROM Table2)";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol < ALL (SELECT TestCol FROM Table2)";
             assertCanReproduce(commandText);
         }
 
@@ -555,7 +556,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_OrderFilter_NotEqualTo()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column <> 123";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol <> 123";
             assertCanReproduce(commandText);
         }
 
@@ -565,7 +566,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_OrderFilter_LessThanEqualTo()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column <= 123";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol <= 123";
             assertCanReproduce(commandText);
         }
 
@@ -575,7 +576,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_OrderFilter_GreaterThanEqualTo()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column >= 123";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol >= 123";
             assertCanReproduce(commandText);
         }
 
@@ -585,7 +586,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_OrderFilter_LessThan()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column < 123";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol < 123";
             assertCanReproduce(commandText);
         }
 
@@ -595,7 +596,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_OrderFilter_GreaterThan()
         {
-            string commandText = "SELECT Column FROM Table WHERE Column > 123";
+            string commandText = "SELECT TestCol FROM [Table] WHERE TestCol > 123";
             assertCanReproduce(commandText);
         }
 
@@ -635,7 +636,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_MultipleOrderBys()
         {
-            string commandText = "SELECT Column1, Column2, Column3 FROM Table ORDER BY Column1, Column2, Column3";
+            string commandText = "SELECT TestCol1, TestCol2, TestCol3 FROM [Table] ORDER BY TestCol1, TestCol2, TestCol3";
             assertCanReproduce(commandText);
         }
 
@@ -645,7 +646,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_OrderByDescending()
         {
-            string commandText = "SELECT Column FROM Table ORDER BY Column DESC";
+            string commandText = "SELECT TestCol FROM [Table] ORDER BY TestCol DESC";
             assertCanReproduce(commandText);
         }
 
@@ -655,7 +656,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_OrderByAscending()
         {
-            string commandText = "SELECT Column FROM Table ORDER BY Column ASC";
+            string commandText = "SELECT TestCol FROM [Table] ORDER BY TestCol ASC";
             assertCanReproduce(commandText);
         }
 
@@ -665,7 +666,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_OrderByNullsFirst()
         {
-            string commandText = "SELECT Column FROM Table ORDER BY Column NULLS FIRST";
+            string commandText = "SELECT TestCol FROM [Table] ORDER BY TestCol NULLS FIRST";
             assertCanReproduce(commandText);
         }
 
@@ -675,7 +676,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_OrderByNullsLast()
         {
-            string commandText = "SELECT Column FROM Table ORDER BY Column NULLS LAST";
+            string commandText = "SELECT TestCol FROM [Table] ORDER BY TestCol NULLS LAST";
             assertCanReproduce(commandText);
         }
 
@@ -685,7 +686,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_OrderByDescendingNullsLast()
         {
-            string commandText = "SELECT Column FROM Table ORDER BY Column DESC NULLS FIRST";
+            string commandText = "SELECT TestCol FROM [Table] ORDER BY TestCol DESC NULLS FIRST";
             assertCanReproduce(commandText);
         }
 
@@ -775,7 +776,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_FullyQualifiedColumn()
         {
-            string commandText = "SELECT Server.Database.Owner.Table.Column FROM Server.Database.Owner.Table";
+            string commandText = "SELECT Server.Db.Owner.Tbl.TestCol FROM Server.Db.Owner.Tbl";
             assertCanReproduce(commandText);
         }
 
@@ -785,7 +786,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_UnqualifiedColumn_MultipleSources()
         {
-            string commandText = "SELECT Column FROM Table1, Table2";
+            string commandText = "SELECT TestCol FROM Table1, Table2";
             assertCanReproduce(commandText);
         }
 
@@ -796,7 +797,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_FunctionWithOrderingWindow()
         {
-            string commandText = "SELECT inner.c1 FROM (SELECT Table.Column1 AS c1, ROW_NUMBER() OVER (ORDER BY Table.Column2, Table.Column3) AS rn FROM Table) inner WHERE inner.rn BETWEEN 11 AND 20";
+            string commandText = "SELECT inner.c1 FROM (SELECT [Table].TestCol1 AS c1, ROW_NUMBER() OVER (ORDER BY [Table].TestCol2, [Table].TestCol3) AS rn FROM [Table]) inner WHERE inner.rn BETWEEN 11 AND 20";
             assertCanReproduce(commandText);
         }
 
@@ -825,7 +826,7 @@ namespace SQLGeneration.Tests
         /// </summary>
         [TestMethod]
         public void TestSelect_FunctionWithStartFraming()
-        {            
+        {
             string commandText = "SELECT sale.prod_id, sale.month_num, sale.sales, SUM(sale.sales) OVER (PARTITION BY sale.prod_id ORDER BY sale.month_num ROWS 12 PRECEDING) FROM sale";
             assertCanReproduce(commandText);
         }
@@ -857,7 +858,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_MatchCase_MultipleCases()
         {
-            string commandText = "SELECT CASE Table.Column WHEN 0 THEN 'Sunday' WHEN 1 THEN 'Monday' WHEN 2 THEN 'Tuesday' WHEN 3 THEN 'Wednesday' WHEN 4 THEN 'Thursday' WHEN 5 THEN 'Friday' WHEN 6 THEN 'Saturday' END FROM Table";
+            string commandText = "SELECT CASE [Table].TestCol WHEN 0 THEN 'Sunday' WHEN 1 THEN 'Monday' WHEN 2 THEN 'Tuesday' WHEN 3 THEN 'Wednesday' WHEN 4 THEN 'Thursday' WHEN 5 THEN 'Friday' WHEN 6 THEN 'Saturday' END FROM [Table]";
             assertCanReproduce(commandText);
         }
 
@@ -867,7 +868,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_MatchCase_Else()
         {
-            string commandText = "SELECT CASE Table.Column WHEN 'Admin' THEN 'Administrator' ELSE 'User' END FROM Table";
+            string commandText = "SELECT CASE [Table].TestCol WHEN 'Admin' THEN 'Administrator' ELSE 'User' END FROM [Table]";
             assertCanReproduce(commandText);
         }
 
@@ -877,7 +878,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_ConditionalCase_MultipleCases()
         {
-            string commandText = "SELECT CASE WHEN Table.Column = 0 THEN 'Sunday' WHEN Table.Column = 1 THEN 'Monday' WHEN Table.Column = 2 THEN 'Tuesday' WHEN Table.Column = 3 THEN 'Wednesday' WHEN Table.Column = 4 THEN 'Thursday' WHEN Table.Column = 5 THEN 'Friday' WHEN Table.Column = 6 THEN 'Saturday' END FROM Table";
+            string commandText = "SELECT CASE WHEN [Table].TestCol = 0 THEN 'Sunday' WHEN [Table].TestCol = 1 THEN 'Monday' WHEN [Table].TestCol = 2 THEN 'Tuesday' WHEN [Table].TestCol = 3 THEN 'Wednesday' WHEN [Table].TestCol = 4 THEN 'Thursday' WHEN [Table].TestCol = 5 THEN 'Friday' WHEN [Table].TestCol = 6 THEN 'Saturday' END FROM [Table]";
             assertCanReproduce(commandText);
         }
 
@@ -887,7 +888,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_ConditionalCase_Else()
         {
-            string commandText = "SELECT CASE WHEN Table.Column = 'Admin' THEN 'Administrator' ELSE 'User' END FROM Table";
+            string commandText = "SELECT CASE WHEN [Table].TestCol = 'Admin' THEN 'Administrator' ELSE 'User' END FROM [Table]";
             assertCanReproduce(commandText);
         }
 
@@ -901,6 +902,16 @@ namespace SQLGeneration.Tests
             assertCanReproduce(commandText);
         }
 
+        /// <summary>
+        /// Tests whether we can reproduce a select statement without any sources.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_NoSources()
+        {
+            string commandText = @"SELECT SomeFunction('ServerName') AS test1, SomeFunction('ServerName') AS test2";
+            assertCanReproduce(commandText);
+        }
+
         #endregion
 
         #region Insert
@@ -911,7 +922,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestInsert_NoColumns_NoValues()
         {
-            string commandText = "INSERT INTO Table VALUES()";
+            string commandText = "INSERT INTO [Table] VALUES()";
             assertCanReproduce(commandText);
         }
 
@@ -921,7 +932,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestInsert_AliasedTable()
         {
-            string commandText = "INSERT INTO Table t VALUES()";
+            string commandText = "INSERT INTO [Table] t VALUES()";
             assertCanReproduce(commandText);
         }
 
@@ -931,7 +942,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestInsert_ColumnsAndValues()
         {
-            string commandText = "INSERT INTO Table (Column1, Column2, Column3) VALUES(123, 'hello', NULL)";
+            string commandText = "INSERT INTO [Table] (Column1, Column2, Column3) VALUES(123, 'hello', NULL)";
             assertCanReproduce(commandText);
         }
 
@@ -941,7 +952,27 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestInsert_ColumnsAndSelect()
         {
-            string commandText = "INSERT INTO Table (Column1, Column2, Column3) (SELECT 123, 'hello', NULL)";
+            string commandText = "INSERT INTO [Table] (Column1, Column2, Column3) (SELECT 123, 'hello', NULL)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an insert statement with an output clause.
+        /// </summary>
+        [TestMethod]
+        public void TestInsert_ColumnsAndOutputInserted()
+        {
+            string commandText = "INSERT INTO [Table] (Column1, Column2, Column3) OUTPUT INSERTED.Column1, INSERTED.Column2, INSERTED.Column3 VALUES(1, 2, 3)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an insert statement with an output clause.
+        /// </summary>
+        [TestMethod]
+        public void TestInsert_ColumnsAndOutputInserted_AllColumns()
+        {
+            string commandText = "INSERT INTO [Table] (Column1, Column2, Column3) OUTPUT INSERTED.* VALUES(1, 2, 3)";
             assertCanReproduce(commandText);
         }
 
@@ -955,17 +986,17 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestUpdate()
         {
-            string commandText = "UPDATE Table SET Column = 123";
+            string commandText = "UPDATE [Table] SET TestCol = 123";
             assertCanReproduce(commandText);
         }
 
         /// <summary>
-        /// This sees whether we can reproduce an update statement with an aliased table.
+        /// This sees whether we can reproduce an update statement with an aliased [Table].
         /// </summary>
         [TestMethod]
         public void TestUpdate_AliasedTable()
         {
-            string commandText = "UPDATE Table t SET Column = 123";
+            string commandText = "UPDATE [Table] t SET TestCol = 123";
             assertCanReproduce(commandText);
         }
 
@@ -975,7 +1006,7 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestUpdate_WhereClause()
         {
-            string commandText = "UPDATE Table SET Column2 = 'hello' WHERE Column1 = 123";
+            string commandText = "UPDATE [Table] SET TestCol2 = 'hello' WHERE TestCol1 = 123";
             assertCanReproduce(commandText);
         }
 
@@ -985,7 +1016,17 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestUpdate_MultipleSetters()
         {
-            string commandText = "UPDATE Table SET Column2 = 'hello', Column3 = NULL WHERE Column1 = 123";
+            string commandText = "UPDATE [Table] SET TestCol2 = 'hello', TestCol3 = NULL WHERE TestCol1 = 123";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an update statement with an output clause.
+        /// </summary>
+        [TestMethod]
+        public void TestUpdate_OutputColumns()
+        {
+            string commandText = "UPDATE [Table] SET TestCol = 123 OUTPUT DELETED.TestCol, INSERTED.TestCol";
             assertCanReproduce(commandText);
         }
 
@@ -999,17 +1040,17 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestDelete()
         {
-            string commandText = "DELETE FROM Table";
+            string commandText = "DELETE FROM [Table]";
             assertCanReproduce(commandText);
         }
 
         /// <summary>
-        /// This sees whether we can reproduce a delete statement with an aliased table.
+        /// This sees whether we can reproduce a delete statement with an aliased [Table].
         /// </summary>
         [TestMethod]
         public void TestDelete_AliasedTable()
         {
-            string commandText = "DELETE FROM Table t";
+            string commandText = "DELETE FROM [Table] t";
             assertCanReproduce(commandText);
         }
 
@@ -1019,7 +1060,630 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestDelete_WhereClause()
         {
-            string commandText = "DELETE FROM Table WHERE Column = 123";
+            string commandText = "DELETE FROM [Table] WHERE TestCol = 123";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a delete statement with an output clause.
+        /// </summary>
+        [TestMethod]
+        public void TestDelete_AndOutputColumns()
+        {
+            string commandText = "DELETE FROM [Table] OUTPUT DELETED.ID, DELETED.OtherColumn";
+            assertCanReproduce(commandText);
+        }       
+
+        #endregion
+
+        #region Batch
+
+        /// <summary>
+        /// This sees whether we can reproduce a batch of SQL statements.
+        /// </summary>
+        [ExpectedException(typeof(InvalidOperationException))]
+        [TestMethod]
+        public void TestBatch_InvalidSql()
+        {
+            string commandText = @"SELECT FROM X";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a batch of SQL statements.
+        /// </summary>
+        [TestMethod]
+        public void TestBatch_MixtureOfStatementsWithSemiColons()
+        {
+            string commandText = @"INSERT INTO TestTable (TestCol) VALUES(';');SELECT 1 UNION ALL SELECT 1;SELECT CASE WHEN TestTable.TestCol = 'Adm;in' THEN 'Administ;rator' ELSE 'Us;er' END FROM TestTable";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce multiple insert statements in a batch using a terminator.
+        /// </summary>
+        [TestMethod]
+        public void TestBatch_MultipleInserts()
+        {
+            string commandText = @"INSERT INTO [Table] VALUES();INSERT INTO [Table] VALUES()";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This tests whether the terminator is persisted when we parse and reproduce the sql.
+        /// </summary>
+        [TestMethod]
+        public void TestBatch_TerminatorPersists()
+        {
+            string commandText = @"INSERT INTO [Table] VALUES();";
+            assertCanReproduce(commandText);
+        }
+
+        #endregion
+
+        #region Create
+
+        /// <summary>
+        /// This sees whether we can reproduce a simple create database statement.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateDatabase()
+        {
+            string commandText = "CREATE DATABASE NewDatabase";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a simple create database statement with collation.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateDatabase_Collation()
+        {
+            string commandText = "CREATE DATABASE NewDatabase COLLATE Latin_General";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a simple create table statement.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable()
+        {
+            string commandText = "CREATE TABLE NewTable";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a simple create table statement.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_MultiPartIdentifier()
+        {
+            string commandText = "CREATE TABLE somedatabase.dbo.NewTable";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement using quoted identifiers
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_QuotedMultiPartIdentifier()
+        {
+            string commandText = "CREATE TABLE [dbo].[NewTable]";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with one simplistic column
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_Simple()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA CHAR)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with one column that has a COLLATION
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_Collate()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA NCHAR COLLATE Latin1_General)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with one column that has a precision and scale.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_DataType_PrecisionAndScale()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA DECIMAL(10,2))";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with one column that has a precision and scale.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_DataType_Max()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA VARCHAR(MAX))";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with one column that has an identity.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_Identity()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT IDENTITY(1,1))";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with one column that has an identity and not for replication.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_Identity_NotForReplication()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT IDENTITY(1,1) NOT FOR REPLICATION)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with one column that has an identity.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_RowGuid()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA UNIQUEIDENTIFIER ROWGUIDCOL)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with multiple simple columns.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumns_Simple()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT, ColumnB CHAR)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with one column that has a DEFAULT
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_Default()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA NCHAR DEFAULT 'A')";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with one column that has a DEFAULT and constraint name
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_Default_Named_Constraint()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA NCHAR CONSTRAINT my_constraint DEFAULT 'A')";
+            assertCanReproduce(commandText);
+        }
+
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with one column that has a NULL
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_Null()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA NCHAR NULL)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with one column that has a NOT NULL
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_Not_Null()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA NCHAR NOT NULL)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement using quoted identifiers
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumns_RealWorld()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA CHAR, ColumnB VARCHAR(150), ColumnC DECIMAL(10,2), ColumnD NTEXT COLLATE Latin1_General, ColumnE NCHAR COLLATE Latin1_General NOT NULL, ColumnF NVARCHAR COLLATE Latin1_General NULL DEFAULT 'Hello!', ColumnG NVARCHAR COLLATE Latin1_General NULL CONSTRAINT my_constraintname DEFAULT 'Wham!', ColumnH INT NOT NULL IDENTITY, ColumnI INT NOT NULL IDENTITY(1,1), ColumnJ INT NOT NULL DEFAULT 1, ColumnK UNIQUEIDENTIFIER ROWGUIDCOL)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a primary key constriant.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_PrimaryKey_Constraint()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT IDENTITY(1,1) PRIMARY KEY)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a named primary key constriant.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_PrimaryKey_Named_Constraint()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT IDENTITY(1,1) CONSTRAINT my_mk PRIMARY KEY)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a unique key constriant.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_Unique_Constraint()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT IDENTITY(1,1) UNIQUE)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a named unique key constriant.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_Unique_Named_Constraint()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT IDENTITY(1,1) CONSTRAINT my_un UNIQUE)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a foreign key constraint and no referenced column name.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_ForeignKey_Constraint_NoColumnReference()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT FOREIGN KEY REFERENCES dbo.mytable)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a foreign key constraint.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_ForeignKey_Constraint()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT FOREIGN KEY REFERENCES dbo.mytable(idColumn))";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a foreign key constraint not for replication.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_ForeignKey_Constraint_NotForReplication()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT FOREIGN KEY REFERENCES dbo.mytable(idColumn) NOT FOR REPLICATION)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a named foreign key constraint.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_ForeignKey_Named_Constraint()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT CONSTRAINT my_fk FOREIGN KEY REFERENCES dbo.mytable(idColumn))";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a foreign key constraint with an on delete no action.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_ForeignKey_OnDelete_NoAction()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT FOREIGN KEY REFERENCES dbo.mytable(idColumn) ON DELETE NO ACTION)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a foreign key constraint with an on delete cascade.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_ForeignKey_OnDelete_Cascade()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT FOREIGN KEY REFERENCES dbo.mytable(idColumn) ON DELETE CASCADE)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a foreign key constraint with an on delete set null.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_ForeignKey_OnDelete_SetNull()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT FOREIGN KEY REFERENCES dbo.mytable(idColumn) ON DELETE SET NULL)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a foreign key constraint with an on delete set default.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_ForeignKey_OnDelete_SetDefault()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT FOREIGN KEY REFERENCES dbo.mytable(idColumn) ON DELETE SET DEFAULT)";
+            assertCanReproduce(commandText);
+        }
+
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a foreign key constraint with an on update no action.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_ForeignKey_OnUpdate_NoAction()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT FOREIGN KEY REFERENCES dbo.mytable(idColumn) ON UPDATE NO ACTION)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a foreign key constraint with an on update cascade.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_ForeignKey_OnUpdate_Cascade()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT FOREIGN KEY REFERENCES dbo.mytable(idColumn) ON UPDATE CASCADE)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a foreign key constraint with an on update set null.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_ForeignKey_OnUpdate_SetNull()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT FOREIGN KEY REFERENCES dbo.mytable(idColumn) ON UPDATE SET NULL)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has a foreign key constraint with an on update set default.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_ForeignKey_OnUpdate_SetDefault()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT FOREIGN KEY REFERENCES dbo.mytable(idColumn) ON UPDATE SET DEFAULT)";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a create table statement with a column that has multiple constraints applied of varying kinds.
+        /// </summary>
+        [TestMethod]
+        public void TestCreateTable_WithColumn_Multiple_Constraints()
+        {
+            string commandText = @"CREATE TABLE [dbo].[NewTable](ColumnA INT NOT NULL CONSTRAINT my_default DEFAULT 1 CONSTRAINT my_fk FOREIGN KEY REFERENCES dbo.mytable(idColumn) ON DELETE SET NULL ON UPDATE NO ACTION CONSTRAINT my_unique UNIQUE)";
+            assertCanReproduce(commandText);
+        }
+
+
+
+        #endregion
+
+        #region Alter
+
+        /// <summary>
+        /// This sees whether we can reproduce a simple alter database name statement.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterDatabase_ModifyName()
+        {
+            string commandText = "ALTER DATABASE NewDatabase MODIFY NAME = RenamedDatabase";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a simple alter database collation name statement.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterDatabase_Collate()
+        {
+            string commandText = "ALTER DATABASE NewDatabase COLLATE Latin_General";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a simple alter table column statement.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_AlterColumn_DataType()
+        {
+            string commandText = "ALTER TABLE MyTable ALTER COLUMN mycolumn INT";
+            assertCanReproduce(commandText);
+        }
+
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table column.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_AlterColumn_DataType_Size_And_Collate_And_NotNull()
+        {
+            string commandText = "ALTER TABLE MyTable ALTER COLUMN mycolumn VARCHAR(10) COLLATE latin_general NOT NULL";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table column - add rowguidcol.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_AlterColumn_Add_RowGuidCol()
+        {
+            string commandText = "ALTER TABLE MyTable ALTER COLUMN mycolumn ADD ROWGUIDCOL";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table column - add Persisted.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_AlterColumn_Add_Persisted()
+        {
+            string commandText = "ALTER TABLE MyTable ALTER COLUMN mycolumn ADD PERSISTED";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table column - add not for replication.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_AlterColumn_Add_Not_For_Replication()
+        {
+            string commandText = "ALTER TABLE MyTable ALTER COLUMN mycolumn ADD NOT FOR REPLICATION";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce a simple alter table column - add Sparse.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_AlterColumn_Add_Not_For_Sparse()
+        {
+            string commandText = "ALTER TABLE MyTable ALTER COLUMN mycolumn ADD SPARSE";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table column - drop ROWGUIDCOL.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_AlterColumn_Drop_RowGuidCol()
+        {
+            string commandText = "ALTER TABLE MyTable ALTER COLUMN mycolumn DROP ROWGUIDCOL";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table column - drop Persisted.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_AlterColumn_Drop_Persisted()
+        {
+            string commandText = "ALTER TABLE MyTable ALTER COLUMN mycolumn DROP PERSISTED";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table column - drop not for replication.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_AlterColumn_Drop_Not_For_Replication()
+        {
+            string commandText = "ALTER TABLE MyTable ALTER COLUMN mycolumn DROP NOT FOR REPLICATION";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table column - drop Sparse.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_AlterColumn_Drop_Not_For_Sparse()
+        {
+            string commandText = "ALTER TABLE MyTable ALTER COLUMN mycolumn DROP SPARSE";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table add column.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_AddColumn()
+        {
+            string commandText = "ALTER TABLE MyTable ADD mycolumn VARCHAR(100) NOT NULL";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table add columns.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_AddColumns()
+        {
+            string commandText = "ALTER TABLE MyTable ADD mycolumn VARCHAR(100) NOT NULL, myothercolumn INT NOT NULL PRIMARY KEY";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table drop column.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_DropColumn()
+        {
+            string commandText = "ALTER TABLE MyTable DROP COLUMN mycolumn";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table drop columns.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_DropColumns()
+        {
+            string commandText = "ALTER TABLE MyTable DROP COLUMN mycolumn, myothercolumn, andanothercolumn";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table drop constraint.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_DropConstraint()
+        {
+            string commandText = "ALTER TABLE MyTable DROP CONSTRAINT myconstraint";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table drop constraint with no constraint keyword.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_DropConstraint_NoConstraintKeyword()
+        {
+            string commandText = "ALTER TABLE MyTable DROP myconstraint";
+            string assertText = "ALTER TABLE MyTable DROP CONSTRAINT myconstraint";
+            CommandBuilder builder = new CommandBuilder();
+            ICommand command = builder.GetCommand(commandText);
+            Formatter formatter = new Formatter();
+            string actual = formatter.GetCommandText(command);
+            Assert.AreEqual(assertText, actual, "The command builder did not generate the original command text.");
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table drop constraint.
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_DropConstraints()
+        {
+            string commandText = "ALTER TABLE MyTable DROP CONSTRAINT myconstraint, myotherconstraint, andanotherconstraint";
+            assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// This sees whether we can reproduce an alter table statement that drops columns and constraints
+        /// </summary>
+        [TestMethod]
+        public void TestAlterTable_DropColumns_And_Constraints()
+        {
+            string commandText = "ALTER TABLE MyTable DROP CONSTRAINT myconstraint, myotherconstraint, COLUMN andacolumn, andanothercolumn, CONSTRAINT finalconstraint, COLUMN finalcolumn";
             assertCanReproduce(commandText);
         }
 
@@ -1049,7 +1713,7 @@ namespace SQLGeneration.Tests
             customerId.Qualify = false;
             Placeholder parameter = new Placeholder("@customerId");
             select.AddWhere(new EqualToFilter(customerId, parameter));
-            
+
             Formatter formatter = new Formatter();
             string actual = formatter.GetCommandText(select);
             string expected = "SELECT * FROM Customer WHERE CustomerId = @customerId";
@@ -1078,18 +1742,18 @@ namespace SQLGeneration.Tests
         [TestMethod]
         public void TestSelect_Newlines()
         {
-            string commandText = 
+            string commandText =
 @"SELECT
     *
 FROM Table1
-INNER JOIN Table2 ON Table1.Column = Table2.Column
+INNER JOIN Table2 ON Table1.TestCol = Table2.TestCol
 WHERE Column3 = '123'";
             CommandBuilder commandBuilder = new CommandBuilder();
             SelectBuilder select = (SelectBuilder)commandBuilder.GetCommand(commandText);
 
             Formatter formatter = new Formatter();
             string actual = formatter.GetCommandText(select);
-            string expected = "SELECT * FROM Table1 INNER JOIN Table2 ON Table1.Column = Table2.Column WHERE Column3 = '123'";
+            string expected = "SELECT * FROM Table1 INNER JOIN Table2 ON Table1.TestCol = Table2.TestCol WHERE Column3 = '123'";
             Assert.AreEqual(expected, actual, "The SELECT statement was not updated as expected.");
         }
 
@@ -1101,8 +1765,8 @@ WHERE Column3 = '123'";
         {
             string commandText =
 @"SELECT
-	r.RouteId,
-    r.RouteNumber,
+	ra.RouteId,
+    ra.RouteNumber,
 	o.CustomerId,
 	o.CustomerKey AS [Outlet#],
 	o.Name AS CustomerName,
@@ -1116,8 +1780,8 @@ WHERE Column3 = '123'";
 	rcvc.FillLevel AS ProductCapacity,
 	st.QuantityDelivered AS FillUnits
 FROM Company b
-INNER JOIN Route r ON b.CompanyId = r.CompanyId
-INNER JOIN RouteSchedule rs ON r.RouteId = rs.RouteId
+INNER JOIN Route ra ON b.CompanyId = ra.CompanyId
+INNER JOIN RouteSchedule rs ON ra.RouteId = rs.RouteId
 INNER JOIN RouteCard rc ON rs.RouteScheduleId = rc.RouteScheduleId
 INNER JOIN
 (
@@ -1139,8 +1803,8 @@ INNER JOIN ServiceTransaction svc ON
 	(rc.VendingMachineId = svc.VendingMachineId AND rc.EffectiveDate = svc.ServiceTransactionDate)
 INNER JOIN SettlementTransactionSKU st ON
 	(svc.ServiceTransactionId = st.ServiceTransactionId AND p.ProductLookupId = st.ProductLookupId)
-WHERE rc.EffectiveDate BETWEEN @startDate AND @endDate AND r.RouteId IN (1, 2, 3)
-ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.EffectiveDate DESC";
+WHERE rc.EffectiveDate BETWEEN @startDate AND @endDate AND ra.RouteId IN (1, 2, 3)
+ORDER BY b.CompanyId, ra.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.EffectiveDate DESC";
             CommandBuilder commandBuilder = new CommandBuilder();
             SelectBuilder select = (SelectBuilder)commandBuilder.GetCommand(commandText);
             select.AddWhere(new EqualToFilter(new NumericLiteral(1), new NumericLiteral(1)));
@@ -1148,8 +1812,8 @@ ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.Effe
             Formatter formatter = new Formatter();
             string actual = formatter.GetCommandText(select);
             string expected = "SELECT"
-                + " r.RouteId,"
-                + " r.RouteNumber,"
+                + " ra.RouteId,"
+                + " ra.RouteNumber,"
                 + " o.CustomerId,"
                 + " o.CustomerKey AS [Outlet#],"
                 + " o.Name AS CustomerName,"
@@ -1163,8 +1827,8 @@ ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.Effe
                 + " rcvc.FillLevel AS ProductCapacity,"
                 + " st.QuantityDelivered AS FillUnits"
                 + " FROM Company b"
-                + " INNER JOIN Route r ON b.CompanyId = r.CompanyId"
-                + " INNER JOIN RouteSchedule rs ON r.RouteId = rs.RouteId"
+                + " INNER JOIN Route ra ON b.CompanyId = ra.CompanyId"
+                + " INNER JOIN RouteSchedule rs ON ra.RouteId = rs.RouteId"
                 + " INNER JOIN RouteCard rc ON rs.RouteScheduleId = rc.RouteScheduleId"
                 + " INNER JOIN (SELECT rc.RouteCardId, rcvc.ProductLookupId, SUM(rcvc.FillLevel) AS FillLevel FROM RouteSchedule rs INNER JOIN RouteCard rc ON rs.RouteScheduleId = rc.RouteScheduleId INNER JOIN RouteCardVendColumn rcvc ON rc.RouteCardId = rcvc.RouteCardId WHERE rs.RouteId IN (1, 2, 3) AND rc.EffectiveDate BETWEEN @startDate AND @stopDate GROUP BY rc.RouteCardId, rcvc.ProductLookupId) rcvc ON rc.RouteCardId = rcvc.RouteCardId"
                 + " INNER JOIN ProductLookup p ON rcvc.ProductLookupId = p.ProductLookupId"
@@ -1173,8 +1837,8 @@ ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.Effe
                 + " INNER JOIN Customer o ON vm.CustomerId = o.CustomerId"
                 + " INNER JOIN ServiceTransaction svc ON (rc.VendingMachineId = svc.VendingMachineId AND rc.EffectiveDate = svc.ServiceTransactionDate)"
                 + " INNER JOIN SettlementTransactionSKU st ON (svc.ServiceTransactionId = st.ServiceTransactionId AND p.ProductLookupId = st.ProductLookupId)"
-                + " WHERE rc.EffectiveDate BETWEEN @startDate AND @endDate AND r.RouteId IN (1, 2, 3) AND 1 = 1"
-                + " ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.EffectiveDate DESC";
+                + " WHERE rc.EffectiveDate BETWEEN @startDate AND @endDate AND ra.RouteId IN (1, 2, 3) AND 1 = 1"
+                + " ORDER BY b.CompanyId, ra.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.EffectiveDate DESC";
             Assert.AreEqual(expected, actual, "The SELECT statement was not reproduced as expected.");
         }
 
@@ -1183,13 +1847,29 @@ ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.Effe
         #region Bug Fixes
 
         /// <summary>
-        /// @danizator discovered that the NOT was not being persisted within a IS NULL filter.
+        /// @dazinator discovered that the NOT was not being persisted within a IS NULL filter.
         /// </summary>
         [TestMethod]
         public void TestNullFilter_NotPersistsRoundtrip()
         {
             string commandText = "SELECT CustomerId, FirstName, LastName, Created FROM Customer WHERE FirstName IS NOT NULL";
             assertCanReproduce(commandText);
+        }
+
+        /// <summary>
+        /// @dazinator discovered a regression where a column in the WHERE filter was being parsed as a PlaceHolder rather than a Column.
+        /// See 
+        /// </summary>
+        [TestMethod]
+        public void TestDelete_WhereClause_ColumnNotPlaceHolder()
+        {
+            string commandText = "DELETE FROM [Table] WHERE TableId = 123";
+            CommandBuilder builder = new CommandBuilder();
+            ICommand command = builder.GetCommand(commandText, null);
+            var deleteCommand = (DeleteBuilder)command;
+
+            var filter = (EqualToFilter)deleteCommand.Where.First();
+            Assert.IsInstanceOfType(filter.LeftHand, typeof(Column));
         }
 
         #endregion
@@ -1213,7 +1893,7 @@ ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.Effe
                         new EqualToFilter(new Column("FirstName"), new StringLiteral("Max")),
                         new FilterGroup(Conjunction.And,
                             new EqualToFilter(new Column("LastName"), new StringLiteral("Planck")))));
-            
+
             wrapInParentheses(topFilter, true);
 
             SelectBuilder selectBuilder = new SelectBuilder();

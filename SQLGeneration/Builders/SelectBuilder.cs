@@ -17,6 +17,7 @@ namespace SQLGeneration.Builders
         private readonly List<IGroupByItem> _groupBy;
         private readonly FilterGroup _having;
         private readonly SourceCollection sources;
+        private bool _hasTerminator = false;
 
         /// <summary>
         /// Initializes a new instance of a SelectBuilder.
@@ -369,6 +370,21 @@ namespace SQLGeneration.Builders
         bool IValueProvider.IsValueList
         {
             get { return false; }
+        }
+
+        /// <summary>
+        /// Gets whether this command has a terminator.
+        /// </summary>
+        public bool HasTerminator
+        {
+            get
+            {
+                return _hasTerminator;
+            }
+            set
+            {
+                _hasTerminator = value;
+            }
         }
 
         void IVisitableBuilder.Accept(BuilderVisitor visitor)
