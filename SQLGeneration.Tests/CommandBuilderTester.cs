@@ -901,6 +901,16 @@ namespace SQLGeneration.Tests
             assertCanReproduce(commandText);
         }
 
+        /// <summary>
+        /// We should be able to compare the output of a function.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_ComparisonOfFunction()
+        {
+            string commandText = "SELECT 1 HAVING COUNT(1) > 1";
+            assertCanReproduce(commandText);
+        }
+
         #endregion
 
         #region Insert
@@ -1176,6 +1186,16 @@ ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.Effe
                 + " WHERE rc.EffectiveDate BETWEEN @startDate AND @endDate AND r.RouteId IN (1, 2, 3) AND 1 = 1"
                 + " ORDER BY b.CompanyId, r.RouteId, vm.VendingMachineId, p.ProductLookupId, rc.EffectiveDate DESC";
             Assert.AreEqual(expected, actual, "The SELECT statement was not reproduced as expected.");
+        }
+
+        /// <summary>
+        /// We should be able to compare the output of a function.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_FindWithCountOfOne()
+        {
+            string commandText = "SELECT 1 AS field HAVING count(1) = 1 ORDER BY field";
+            assertCanReproduce(commandText);
         }
 
         #endregion

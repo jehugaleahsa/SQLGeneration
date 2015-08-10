@@ -1546,12 +1546,12 @@ namespace SQLGeneration.Generators
                     return false;
                 }
                 SourceCollection collection = stack[stack.Count - 1];
-                if (collection.Count > 1)
+                if (collection.Count != 1)
                 {
                     source = null;
                     return false;
                 }
-                source = collection.Sources.First();
+                source = collection.Sources.Single();
                 return true;
             }
         }
