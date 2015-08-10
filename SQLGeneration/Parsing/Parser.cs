@@ -10,8 +10,6 @@ namespace SQLGeneration.Parsing
     public sealed class Parser
     {
         private readonly Grammar grammar;
-        private readonly Dictionary<string, Action<MatchResult, object>> handlerLookup;
-        private Action<TokenResult, object> tokenHandler;
 
         /// <summary>
         /// Initializes a new instance of a Parser.
@@ -24,35 +22,6 @@ namespace SQLGeneration.Parsing
                 throw new ArgumentNullException("grammar");
             }
             this.grammar = grammar;
-            this.handlerLookup = new Dictionary<string, Action<MatchResult, object>>();
-        }
-
-        /// <summary>
-        /// Registers the given handler to run when a token is matched.
-        /// </summary>
-        /// <param name="handler">The function to call when a token is matched.</param>
-        public void RegisterTokenHandle(Action<TokenResult, object> handler)
-        {
-            tokenHandler = handler;
-        }
-
-        /// <summary>
-        /// Registers the given handler to run when the given expression type is matched.
-        /// </summary>
-        /// <param name="expressionType">The type of the expression item to handle.</param>
-        /// <param name="handler">The function to call when the expression type is matched.</param>
-        /// <remarks>If a handler is already registered, it will be replaced.</remarks>
-        public void RegisterHandler(string expressionType, Action<MatchResult, object> handler)
-        {
-            if (String.IsNullOrWhiteSpace(expressionType))
-            {
-                throw new ArgumentException(Resources.BlankItemName, "itemName");
-            }
-            if (handler == null)
-            {
-                throw new ArgumentNullException("handler");
-            }
-            handlerLookup[expressionType] = handler;
         }
 
         /// <summary>
@@ -67,14 +36,17 @@ namespace SQLGeneration.Parsing
             {
                 throw new ArgumentNullException("tokenSource");
             }
+
             Expression expression = grammar.Expression(expressionType);
             ParseAttempt attempt = new ParseAttempt(this, tokenSource);
             MatchResult result = expression.Match(attempt, String.Empty);
-            TokenResult tokenResult = attempt.GetToken();
-            if (tokenResult != null)
+
+            // check that there are no trailing tokens
+            if (result.IsMatch && attempt.GetToken() != null)
             {
                 result.IsMatch = false;
             }
+
             return result;
         }
 
