@@ -189,7 +189,7 @@ namespace SQLGeneration.Builders
             {
                 return _from.Remove(source.Source);
             }
-            if (sources.Exists(sourceName) && _from.Remove(source.Source))
+            if (sources.Exists(sourceName) && _from.Remove(source))
             {
                 sources.Remove(sourceName);
                 return true;
