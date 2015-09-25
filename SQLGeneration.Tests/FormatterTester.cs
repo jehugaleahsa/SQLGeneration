@@ -14,6 +14,25 @@ namespace SQLGeneration.Tests
         #region Select
 
         /// <summary>
+        /// This removes previously added source and projection from SelectBuilder.
+        /// </summary>
+        [TestMethod]
+        public void TestSelect_RemoveSource()
+        {
+            var builder = new SelectBuilder();
+            var table1 = builder.AddTable(new Table("Table1"));
+            var table2 = builder.AddTable(new Table("Table2"));
+            builder.AddProjection(table1.Column("Column"));
+            var table2Column = builder.AddProjection(table2.Column("Column"));
+            builder.RemoveSource(table2);
+            builder.RemoveProjection(table2Column);
+            var formatter = new Formatter();
+            var commandText = formatter.GetCommandText(builder);
+            var expected = "SELECT Table1.Column FROM Table1";
+            Assert.AreEqual(expected, commandText, "The wrong SQL was generated.");
+        }
+
+        /// <summary>
         /// This sees whether we can select a column from a table.
         /// </summary>
         [TestMethod]
