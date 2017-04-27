@@ -2,7 +2,7 @@
 
 Provides core classes for generating SQL at runtime.
 
-Download using NuGet: [SQLGeneration](http://nuget.org/packages/SQLGeneration)
+Download using NuGet: [SQLGeneration](https://nuget.org/packages/SQLGeneration)
 
 ## Recent Updates
 Please view the [Recent Updates Wiki](https://github.com/jehugaleahsa/SQLGeneration/wiki/Recent-Updates) to learn the latest news.
@@ -83,4 +83,4 @@ OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
-For more information, please refer to <http://unlicense.org>
+For more information, please refer to <https://unlicense.org>
