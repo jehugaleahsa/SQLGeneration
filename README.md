@@ -1,3 +1,5 @@
+> *Archived 2026-03-28*: This project is very old and will no longer be maintained.
+
 # SQLGeneration
 
 Provides core classes for generating SQL at runtime.
